@@ -1,0 +1,100 @@
+diff -aur old/bin/INSTALL new/bin/INSTALL
+--- old/bin/INSTALL	2012-01-03 13:11:22.000000000 -0500
++++ new/bin/INSTALL	2013-02-19 15:45:22.000000000 -0500
+@@ -355,7 +355,7 @@
+     # note: once the architecture has been determined the path is customized
+ 
+     PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/ucb:/usr/bin/X11
+-
++    LINUX_BRAND=linux64
+ 
+     # get operating system type, login name
+     # special cases: SCO and Cray  - uname works differently,
+@@ -635,7 +635,7 @@
+ 			    EchoAndLog ""
+ 			    #in 64 bit machine we need -fPIC flag
+ 			    #for 64-bit installation
+-			    MACINTEL_COMP_FLAG="-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -fPIC"
++			    MACINTEL_COMP_FLAG="-mmacosx-version-min=10.5 -fPIC"
+ 			    export MACINTEL_COMP_FLAG
+ 			    BRAND=macintel64
+ 			    MAC_BRAND=macintel64
+@@ -1652,26 +1652,26 @@
+ fi
+  
+ if [ $jpeg_installed = 1 ] ; then
+-    if [  -d $HDFINC  ] ; then
++    if [  -d $HDFINC  ] && [ "$HDFINC" != "$JPEGINC" ] ; then
+ 	cp $JPEGINC/*.h $HDFINC/.
+     fi
+-    if [  -d $HDFLIB  ] ; then
++    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$JPEGLIB" ] ; then
+ 	cp $JPEGLIB/* $HDFLIB/.
+     fi
+ fi
+ if [ $zlib_installed = 1 ] ; then
+-    if [  -d $HDFINC  ] ; then
++    if [  -d $HDFINC  ] && [ "$HDFINC" != "$ZLIBINC" ] ; then
+ 	cp $ZLIBINC/*.h $HDFINC/.
+     fi
+-    if [  -d $HDFLIB  ] ; then
++    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$ZLIBLIB" ] ; then
+ 	cp $ZLIBLIB/* $HDFLIB/.
+     fi
+ fi
+ if [ $szip_installed = 1 ] ; then
+-    if [  -d $HDFINC  ] ; then
++    if [  -d $HDFINC  ] && [ "$HDFINC" != "$SZIPINC" ] ; then
+ 	cp $SZIPINC/*.h $HDFINC/.
+     fi
+-    if [  -d $HDFLIB  ] ; then
++    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$SZIPLIB" ] ; then
+ 	cp $SZIPLIB/* $HDFLIB/.
+     fi
+ fi
+@@ -3122,7 +3122,8 @@
+ # exclude AA tools for NCR ECSed26997
+ AA_install=0
+ 
+-if [ "$BRAND" = "macintosh" ] || [ "$BRAND" = "macintel" ] || [ "$BRAND" = "macintel32" ] || [ "$BRAND" = "macintel64" ]  ; then
++# always skip AA tools
++if [ 0 ] || [ "$BRAND" = "macintosh" ] || [ "$BRAND" = "macintel" ] || [ "$BRAND" = "macintel32" ] || [ "$BRAND" = "macintel64" ]  ; then
+ # the file values.h could not be found in macintel and macintosh, We will
+ # skip AA tools installation in these platforms
+ 
+diff -aur old/include/PGS_SMF.f new/include/PGS_SMF.f
+--- old/include/PGS_SMF.f	2000-05-02 17:03:48.000000000 -0400
++++ new/include/PGS_SMF.f	2013-02-01 15:24:30.000000000 -0500
+@@ -49,7 +49,7 @@
+         INTEGER PGS_SMF_MAX_MSGBUF_SIZE
+         PARAMETER (PGS_SMF_MAX_MSGBUF_SIZE = 480)
+         INTEGER PGS_SMF_MAX_FUNC_SIZE
+-        PARAMETER (PGS_SMF_MAX_FUNC_SIZE = 100)
++        PARAMETER (PGS_SMF_MAX_FUNC_SIZE = 256)
+         INTEGER PGS_SMF_MAX_MSGTAG_SIZE
+         PARAMETER (PGS_SMF_MAX_MSGTAG_SIZE = 60)
+ 
+diff -aur old/include/PGS_SMF.h new/include/PGS_SMF.h
+--- old/include/PGS_SMF.h	2011-12-20 10:20:54.000000000 -0500
++++ new/include/PGS_SMF.h	2013-02-01 15:24:30.000000000 -0500
+@@ -370,7 +370,7 @@
+ #define PGS_SMF_MAX_MSG_SIZE           241      /* max. 240 chars, 1 char for '\0'  */
+ #define PGS_SMF_MAX_ACT_SIZE           241      /* max. 240 chars, 1 char for '\0'  */
+ #define PGS_SMF_MAX_MSGBUF_SIZE        481      /* max. 480 chars, 1 char for '\0'  */
+-#define PGS_SMF_MAX_FUNC_SIZE          101      /* max. 100 chars, 1 char for '\0'  */
++#define PGS_SMF_MAX_FUNC_SIZE          256      /* max. 255 chars, 1 char for '\0'  */
+ #define PGS_SMF_MAX_MSGTAG_SIZE        61       /* max. 60 chars, 1 char for '\0'   */
+ 
+ /*
+diff -aur old/src/XML/xml/Makefile new/src/XML/xml/Makefile
+--- old/src/XML/xml/Makefile	2009-05-19 12:33:27.000000000 -0400
++++ new/src/XML/xml/Makefile	2013-02-01 15:24:30.000000000 -0500
+@@ -52,7 +52,7 @@
+ DFLAGS  = -DSUN_UNIX
+ 
+ # path for #include directive
+-IFLAG   = -I. $(ECS_TOOLKIT_INCLUDES) -I$(PGSINC) -I$(PGSINC)/libxml
++IFLAG   = -I. $(ECS_TOOLKIT_INCLUDES) -I$(ZLIBINC) -I$(PGSINC) -I$(PGSINC)/libxml
+ 
+ # object files from this sub-group needed to build library  
+ 

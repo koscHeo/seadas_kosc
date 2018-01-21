@@ -1,0 +1,2238 @@
+diff -aur old/h/mapic.h new/h/mapic.h
+--- old/h/mapic.h	2010-07-15 13:45:09.000000000 -0400
++++ new/h/mapic.h	2013-01-11 11:40:43.000000000 -0500
+@@ -169,7 +169,7 @@
+ 
+ 
+    int VFdatatypes(     	int32 vdata_id,
+-				long int *stringlen,
++				int32 *stringlen,
+ 	  			char *data_type);
+ 
+    short int emptyVdata(        MODFILE *file,
+@@ -185,13 +185,13 @@
+ 				char	*datatype);
+ 
+    short int SDS_footprintOK_s(	int32	 sds_id,
+-				long int start[ ],
+-				long int dimsizes[ ]); 
++				int32 start[ ],
++				int32 dimsizes[ ]); 
+ 
+    short int SDS_footprintOK(	int32 const sds_dimsizes[],
+ 				int32 sds_rank,
+-				long int const start[ ],
+-				long int const dimsizes[ ]);
++				int32 const start[ ],
++				int32 const dimsizes[ ]);
+ 
+    int32	VSnametoref(	int32 	hdf_id,
+ 				char 	*tablename);
+@@ -265,11 +265,11 @@
+ 
+    int MTYPEc2f(char *c_data_type,
+ 		char *f_data_type,
+-		long int *f_length);
++		int32 *f_length);
+ 
+    int MTYPEf2c(char *f_data_type,
+ 		char *c_data_type,
+-		long int *c_length);
++		int32 *c_length);
+ 
+    void ncopmfil(_fcd fname, intf *lfn,
+ 		_fcd access,intf *lac,
+diff -aur old/h/mapi.h new/h/mapi.h
+--- old/h/mapi.h	2010-07-15 13:45:09.000000000 -0400
++++ new/h/mapi.h	2013-01-11 11:40:43.000000000 -0500
+@@ -61,13 +61,13 @@
+ #undef   VOIDP
+ /*#undef   ATTRIBUTE*/
+ 
+-#define MAX_ECS_NAME_L     MAX_NC_NAME
++#define MAX_ECS_NAME_L     H4_MAX_NC_NAME
+ #define INVENTORY_METADATA 1
+ #define ARCHIVED_METADATA  2
+ 
+ /********************************TYPEDEFs*************************************/
+ typedef struct dataid
+-{	long int	id;		/* object's identifier */
++{	int32		id;		/* object's identifier */
+ 	char		*name;		/* object's name */
+ 	char		*group;		/* Vgroup name containing the object */
+ 	void		*info;		/* structure containing info of the object */
+@@ -85,10 +85,10 @@
+ typedef struct	modfile  /* File handle structure for HDF files*/
+ {
+ 	char		*filename;	/*string name of the file*/
+-	long int	access;		/*Type of access to HDF file (e.g.*/
++	int32		access;		/*Type of access to HDF file (e.g.*/
+ 					/*DFACC_READ, RDWR, or CREATE*/
+-	long int	sd_id;		/*SD interface file id.	*/
+-	long int	hdf_id;		/*HDF file identifier	*/
++	int32		sd_id;		/*SD interface file id.	*/
++	int32		hdf_id;		/*HDF file identifier	*/
+ 	DATAINFO	*dinfo;		/* structure containing data info */
+ } MODFILE;
+ 
+@@ -631,17 +631,17 @@
+ 						char const	*arrayname,
+ 						char const 	*groupname,
+ 						char 		*data_type,
+-						long int	*rank,
+-						long int	dimsizes[ ]);
++						int32		*rank,
++						int32		dimsizes[ ]);
+ 
+ 			int getMODISarray(	MODFILE		*file,
+ 						char const	*arrayname,
+ 						char const	*groupname,
+-						long int 	start[ ],
+-						long int	dimsizes[ ],
++						int32	 	start[ ],
++						int32		dimsizes[ ],
+ 						void 		*data);
+ 
+-			long int MODISsizeof(	char const	*data_type);
++			int32 MODISsizeof(	char const	*data_type);
+ 
+ 	                MODFILE *openMODISfile(	char const	*filename,
+ 						char const 	*access);
+@@ -649,16 +649,16 @@
+ 			int putMODISarray(	MODFILE		*file,
+ 						char const	*arrayname,
+ 						char const	*groupname,
+-						long int const	start[ ],
+-						long int const	dimsizes[ ],
++						int32 const	start[ ],
++						int32 const	dimsizes[ ],
+ 						void const      *data);
+ 
+   			int createMODISarray( MODFILE		*file,
+ 						char const 	*arrayname,
+ 						char const 	*groupname,
+ 						char const 	*data_type,
+-						long int	rank,
+-						long int const  dimsizes[] );
++						int32		rank,
++						int32 const  dimsizes[] );
+ 
+ 			int createMODISgroup(	MODFILE		*file,
+ 						char const 	*groupname,
+@@ -674,9 +674,9 @@
+ 			int getMODISfields(	MODFILE		*file,
+ 						char const	*tablename,
+ 						char const 	*groupname,
+- 						long int	*stringlen,
+-                                                long int	*recno,
+-						long int	*fieldno,
++ 						int32		*stringlen,
++ 						int32		*recno,
++						int32		*fieldno,
+ 						char		*fieldname,
+ 						char		*data_type,
+ 						char		*classname);
+@@ -684,29 +684,29 @@
+ 			int getMODISfileinfo(	MODFILE		*file,
+ 						char const	*attribute,
+                                                 char            *data_type,
+-                                                long int        *n_elements,
++                                                int32	        *n_elements,
+                                                 void            *value);
+ 
+ 			int getMODIStable(	MODFILE		*file,
+ 						char const	*tablename,
+ 						char const 	*groupname,
+ 						char const      *fieldname,
+-						long int	start,
+-						long int	recno,
+-						long int	*buffsize,
++						int32		start,
++						int32		recno,
++						int32		*buffsize,
+ 						unsigned char 	*data);
+ 
+ 			int putMODISfileinfo(	MODFILE		*file,
+ 						char const 	*attribute,
+ 						char const 	*data_type,
+-                                                long int        n_elements,
++						int32       n_elements,
+ 						void const  	*value);
+ 
+                 	int putMODIStable(	MODFILE		*file,
+ 						char const	*tablename,
+ 						char const 	*groupname,
+-						long int	start,
+-						long int	recno,
++						int32		start,
++						int32		recno,
+ 						unsigned char const *data);  
+ 
+                         int getMODISarinfo(     MODFILE         *file,
+@@ -714,7 +714,7 @@
+ 						char const 	*groupname,
+                                                 char const      *attribute,
+                                                 char            *data_type,
+-                                                long int        *n_elements,
++                                                int32	        *n_elements,
+                                                 void            *value);
+ 
+                         int putMODISarinfo(     MODFILE         *file,
+@@ -722,65 +722,65 @@
+ 						char const 	*groupname,
+                                                 char const      *attribute,
+                                                 char const      *data_type,
+-                                                long int        n_elements,
++                                                int32	        n_elements,
+                                                 void const      *value);
+ 
+                         int putMODISdiminfo(    MODFILE         *file,
+ 						char const	*arrayname,
+ 						char const 	*groupname,
+-                                                long int        dimension,
++                                                int32	        dimension,
+                                                 char const      *attribute, 
+                                                 char const      *data_type,
+-                                                long int        n_elements,
++                                                int32	        n_elements,
+                                                 void const      *value);
+                        int getMODISdiminfo(     MODFILE         *file,
+ 						char const	*arrayname,
+ 						char const 	*groupname,
+-                                                long int        dimension,
++                                                int32	        dimension,
+                                                 char const      *attribute,
+                                                 char            *data_type,
+-                                                long int        *n_elements,
++                                                int32	        *n_elements,
+                                                 void            *value);
+ 
+                        int getMODISECSinfo(     MODFILE         *file, 
+                                                 char const      *PVLAttrName, 
+                                                 char const      *parmName,
+                                                 char            *data_type,
+-                                                long int        *n_elements, 
++                                                int32	        *n_elements, 
+                                                 void            *value); 
+ 
+                        int completeMODISfile(  
+ 			   MODFILE              **file,
+ 			   PGSt_MET_all_handles mdHandles,
+ 			   ECSattr_names_for_all_handles HDFattrNames,
+-			   long int             NumHandles); 
++			   int32	            NumHandles); 
+ 
+                        int putMODISdimname(     MODFILE *file, 
+ 						char const *arrayname,
+                                                 char const *groupname,
+-			                        long int dimension,  
++                                                int32 dimension,  
+                                                 char const *dimname);
+ 
+                        int substrMODISECSinfo(  char const	*char_value, 
+-                                                long		n_elements,
+-                                                long		*n_strings, 
++                                                int32		n_elements,
++                                                int32		*n_strings, 
+                                                 char		*substr[]); 
+ 
+                        int getMODISdimname(     MODFILE *file, 
+ 						char const *arrayname,
+                                                 char const *groupname,
+-			                        long int dimension, 
++                                                int32 dimension,
+                                                 char *dimname);
+ 
+                        int endMODISobjaccess(   MODFILE *file,
+                                                 char const *name,
+                                                 char const *group,
+-                                                long int type);
++                                                int32 type);
+ 
+                        int getMODIShobjid(      MODFILE *file, 
+                                                 char const *name, 
+                                                 char const *group,
+-		                                long int type, 
++                                                int32 type, 
+                                                 char const *access);
+ 
+ 		       MODFILE *createMAPIfilehandle(int32 fid);
+diff -aur old/srclib/addid.c new/srclib/addid.c
+--- old/srclib/addid.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/addid.c	2013-01-11 11:40:43.000000000 -0500
+@@ -112,7 +112,7 @@
+   SDSINFO *sinfo;
+   VDINFO *vinfo;
+   int ndata;
+-  int32 dimsizes[MAX_VAR_DIMS];
++  int32 dimsizes[H4_MAX_VAR_DIMS];
+   int32 nattrs;			/* number of "netCDF-style attributes
+ 				   for the data set */
+   int i;			/* loop control variable */
+@@ -135,7 +135,7 @@
+       sprintf(buff, "ERROR: addid unable to allocate a DATAINFO\n"
+   		"\t structure while attempting to insert data\n"
+   		"\t id of %.*s into MODFILE structure.\n",
+-  		MAX_NC_NAME,name);
++  		H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+@@ -177,7 +177,7 @@
+   {
+     sprintf(buff,"ERROR: addid unable to allocate a DATAID structure\n"
+ 			"\t while attempting to insert data id of %.*s into\n"
+-			"\t MODFILE structure.\n",MAX_NC_NAME,name);
++			"\t MODFILE structure.\n",H4_MAX_NC_NAME,name);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -187,7 +187,7 @@
+     free(did);
+     sprintf(buff,"ERROR: addid unable to allocate space for storing\n"
+ 			"\t object's name while attempting to insert data id\n"
+-			"\t of %.*s into MODFILE structure.\n",MAX_NC_NAME,name);
++			"\t of %.*s into MODFILE structure.\n",H4_MAX_NC_NAME,name);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -205,7 +205,7 @@
+       sprintf(buff,"ERROR: addid unable to allocate space for\n"
+ 			"\t storing object's group name while\n"
+ 			"\t attempting to insert data id of %.*s into\n"
+-			"\t MODFILE structure.\n",MAX_NC_NAME,name);
++			"\t MODFILE structure.\n",H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+@@ -226,7 +226,7 @@
+       free(did);
+       sprintf(buff,"ERROR: addid unable to allocate an SDSINFO\n"
+ 			"\t structure while attempting to insert data\n"
+-			"\t id of %.*s into MODFILE structure.\n",MAX_NC_NAME,name);
++			"\t id of %.*s into MODFILE structure.\n",H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+@@ -242,7 +242,7 @@
+       sprintf(buff,"ERROR: addid detected FAIL from HDF procedure\n"
+ 			"\t SDgetinfo while attempting to  insert data\n"
+ 			"\t id of %.*s into MODFILE structure.\n",
+-			MAX_NC_NAME,name);
++			H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+@@ -257,7 +257,7 @@
+       sprintf(buff,"ERROR: addid unable to allocate space for\n"
+ 			"\t storing dimsizes while attempting to \n"
+ 			"\t insert data id of %.*s into MODFILE\n"
+-			"\t structure.\n",MAX_NC_NAME,name);
++			"\t structure.\n",H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+@@ -277,7 +277,7 @@
+       free(did);
+       sprintf(buff,"ERROR: addid unable to allocate VDINFO structure\n"
+ 			"\t while attempting to  insert data id of %.*s\n"
+-			"\t into MODFILE structure.\n",MAX_NC_NAME,name);
++			"\t into MODFILE structure.\n",H4_MAX_NC_NAME,name);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }
+diff -aur old/srclib/ccpmfil.c new/srclib/ccpmfil.c
+--- old/srclib/ccpmfil.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/ccpmfil.c	2013-01-11 11:52:55.000000000 -0500
+@@ -149,7 +149,7 @@
+ 
+ {
+     char *cmdHandles, *cHDFattrnms, *cp;
+-    long int cNumHandles;
++    int32 cNumHandles;
+     int      i, j;
+     PGSt_MET_all_handles Handles;
+     ECSattr_names_for_all_handles  attrNames;
+diff -aur old/srclib/ccrmar.c new/srclib/ccrmar.c
+--- old/srclib/ccrmar.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/ccrmar.c	2013-01-11 11:52:55.000000000 -0500
+@@ -107,7 +107,7 @@
+  */
+     MODFILE *mfile;
+     int  i;
+-    long int c_length, cdims[MAX_VAR_DIMS];
++    int32 c_length, cdims[MAX_VAR_DIMS];
+     char cdtype[DATATYPELENMAX];
+     char *carrnm, *cgrpnm, *fdtype;
+ 
+@@ -125,7 +125,7 @@
+ 
+     /* Copy dims to cdims(Note: total rank elements. Copy inverselyl. */
+     for (i=0; i<*rank; i++) 
+-      cdims[i] = (long int) dims[*rank-i-1];
++      cdims[i] = (int32) dims[*rank-i-1];
+ 
+     c_length = DATATYPELENMAX;
+     if (MTYPEf2c(fdtype, cdtype, &c_length) == MFAIL) 
+diff -aur old/srclib/ccrmtbl.c new/srclib/ccrmtbl.c
+--- old/srclib/ccrmtbl.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/ccrmtbl.c	2013-01-11 11:52:55.000000000 -0500
+@@ -110,7 +110,7 @@
+   char const *fieldname;   	/* pointer to C string for field name */
+   char *f_data_type = "";  /* pointer to C string for FORTRAN data types */
+   char *c_data_type = "";     /* pointer to c_data_type allocated */
+-  long int c_length;      	/* length of c_data_type */
++  int32 c_length;      	/* length of c_data_type */
+   int fieldno; 			/* number of fields */
+   int i;             		/* local variable for controling FOR loop */
+ 
+diff -aur old/srclib/cgmar.c new/srclib/cgmar.c
+--- old/srclib/cgmar.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmar.c	2013-01-11 11:52:55.000000000 -0500
+@@ -94,8 +94,8 @@
+     MODFILE  *mfile;
+     char *carrnm, *cgrpnm;
+     DATAID *did;
+-    long int cstart[MAX_VAR_DIMS], cdims[MAX_VAR_DIMS];
+-    long int rank, i;
++    int32 cstart[MAX_VAR_DIMS], cdims[MAX_VAR_DIMS];
++    int32 rank, i;
+ 
+ /*
+   Convert the FORTRAN character strings arrnm and grpnm to C character
+diff -aur old/srclib/cgmardm.c new/srclib/cgmardm.c
+--- old/srclib/cgmardm.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmardm.c	2013-01-11 11:52:55.000000000 -0500
+@@ -111,10 +111,10 @@
+   MODFILE	*mfile;
+   char *carrnm, *cgrpnm, *fcdtype;
+   char fdtype[FDATATYPELENMAX + 1];
+-  long int dimsizes[MAX_VAR_DIMS];
++  int32 dimsizes[MAX_VAR_DIMS];
+   int i;
+-  long int crank;
+-  long int f_length = FDATATYPELENMAX + 1;
++  int32 crank;
++  int32 f_length = FDATATYPELENMAX + 1;
+   
+   /* convert FORTRAN input strings to C strings */
+   carrnm = HDf2cstring(arrnm,(intn)*lar);
+diff -aur old/srclib/cgmarin.c new/srclib/cgmarin.c
+--- old/srclib/cgmarin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmarin.c	2013-01-11 11:52:55.000000000 -0500
+@@ -109,11 +109,11 @@
+ {
+   MODFILE	*file;
+   char		*cgroupname, *carrayname, *cattrname, *fdtype, *fcdtype;
+-  long int n_elements;
++  int32 n_elements;
+   char		cdtype[DATATYPELENMAX+1];
+   char		cfdtype[FDATATYPELENMAX+1];
+-  long int	c_length = DATATYPELENMAX;
+-  long int	f_length = FDATATYPELENMAX;
++  int32	c_length = DATATYPELENMAX;
++  int32	f_length = FDATATYPELENMAX;
+   int		i;
+ 
+   /* Set file by memcpy */
+diff -aur old/srclib/cgmdmin.c new/srclib/cgmdmin.c
+--- old/srclib/cgmdmin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmdmin.c	2013-01-11 11:52:55.000000000 -0500
+@@ -87,9 +87,9 @@
+    char *carrnm, *cgrpnm, *cattrnm, *fcdtype, *cfdtype;
+    DATAID *did;
+    char cdtype[DATATYPELENMAX], fdtype[FDATATYPELENMAX + 1];
+-   long int i;
+-   long int rank, cdim, n_elements;
+-   long int c_length = DATATYPELENMAX, f_length = FDATATYPELENMAX;
++   int32 i;
++   int32 rank, cdim, n_elements;
++   int32 c_length = DATATYPELENMAX, f_length = FDATATYPELENMAX;
+ 
+    n_elements = *nms;
+ 
+@@ -121,7 +121,7 @@
+ 
+    /* convert FORTRAN dimension to C dimension */
+ 
+-   rank = (long int)((SDSINFO *)did->info)->rank;
++   rank = (int32)((SDSINFO *)did->info)->rank;
+    cdim = rank - (*dim) - 1;
+ 
+    /* convert FORTRAN data type to C data type */
+diff -aur old/srclib/cgmdnam.c new/srclib/cgmdnam.c
+--- old/srclib/cgmdnam.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmdnam.c	2013-01-11 11:52:55.000000000 -0500
+@@ -84,7 +84,7 @@
+     MODFILE  *mfile;
+     char *carrnm, *cgrpnm, *cdname;
+     DATAID *did;
+-    long int rank, cdim;
++    int32 rank, cdim;
+ /*
+ Convert the FORTRAN character strings arrnm and  grpnm to C character strings carrnm and cgrpnm by using HDf2cstring. 
+ */
+diff -aur old/srclib/cgmecin.c new/srclib/cgmecin.c
+--- old/srclib/cgmecin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmecin.c	2013-01-11 11:55:52.000000000 -0500
+@@ -123,10 +123,10 @@
+ 				   same place where pvalue points to */
+   char		cdtype[DATATYPELENMAX]; /* character array to hold retrieved
+ 					C data type */
+-  long int	lnms;		/* local variable to hold *nms passed in */
+-  long int	c_length = DATATYPELENMAX; /* local variable to hold length
++  int32	lnms;			/* local variable to hold *nms passed in */
++  int32	c_length = DATATYPELENMAX; /* local variable to hold length
+ 						of C data type retrieved */
+-  long int	f_length = *ldt;            /* local variable to hold length
++  int32	f_length = *ldt;            /* local variable to hold length
+ 					of FORTRAN data type retrieved */
+   int		i;		/* local variable to control FOR loop */
+   
+diff -aur old/srclib/cgmfin.c new/srclib/cgmfin.c
+--- old/srclib/cgmfin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmfin.c	2013-01-11 11:52:55.000000000 -0500
+@@ -108,12 +108,12 @@
+ {
+   MODFILE	*file;
+   char		*cattrname, *fdtype, *fcdtype;
+-  long int	n_elements; 
++  int32	n_elements; 
+   char		cdtype[DATATYPELENMAX]; 
+   char		cfdtype[FDATATYPELENMAX]; 
+-  long int	c_length = DATATYPELENMAX; 
+-  long int	f_length = FDATATYPELENMAX; 
+-  long int	i; 
++  int32	c_length = DATATYPELENMAX; 
++  int32	f_length = FDATATYPELENMAX; 
++  int32	i; 
+ 
+   /* Set file by memcpy */ 
+   memcpy(&file,&modfil[P_ADDR],sizeof(MODFILE *)); 
+diff -aur old/srclib/cgmflds.c new/srclib/cgmflds.c
+--- old/srclib/cgmflds.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmflds.c	2013-01-11 11:52:55.000000000 -0500
+@@ -106,8 +106,8 @@
+ 
+   /* Declare local character pointers */
+   char *tablename, *data_type, *classname, *fieldname, *groupname;
+-  long int stringlen, c_recno, fieldno;
+-  long int f_length;
++  int32 stringlen, c_recno, fieldno;
++  int32 f_length;
+   MODFILE *file;
+ 
+   stringlen = 0l;
+diff -aur old/srclib/cgmtbl.c new/srclib/cgmtbl.c
+--- old/srclib/cgmtbl.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cgmtbl.c	2013-01-11 11:52:55.000000000 -0500
+@@ -111,7 +111,7 @@
+  /* declare local variables   */
+   MODFILE *file;
+   char *tablename, *groupname, *fieldname;
+-  long int buffersize;
++  int32 buffersize;
+ 
+   /* Convert FORTRAN strings group, tbname, fldnm to C string groupname,
+      tablename, and fieldname using HDf2cstring                         */
+@@ -127,7 +127,7 @@
+ 
+   /* call getMODIStable to get the table  */
+   *ret = getMODIStable(file, tablename, groupname, fieldname, 
+-                       (long int)*start, (long int)*recno, &buffersize,
++                       (int32)*start, (int32)*recno, &buffersize,
+                        (unsigned char *)data );
+   
+   /* free tablename, grupname, and fieldname if they are not equal to 
+diff -aur old/srclib/completeMODISfile.c new/srclib/completeMODISfile.c
+--- old/srclib/completeMODISfile.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/completeMODISfile.c	2013-01-11 11:40:43.000000000 -0500
+@@ -6,7 +6,7 @@
+ int completeMODISfile (MODFILE **file,
+                        PGSt_MET_all_handles mdHandles,
+                        ECSattr_names_for_all_handles HDFattrNames,
+-                       long int NumHandles)
++                       int32 NumHandles)
+ /*
+ !C**********************************************************************
+ *
+diff -aur old/srclib/cpmar.c new/srclib/cpmar.c
+--- old/srclib/cpmar.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmar.c	2013-01-11 11:52:55.000000000 -0500
+@@ -120,8 +120,8 @@
+    MODFILE *mfile;
+    char *carrnm, *cgrpnm;
+    DATAID  *did;
+-   long int cstart[MAX_VAR_DIMS], cdims[MAX_VAR_DIMS];
+-   long int rank, i;
++   int32 cstart[MAX_VAR_DIMS], cdims[MAX_VAR_DIMS];
++   int32 rank, i;
+   
+    /* Convert the FORTRAN character strings to C strings */
+   
+diff -aur old/srclib/cpmarin.c new/srclib/cpmarin.c
+--- old/srclib/cpmarin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmarin.c	2013-01-11 11:57:14.000000000 -0500
+@@ -117,7 +117,7 @@
+   MODFILE	*file;
+   char		cdtype[DATATYPELENMAX];
+   char		*cfdtype;
+-  long int	c_length = DATATYPELENMAX;
++  int32		c_length = DATATYPELENMAX;
+   char		*cgroupname;
+   char		*carrname;
+   char		*cattrname;
+diff -aur old/srclib/cpmdmin.c new/srclib/cpmdmin.c
+--- old/srclib/cpmdmin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmdmin.c	2013-01-11 11:57:25.000000000 -0500
+@@ -121,8 +121,8 @@
+   char		*carrnm, *cgrpnm, *cattrnm, *cfdtype;
+   DATAID	*did;
+   char		cdtype[DATATYPELENMAX];
+-  long int	rank, cdim;
+-  long int	c_length = DATATYPELENMAX;
++  int32		rank, cdim;
++  int32		c_length = DATATYPELENMAX;
+ 
+   /* Convert FORTRAN strings to C strings using HDf2cstring. */ 
+   cgrpnm = HDf2cstring(grpnm, (intn)*lgr);
+diff -aur old/srclib/cpmdnam.c new/srclib/cpmdnam.c
+--- old/srclib/cpmdnam.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmdnam.c	2013-01-11 11:57:46.000000000 -0500
+@@ -106,7 +106,7 @@
+   MODFILE  *mfile;            /* pointer to MODFILE structure */
+   char	   *carrnm, *cgrpnm, *cdname;
+   DATAID   *did;
+-  long int cdim;
++  int32    cdim;
+ 
+   /* Convert the FORTRAN character strings to C characater
+      strings using HDf2cstring. */
+diff -aur old/srclib/cpmfin.c new/srclib/cpmfin.c
+--- old/srclib/cpmfin.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmfin.c	2013-01-11 11:58:00.000000000 -0500
+@@ -109,7 +109,7 @@
+   char		cdtype[DATATYPELENMAX];
+   char		*attribute;
+   char		*cfdtype;
+-  long int	c_length = DATATYPELENMAX;
++  int32		c_length = DATATYPELENMAX;
+ 
+   /* Set file by memcpy */
+   memcpy(&file,&modfil[P_ADDR],sizeof(MODFILE *));
+diff -aur old/srclib/cpmtbl.c new/srclib/cpmtbl.c
+--- old/srclib/cpmtbl.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/cpmtbl.c	2013-01-11 11:52:55.000000000 -0500
+@@ -92,8 +92,8 @@
+ 
+   /* Set file by memcpy */
+   memcpy(&file,&modfil[3],sizeof(MODFILE *));
+-  *ret = putMODIStable(file, tablename, groupname, (long int)*start,
+-		      (long int)*recno, (unsigned char *)data); 
++  *ret = putMODIStable(file, tablename, groupname, (int32)*start,
++		      (int32)*recno, (unsigned char *)data); 
+  
+   /* free tablename and groupname if they are not NULL   */
+   if (tablename) HDfreespace((VOIDP)tablename);
+diff -aur old/srclib/createMODISarray.c new/srclib/createMODISarray.c
+--- old/srclib/createMODISarray.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/createMODISarray.c	2013-01-11 11:40:43.000000000 -0500
+@@ -4,7 +4,7 @@
+ 
+ int createMODISarray(MODFILE *file, char const *arrayname, 
+                      char const *groupname, char const *data_type, 
+-                     long int rank, long int const dimsizes[])
++                     int32 rank, int32 const dimsizes[])
+ /* 
+ !C****************************************************************************
+ *!Purpose:     Initializes an array in the MODIS-HDF file to store a multi-
+@@ -131,7 +131,7 @@
+   /* buffer to hold the error/warning message */
+   char  buff[PGS_SMF_MAX_MSGBUF_SIZE]; 
+   char *funcname="createMODISarray";    /* name of this routine */	
+-  int32   sds_dimsizes[MAX_VAR_DIMS];
++  int32   sds_dimsizes[H4_MAX_VAR_DIMS];
+   int32   ret_search, number_type, sds_id, sds_ref;
+   int     i, status_code;
+ 
+@@ -148,7 +148,7 @@
+   if ( NULLMODFIL(file) ){
+     sprintf(buff, "ERROR: createMODISarray unable to make a new %.*s\n"
+ 			"\t array with a NULL file MODFILE structure\n",
+-			  MAX_NC_NAME,arrayname);			
++			  H4_MAX_NC_NAME,arrayname);			
+     MAPIERR(buff, funcname);
+     return(MFAIL);
+   }
+@@ -156,7 +156,7 @@
+   if ( dimsizes == NULL ){
+     sprintf(buff,"ERROR: createMODISarray unable to make a new %.*s\n"
+ 			"\t array without array dimension input\n",
+-			  MAX_NC_NAME,arrayname);
++			  H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff, funcname);
+     return(MFAIL);
+   }
+@@ -166,7 +166,7 @@
+       {
+         sprintf(buff,"ERROR: createMODISarray unable to create a new\n"
+                 "\t %.*s array with %ld dimsize.\n",
+-                              MAX_NC_NAME,arrayname, dimsizes[i]);
++                H4_MAX_NC_NAME,arrayname,(long)dimsizes[i]);
+         MAPIERR(buff, funcname);
+         return(MFAIL);
+       }
+@@ -174,15 +174,15 @@
+   if ( data_type == NULL || NULLstr(data_type)  ){
+     sprintf(buff,"ERROR: createMODISarray unable to make a new %.*s\n"
+ 			"\t array without an array data type input\n",
+-			  MAX_NC_NAME,arrayname);
++			  H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff, funcname);
+     return(MFAIL);
+   }
+ 
+-  if ( (rank < 1) || (rank > MAX_VAR_DIMS) ){
++  if ( (rank < 1) || (rank > H4_MAX_VAR_DIMS) ){
+     sprintf(buff,"ERROR: createMODISarray unable to create a new\n"
+ 			"\t %.*s array with %ld dimensions.\n",
+-			MAX_NC_NAME,arrayname,rank);
++			H4_MAX_NC_NAME,arrayname,(long)rank);
+     MAPIERR(buff, funcname);
+     return(MFAIL);
+   }
+@@ -193,7 +193,7 @@
+   if ( file->access == DFACC_READ ){
+     sprintf(buff,"ERROR: createMODISarray unable to make new\n"
+ 		"\t%.*s arrayname in file opened for read only\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff, funcname);
+     return(MFAIL);
+   }
+@@ -206,27 +206,27 @@
+ 	NULL,DFTAG_NDG)) == MFAIL ){
+        sprintf(buff,"ERROR: createMODISarray detected an error in\n"
+                     "\t searchMODISgroup while searching the\n"
+-                    "\t %.*s array.\n",MAX_NC_NAME,arrayname);
++                    "\t %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+        MAPIERR(buff, funcname);
+        return(MFAIL);
+     }else if (ret_search != NO_OBJECT){
+        sprintf(buff,"ERROR: createMODISarray found %.*s array\n"
+                     "\t already exists in data group %.*s\n",
+-                    MAX_NC_NAME,arrayname,VGNAMELENMAX,groupname);
++                    H4_MAX_NC_NAME,arrayname,VGNAMELENMAX,groupname);
+        MAPIERR(buff,funcname);
+        return(MFAIL);
+     }
+   }else if ( SDnametoindex( (int32) file->sd_id,arrayname) != MFAIL ){
+   /* then array already exists. */
+       sprintf(buff,"ERROR: createMODISarray found %.*s array already\n"
+-                   "\t exists.\n",MAX_NC_NAME,arrayname);
++                   "\t exists.\n",H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+   }
+ 
+   if ((number_type = datatype_to_DFNT(data_type)) == MFAIL ){
+     sprintf(buff,"ERROR: createMODISarray unable to create %.*s\n"
+-			"\t array of data type %s\n",MAX_NC_NAME,
++			"\t array of data type %s\n",H4_MAX_NC_NAME,
+                         arrayname,data_type);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+@@ -235,7 +235,7 @@
+   if ((sds_id =  SDcreate( (int32)file->sd_id,arrayname,number_type,(int32)rank,sds_dimsizes)) == MFAIL ){
+     sprintf(buff,"ERROR: createMODISarray detected FAIL from HDF\n"
+ 			"\t procedure SDcreate attempting to create\n"
+-			"\t %.*s array\n",MAX_NC_NAME,arrayname);
++			"\t %.*s array\n",H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+   }
+ 
+@@ -247,7 +247,7 @@
+              sprintf(buff,"ERROR: createMODISarray detected FAIL from\n"
+ 			"\t HDF procedure SDidtoref attempting\n"
+ 			"\t to obtain the reference id of\n"
+-			"\t %.*s array\n",MAX_NC_NAME,arrayname);
++			"\t %.*s array\n",H4_MAX_NC_NAME,arrayname);
+ 	     MAPIERR(buff,funcname);
+          }
+ 
+@@ -256,7 +256,7 @@
+ 			"\t %.*s array to data group\n"
+ 			"\t %.*s because of failure in\n"
+ 			"\t addMODISgroup.\n",
+-			MAX_NC_NAME,arrayname,VGNAMELENMAX,groupname);
++			H4_MAX_NC_NAME,arrayname,VGNAMELENMAX,groupname);
+ 	     MAPIERR(buff,funcname);
+          }
+ 
+@@ -274,7 +274,7 @@
+ 			"\t in M-API internal routine addid\n"
+ 			"\t attempting to keep the array id for\n"
+ 			"\t the %.*s array.",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+ 	      MAPIERR(buff,funcname);
+               status_code = MFAIL;    
+           }
+diff -aur old/srclib/endMODISobjaccess.c new/srclib/endMODISobjaccess.c
+--- old/srclib/endMODISobjaccess.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/endMODISobjaccess.c	2013-01-11 11:40:43.000000000 -0500
+@@ -1,11 +1,10 @@
+ #include <stdlib.h>   
+ #include <stdio.h>
+-#include <malloc.h>
+ #include <string.h>
+ #include "mapic.h"
+ 
+ int endMODISobjaccess(MODFILE *file, char const *name, char const *group, 
+-                      long int type)
++                      int32 type)
+ /*
+ !C**********************************************************************
+ * 
+@@ -142,7 +141,7 @@
+    {
+      sprintf(buff,"ERROR: endMODISobjaccess unalbe to close object %.*s\n"
+ 				"\t with an invalid MODIS file structure input.\n",
+-				MAX_NC_NAME,name);
++				H4_MAX_NC_NAME,name);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -151,7 +150,7 @@
+ 	&& (type != MODIS_ALL_TYPES) )
+    {
+      sprintf(buff,"ERROR: endMODISobjaccess unable to close objects with\n"
+-			"\t an invalid MODIS object type: %ld.\n",type);
++			"\t an invalid MODIS object type: %ld.\n",(long)type);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -221,7 +220,7 @@
+ 	     sprintf(buff,"ERROR: endMODISobjaccess  detected FAIL from HDF"
+ 				"procedure SDendaccess\n"
+ 				"\t while closing access to array %.*s.\n",
+-				MAX_NC_NAME,did->name);			
++				H4_MAX_NC_NAME,did->name);			
+ 	     MAPIERR(buff,funcname);
+ 	     ret = MFAIL;
+ 	   }
+diff -aur old/srclib/getMODISardims.c new/srclib/getMODISardims.c
+--- old/srclib/getMODISardims.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISardims.c	2013-01-11 12:08:06.000000000 -0500
+@@ -1,7 +1,7 @@
+ #include "mapic.h" 
+ 
+ int getMODISardims(MODFILE *file, char const *arrayname, char const *groupname,
+-                   char *data_type, long int *rank, long int dimsizes[])
++                   char *data_type, int32 *rank, int32 dimsizes[])
+ /*
+ !C**********************************************************************
+ * 
+@@ -203,7 +203,7 @@
+   {
+     sprintf(buff,"ERROR: getMODISardims unable to access the %.*s\n"
+ 			"\t array with a NULL file MODFILE structure.\n",
+-		 	MAX_NC_NAME,arrayname);
++		 	H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -212,7 +212,7 @@
+   {
+     sprintf(buff,"ERROR: getMODISardims unable to return the %.*s\n"
+ 			"\t array's dimensions without a dimsizes array.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -224,7 +224,7 @@
+   {
+     sprintf(buff,"ERROR: getMODISardims detected errors from\n"
+ 			"\t getMODISarrayid while attempting to access the\n"
+-			"\t %.*s array.\n",MAX_NC_NAME,arrayname);
++			"\t %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+   }
+   else
+@@ -240,7 +240,7 @@
+ 			"\t HDF number type %ld which\n"
+ 			"\t is not implemented in M-API while\n"
+ 			"\t attempting to access the %.*s\n"
+-			"\t array.\n",(long)sinfo->ntype,MAX_NC_NAME,arrayname);
++			"\t array.\n",(long)sinfo->ntype,H4_MAX_NC_NAME,arrayname);
+ 	MAPIERR(buff,funcname);
+ 	ret = MFAIL;
+       }
+@@ -256,7 +256,7 @@
+ 	sprintf(buff,"ERROR: getMODISardims unable to return\n"
+ 			"\t %.*s array's %ld dimension\n"
+ 			"\t sizes in a %ld element dimsizes\n"
+-			"\t array.\n",MAX_NC_NAME,arrayname,
++			"\t array.\n",H4_MAX_NC_NAME,arrayname,
+ 			(long)sinfo->rank, (long)in_rank);
+ 	MAPIERR(buff,funcname);
+ 	ret = MFAIL;
+diff -aur old/srclib/getMODISarinfo.c new/srclib/getMODISarinfo.c
+--- old/srclib/getMODISarinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISarinfo.c	2013-01-11 12:09:18.000000000 -0500
+@@ -5,7 +5,7 @@
+ #define  MAXATTRNAMELEN  80
+ 
+ int  getMODISarinfo(MODFILE *file, char const *arrayname, char const *groupname, 
+-                   char const *attribute, char *data_type, long int *n_elements,
++                   char const *attribute, char *data_type, int32 *n_elements,
+                    void *value)
+ 
+ /*
+@@ -161,14 +161,14 @@
+   int status_code;                /* return value for routine.
+                                      MAPIOK = successful
+                                      MFAIL = fail */
+-  long int nelements_in;          /* initial input value of *n_elements */
++  int32 nelements_in;             /* initial input value of *n_elements */
+   int32 l_count;                  /* number of data count from SDattrinfo() */
+ /*  int32 sds_index; */             /* SDS index number */
+ /*  int32 sds_id;    */             /* SDS id */
+   int32 attr_index;               /* Attribute index */
+   int32 l_n_dtype;                /* HDF number type from SDattrinfo() */
+   char dtype[DATATYPELENMAX];     /* data type string */
+-  char l_attribute[MAX_NC_NAME+1];/* local buffer to hold attribute name */
++  char l_attribute[H4_MAX_NC_NAME+1];/* local buffer to hold attribute name */
+ 
+ 
+   /* initialize local variables */
+@@ -179,7 +179,7 @@
+   l_n_dtype = 0;
+   l_count = 0;
+   memset(dtype, 0, DATATYPELENMAX);
+-  memset(l_attribute, 0, MAX_NC_NAME + 1);
++  memset(l_attribute, 0, H4_MAX_NC_NAME + 1);
+ 
+   /* initialize return status code */
+   status_code = MAPIOK;
+@@ -208,7 +208,7 @@
+   {
+     sprintf(buff,"ERROR: getMODISarinfo unable to access the %.*s\n"
+ 			"\t attribute without the name of the array it is\n"
+-			"\t associated with.\n",MAX_NC_NAME,attribute);
++			"\t associated with.\n",H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -217,8 +217,8 @@
+   {
+     sprintf(buff,"ERROR: getMODISarinfo unable to access the %.*s\n"
+ 			"\t attribute in the %.*s array with a NULL\n"
+-			"\t file MODFILE structure.\n",MAX_NC_NAME,
+-			attribute,MAX_NC_NAME,arrayname);
++			"\t file MODFILE structure.\n",H4_MAX_NC_NAME,
++			attribute,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -227,8 +227,8 @@
+   {
+     sprintf(buff,"ERROR: getMODISarinfo unable to access the %.*s\n"
+ 			"\t attribute in the %.*s array without data\n"
+-			"\t type input.\n",MAX_NC_NAME,attribute,
+-			MAX_NC_NAME,arrayname);
++			"\t type input.\n",H4_MAX_NC_NAME,attribute,
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -240,7 +240,7 @@
+     sprintf(buff,"ERROR: getMODISarinfo detected errors from\n"
+ 			"\t getMODISarrayid attempting to read the %.*s\n"
+ 			"\t attribute from the %.*s array.\n",
+-			MAXATTRNAMELEN,attribute,MAX_NC_NAME,arrayname);
++			MAXATTRNAMELEN,attribute,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -250,7 +250,7 @@
+   {
+     sprintf(buff, "ERROR: getMODISarinfo cannot find local attribute\n"
+ 			"\t %.*s attached to the %.*s array.\n",
+-            		MAXATTRNAMELEN,attribute,MAX_NC_NAME,arrayname);
++            MAXATTRNAMELEN,attribute,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     *n_elements = nelements_in;
+     status_code = MFAIL;
+@@ -261,7 +261,7 @@
+     sprintf(buff, "ERROR: getMODISarinfo detected FAIL from HDF procedure\n"
+ 			"\t SDattrinfo attempting to read the %.*s\n"
+ 			"\t attribute from the %.*s array.\n",
+-                        MAXATTRNAMELEN,attribute,MAX_NC_NAME,arrayname);
++            MAXATTRNAMELEN,attribute,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     status_code = MFAIL;
+   }
+@@ -272,7 +272,7 @@
+ 			"\t numerical data type %ld while\n"
+ 			"\t attempting to read the %.*s attribute from\n"
+ 			"\t the %.*s array.\n",(long)l_n_dtype,
+-			MAXATTRNAMELEN,attribute,MAX_NC_NAME,arrayname);
++			MAXATTRNAMELEN,attribute,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     status_code = MFAIL;
+   }
+@@ -294,7 +294,7 @@
+     if (l_count > nelements_in) 
+       status_code = MFAIL;
+ 
+-    *n_elements = (long int)l_count;
++    *n_elements = (int32)l_count;
+   }/* end of else */
+ 
+   /* enough buffer to hold value */
+@@ -316,7 +316,7 @@
+ 			"\t procedure SDreadattr attempting to\n"
+ 			"\t retrieve the %.*s attribute from the\n"
+ 			"\t %.*s array.\n",MAXATTRNAMELEN,attribute,
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       status_code = MFAIL;
+       *n_elements = 0L;
+diff -aur old/srclib/getMODISarray.c new/srclib/getMODISarray.c
+--- old/srclib/getMODISarray.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISarray.c	2013-01-11 11:40:43.000000000 -0500
+@@ -3,7 +3,7 @@
+ #include "mapic.h"
+ 
+  int getMODISarray (MODFILE *file, char const *arrayname, char const *groupname,
+-                    long int start[], long int dimsizes[], void *data)
++                    int32 start[], int32 dimsizes[], void *data)
+ 
+ /*
+ !C****************************************************************************
+@@ -125,8 +125,8 @@
+    {
+    char  buff[PGS_SMF_MAX_MSGBUF_SIZE];
+    char *funcname="getMODISarray"; 
+-   int32 sds_dimsizes[MAX_VAR_DIMS];	/* int32 HDF SD array		*/
+-   int32 sds_start[MAX_VAR_DIMS];	/* local array specifying the   */
++   int32 sds_dimsizes[H4_MAX_VAR_DIMS];	/* int32 HDF SD array		*/
++   int32 sds_start[H4_MAX_VAR_DIMS];	/* local array specifying the   */
+                                         /*  array starting point        */
+    int status;				/* function return status	*/
+    int i;				/* loop counting variable	*/
+@@ -144,7 +144,7 @@
+   if ( NULLMODFIL(file) ) {
+     sprintf(buff,"ERROR: getMODISarray unable to read from the\n"
+ 		"\t %.*s array with a NULL file MODFILE structure.\n",
+-			 MAX_NC_NAME,arrayname);
++			 H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -152,7 +152,7 @@
+   if ( dimsizes == NULL ) {
+     sprintf(buff,"ERROR: getMODISarray unable to read from the \n"
+ 		"\t %.*s array without array dimension input.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -160,7 +160,7 @@
+   if ( start == NULL ) {
+     sprintf(buff,"ERROR: getMODISarray unable to read from the \n"
+ 		"\t %.*s array without array start input.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -168,7 +168,7 @@
+   if ( data == NULL ) {
+     sprintf(buff,"ERROR: getMODISarray unable to read from the \n"
+ 		"\t %.*s array without a data buffer.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -180,7 +180,7 @@
+   if ( did  == NULL) {
+      sprintf(buff, "ERROR: getMODISarray detected errors from"
+                    "\t getMODSIarrayid while attempting to read from" 
+-                   "\t the %.*s array.\n", MAX_NC_NAME,arrayname);
++                   "\t the %.*s array.\n", H4_MAX_NC_NAME,arrayname);
+      MAPIERR(buff,funcname);
+   }
+       
+@@ -189,7 +189,7 @@
+      if ( !SDS_footprintOK(sinfo->dimsizes,sinfo->rank,start,dimsizes)) {
+         sprintf(buff, "ERROR: getMODISarray unable to read data from\n"
+ 		    "\t invalid array structure locations in the\n"
+-                    "\t %.*s array.\n",MAX_NC_NAME,arrayname);
++                    "\t %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+         MAPIERR(buff,funcname);
+      }
+ 
+@@ -203,7 +203,7 @@
+           sprintf(buff, "ERROR: getMODISarray detected FAIL\n"
+                         "\t from HDF procedure SDreaddata\n"
+                         "\t while attempting to read from\n"
+-                        "\t the %.*s array.\n", MAX_NC_NAME,arrayname);
++                        "\t the %.*s array.\n", H4_MAX_NC_NAME,arrayname);
+           MAPIERR(buff,funcname);
+         }
+ 
+diff -aur old/srclib/getMODISarrayid.c new/srclib/getMODISarrayid.c
+--- old/srclib/getMODISarrayid.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISarrayid.c	2013-01-11 11:40:43.000000000 -0500
+@@ -124,7 +124,7 @@
+       {
+ 	sprintf(buff,"ERROR: getMODISarrayid cannot find the %.*s array\n"
+ 				"\t in the %.*s data group.\n",
+-				MAX_NC_NAME,arrayname,VSNAMELENMAX,groupname);
++				H4_MAX_NC_NAME,arrayname,VSNAMELENMAX,groupname);
+ 	MAPIERR(buff,funcname);
+ 	return(NULL);
+       }
+@@ -132,7 +132,7 @@
+       {
+ 	sprintf(buff,"ERROR: getMODISarrayid unable to find the %.*s\n"
+ 				"\t data group containing the %.*s array.\n",
+-				VSNAMELENMAX,groupname,MAX_NC_NAME,arrayname);
++				VSNAMELENMAX,groupname,H4_MAX_NC_NAME,arrayname);
+ 	MAPIERR(buff,funcname);
+ 	return(NULL);
+       }
+@@ -140,7 +140,7 @@
+     else if ( (sds_index = SDnametoindex((int32)file->sd_id,arrayname)) == FAIL )
+     {
+       sprintf(buff,"ERROR: getMODISarrayid cannot find array %.*s\n",
+-				MAX_NC_NAME,arrayname);
++				H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       return(NULL);
+     }
+@@ -149,7 +149,7 @@
+     {
+       sprintf(buff,"ERROR: getMODISarrayid detected FAIL from HDF\n"
+ 			"\t procedure SDselect attempting to access\n"
+-			"\t the %.*s array.\n",MAX_NC_NAME,arrayname);
++			"\t the %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       return(NULL);
+     }
+@@ -159,7 +159,7 @@
+       SDendaccess(sds_id);
+       sprintf(buff,"ERROR: getMODISarrayid detected FAIL from M-API\n"
+ 			"\t internal routine addid while attempting to\n"
+-			"\t access the %.*s array.\n",MAX_NC_NAME,arrayname);
++			"\t access the %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       return(NULL);
+     }
+diff -aur old/srclib/getMODISdiminfo.c new/srclib/getMODISdiminfo.c
+--- old/srclib/getMODISdiminfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISdiminfo.c	2013-01-11 12:33:03.000000000 -0500
+@@ -4,8 +4,8 @@
+ #define MAXDIMNAMELEN 100
+ 
+ int getMODISdiminfo(MODFILE *file, char const *arrayname, char const *groupname,
+-                    long int dimension, char const *attribute, char *data_type,
+-                    long int *n_elements, void *value)
++                    int32 dimension, char const *attribute, char *data_type,
++                    int32 *n_elements, void *value)
+ /*
+ !C************************************************************************
+ *!Purpose:     Reads the value(s) of a local attribute attached to a spe- 
+@@ -164,11 +164,11 @@
+   char  buff[PGS_SMF_MAX_MSGBUF_SIZE];
+   char *funcname="getMODISdiminfo"; 
+   int  status;             /* variable to hold the returned value */
+-  long int  nelements_in;  /* variable to keep the value of n_elements
++  int32  nelements_in;     /* variable to keep the value of n_elements
+                               passed in  */
+   int32  dim_id = 0L;
+   int32  attr_index = 0L;
+-  char   attr_name[MAX_NC_NAME];
++  char   attr_name[H4_MAX_NC_NAME];
+   int32  num_type = 0L; /* number type */
+   int32  count = 0L;
+   char   dtype[DATATYPELENMAX];
+@@ -235,7 +235,7 @@
+     sprintf(buff,"ERROR: getMODISdiminfo unable to retrieve an %.*s\n"
+ 			"\t attribute for %ld dimension The %.*s \n"
+ 			"\t array has %ld dimensions.\n",
+-		        MAXDIMNAMELEN,attribute, dimension, MAXDIMNAMELEN,
++		        MAXDIMNAMELEN,attribute,(long)dimension,MAXDIMNAMELEN,
+                         arrayname,(long)((SDSINFO *)did->info)->rank);
+     MAPIERR(buff,funcname);
+     
+@@ -285,11 +285,11 @@
+     if ( num_type == DFNT_CHAR8 )
+       count ++;
+ 
+-    if ( (long int)count > nelements_in )
++    if ( (int32)count > nelements_in )
+       status = MFAIL;            /* attribute retrieval failed. */
+  
+     /* Set the value of n_elements to the number of values. */
+-    *n_elements = (long int)count;
++    *n_elements = (int32)count;
+   }
+ 
+   if ( status != MFAIL ) {
+diff -aur old/srclib/getMODISdimname.c new/srclib/getMODISdimname.c
+--- old/srclib/getMODISdimname.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISdimname.c	2013-01-11 12:33:00.000000000 -0500
+@@ -5,7 +5,7 @@
+ #include "mapic.h"
+ 
+ int getMODISdimname(MODFILE *file, char const *arrayname, char const *groupname,
+-                  long int dimension, char *dimname)
++                  int32 dimension, char *dimname)
+ /*
+ *************************************************************************
+ *!C 
+@@ -130,7 +130,7 @@
+     sprintf(buff,"ERROR: getMODISdimname unable to read the name of a \n"
+                  "\t dimension in the %.*s array with an invalid \n"
+                  "\t MODIS file structure input.\n",
+-                  MAX_NC_NAME,arrayname);
++                  H4_MAX_NC_NAME,arrayname);
+     return(MFAIL);
+   }
+ 
+@@ -138,7 +138,7 @@
+     sprintf(buff,"ERROR: getMODISdimname unable to read the name of a \n"
+                  "\t %.*s array's dimension name without an \n"
+                  "\t output character string. \n",
+-                  MAX_NC_NAME,arrayname);
++                  H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -150,7 +150,7 @@
+                  "\t internal function getMODISarrayid while \n"
+                  "\t attempting to obtain the name of dimension \n"
+                  "\t %ld in the %.*s array.\n",
+-                  dimension, MAX_NC_NAME,arrayname);
++                  (long)dimension,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return (MFAIL);
+   }
+@@ -162,19 +162,19 @@
+          sprintf(buff,"ERROR: getMODISdimname unable to read the dimension\n"
+                       "\t name of the non-existent dimension %ld of\n"
+                       "\t %.*s array.\n",
+-                      dimension, MAX_NC_NAME,arrayname);
++                      (long)dimension, H4_MAX_NC_NAME,arrayname);
+          MAPIERR(buff,funcname);
+   }else if ( (dim_id = SDgetdimid(sds_id,(int32)dimension)) == FAIL ){
+          sprintf(buff,"ERROR: getMODISdimname detected FAIL from HDF \n"
+                       "\t procedure SDgetdimid attempting to read the name \n"
+                       "\t of an %.*s array's dimension.\n",
+-                      MAX_NC_NAME,arrayname);
++                      H4_MAX_NC_NAME,arrayname);
+          MAPIERR(buff,funcname);
+   }else if ( SDdiminfo(dim_id,dimname,&count,&nnumber_type,&nattrs) == FAIL ){
+          sprintf(buff,"ERROR: getMODISdimname detected FAIL from HDF\n"
+                       "\t procedure SDdiminfo attempting to read the \n"
+                       "\t name of an %.*s array's dimension.\n",
+-                      MAX_NC_NAME,arrayname);
++                      H4_MAX_NC_NAME,arrayname);
+          MAPIERR(buff,funcname);
+   }else
+     status = MAPIOK;
+diff -aur old/srclib/getMODISECSinfo.c new/srclib/getMODISECSinfo.c
+--- old/srclib/getMODISECSinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISECSinfo.c	2013-01-11 11:40:43.000000000 -0500
+@@ -4,7 +4,7 @@
+ 
+ int getMODISECSinfo(MODFILE *file, char const *PVLAttrName, 
+                     char const *parmName, char *data_type, 
+-                    long int *n_elements, void *value)
++                    int32 *n_elements, void *value)
+ /*
+ !C**********************************************************************
+ *!Description:
+@@ -224,7 +224,7 @@
+     sprintf(buff,"ERROR: getMODISECSinfo unable to access the %s\n"
+ 			"\t metadata from ECS global attribute %.*s\n"
+ 			"\t without the data type input.\n",
+-			parmName,MAX_NC_NAME,PVLAttrName);
++			parmName,H4_MAX_NC_NAME,PVLAttrName);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -240,7 +240,7 @@
+ 			"\t procedure MPVL2ODL while attempting to\n"
+ 			"\t retrieve parameter %s from ECS\n"
+ 			"\t global attribute %.*s.\n",
+-			parmName,MAX_NC_NAME,PVLAttrName);
++			parmName,H4_MAX_NC_NAME,PVLAttrName);
+       MAPIERR(buff,funcname);
+       return(MFAIL);
+     }  
+diff -aur old/srclib/getMODISfields.c new/srclib/getMODISfields.c
+--- old/srclib/getMODISfields.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISfields.c	2013-01-11 11:40:43.000000000 -0500
+@@ -7,7 +7,7 @@
+ #define MAX_V(a,b) (((a) > (b))?(a):(b))
+ 
+ int getMODISfields (MODFILE *file, char const *tablename, char const *groupname,  
+-                    long int *stringlen, long int *recno, long int *fieldno, 
++                    int32 *stringlen, int32 *recno, int32 *fieldno, 
+                     char *fieldname, char *data_type, char *classname)
+ /*
+ !C*****************************************************************************
+@@ -192,8 +192,8 @@
+  DATAID        *did;
+  int status_code;        	/*  return value for function.  MAPIOK = successful */
+  int32 number_of_fields = 0; 	/*  number of fields in the Vdata  */
+- long int field_len = 0;     	/* string length of fieldname */
+- long int dtype_len = 0;     	/* string length of data_type */
++ int32 field_len = 0;			/* string length of fieldname */
++ int32 dtype_len = 0;			/* string length of data_type */
+ 
+  /*char local_fields[VSFIELDMAX * (FIELDNAMELENMAX + 1)];*/
+  char local_fields[32767];      /* use 32767 to replace VSFIELDMAX * (FIELDNAMELENMAX + 1) */
+@@ -257,7 +257,7 @@
+      if ( fieldno != NULL )
+        *fieldno = number_of_fields;
+ 
+-     field_len = (long)strlen(local_fields);
++     field_len = (int32)strlen(local_fields);
+      if (fieldname != NULL) 
+      {
+        if ( stringlen == NULL )
+@@ -279,7 +279,7 @@
+ 				"\t byte field names into\n"
+ 				"\t %ld byte output string.\n",
+ 				VSNAMELENMAX,tablename,
+-				(long)field_len,*stringlen);
++				(long)field_len,(long)*stringlen);
+ 	      MAPIERR(buff,funcname);
+ 	    }
+ 
+@@ -326,8 +326,8 @@
+ 			"\t the %.*s tables %ld\n"
+ 			"\t byte data types into\n"
+ 			"\t %ld	byte output string.\n",
+-			VSNAMELENMAX,tablename,dtype_len,*stringlen);
+-         MAPIERR(buff,funcname);
++			VSNAMELENMAX,tablename,(long)dtype_len,(long)*stringlen);
++			MAPIERR(buff,funcname);
+        }
+ 
+      } /* end of if; if ( VFdatatypes(... */
+@@ -353,7 +353,7 @@
+ 
+    /* ELSE IF there is only one record in the Vdata AND emptyVdata
+        indicates that it is only a dummy record. */
+-   else if ( ((*recno = (long)recno32) == 1) && (emptyVdata(file,VSQueryref((int32)did->id)) == 1) ) 
++   else if ( ((*recno = (int32)recno32) == 1) && (emptyVdata(file,VSQueryref((int32)did->id)) == 1) ) 
+           *recno = 0;   /* no records in the Vdata */
+ 
+  } /* end of if; recon != NULL */ 
+diff -aur old/srclib/getMODISfileinfo.c new/srclib/getMODISfileinfo.c
+--- old/srclib/getMODISfileinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODISfileinfo.c	2013-01-11 11:40:43.000000000 -0500
+@@ -8,7 +8,7 @@
+ /*****************************************************************************/
+ 
+ int getMODISfileinfo (MODFILE *file, char const *attribute, char *data_type,
+-                    long int *n_elements, void *value)
++                    int32 *n_elements, void *value)
+ 
+ /*
+ !C****************************************************************************
+@@ -172,9 +172,9 @@
+ {
+   char  buff[PGS_SMF_MAX_MSGBUF_SIZE];  /* buffer to hold the error/warning message */
+   char *funcname="getMODISfileinfo";    /* name of this routine */
+-  char attr_name[MAX_NC_NAME] = "";      /* local buf for attribute name */
++  char attr_name[H4_MAX_NC_NAME] = "";      /* local buf for attribute name */
+   int  status;                         /* function return code   */
+-  long int nelements_in;             /* initial input value of *n_elements */
++  int32 nelements_in;             /* initial input value of *n_elements */
+   int32 number_type = 0;                       /* data type(type of data)  */ 
+   int32 count = 0;                             /* number of values         */
+   int32 attr_index = 0;                        /* attribute index          */
+@@ -207,7 +207,7 @@
+   {
+     sprintf(buff,"ERROR: getMODISfileinfo unable to access the %.*s\n"
+ 			"\t file attribute without data type input.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -224,7 +224,7 @@
+   if ( (attr_index = SDfindattr((int32)file->sd_id, attribute) ) == FAIL ) 
+   {
+     sprintf(buff, "ERROR: %s cannot find file attribute %.*s\n",
+-			funcname,MAX_NC_NAME,attribute);
++			funcname,H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     *n_elements = nelements_in;
+     return(MFAIL);
+@@ -237,7 +237,7 @@
+     sprintf(buff,"ERROR: %s detected FAIL from HDF\n"
+ 			"\t procedure SDattrinfo attempting to read the\n"
+ 			"\t %.*s file attribute.\n",
+-             		funcname,MAX_NC_NAME,attribute);
++			funcname,H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -250,7 +250,7 @@
+     sprintf(buff,"ERROR: getMODISfileinfo unable to recognize the HDF\n"
+ 			"\t numerical data type %ld while\n"
+ 			"\t attempting to read the %.*s file attribute.\n",
+-			(long)number_type,MAX_NC_NAME,attribute);
++			(long)number_type,H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -277,7 +277,7 @@
+     {
+       sprintf(buff, "ERROR: %s unable to read file\n"
+ 			"\t attribute without output buffer for\n"
+-			"\t %.*s.\n", funcname,MAX_NC_NAME,attribute);
++			"\t %.*s.\n", funcname,H4_MAX_NC_NAME,attribute);
+       MAPIERR(buff,funcname);
+       status = MFAIL;
+       *n_elements = 0;
+@@ -287,7 +287,7 @@
+       sprintf(buff, "ERROR: %s detected FAIL from HDF\n"
+ 			"\t procedure SDreadattr attempting to read\n"
+ 			"\t the %.*s file attribute.\n",
+-                        funcname,MAX_NC_NAME,attribute);
++			funcname,H4_MAX_NC_NAME,attribute);
+       MAPIERR(buff,funcname);
+       status = MFAIL;
+       *n_elements = 0;
+diff -aur old/srclib/getMODIShobjid.c new/srclib/getMODIShobjid.c
+--- old/srclib/getMODIShobjid.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODIShobjid.c	2013-01-11 12:23:54.000000000 -0500
+@@ -3,7 +3,7 @@
+ #include "mapic.h"
+ 
+ int getMODIShobjid(MODFILE *file, char const *name, char const *group, 
+-                   long int type, char const *access)
++                   int32 type, char const *access)
+ /*
+ !C****************************************************************************
+ *
+@@ -127,7 +127,7 @@
+    {
+      sprintf(buff,"ERROR: getMODIShobjid unable to obtain the id for\n"
+ 			"\t object %.*s with an invalid MODIS file structure input.\n",
+-			MAX_NC_NAME,name);
++			H4_MAX_NC_NAME,name);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -136,7 +136,7 @@
+    {
+      sprintf(buff, "ERROR: getMODIShobjid unable to obtain the id for\n"
+ 			"\t object %.*s with an invalid MODIS object type: %ld\n",
+-			MAX_NC_NAME,name,type);
++			H4_MAX_NC_NAME,name,(long)type);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -145,7 +145,7 @@
+    {
+      sprintf(buff, "ERROR: getMODIShobjid unable to obtain the id for\n"
+ 			"\t object %.*s with an invalid access mode:%s\n",
+-			MAX_NC_NAME,name,access);
++			H4_MAX_NC_NAME,name,access);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -154,7 +154,7 @@
+    {
+      sprintf(buff, "ERROR: getMODIShobjid unable to obtain the id of object\n"
+ 			"\t %.*s for write while the file is opened for read only.\n",
+-			MAX_NC_NAME,name);
++			H4_MAX_NC_NAME,name);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -169,7 +169,7 @@
+      sprintf(buff, "ERROR: getMODIShobjid detected errors while attempting\n"
+ 			"\t to obtain the id for object %.*s (Most likely\n"
+ 			"\t the object does not exist).\n",
+-			MAX_NC_NAME,name);
++			H4_MAX_NC_NAME,name);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+diff -aur old/srclib/getMODIStable.c new/srclib/getMODIStable.c
+--- old/srclib/getMODIStable.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/getMODIStable.c	2013-01-11 11:40:43.000000000 -0500
+@@ -3,8 +3,8 @@
+ #include "mapic.h"
+ 
+ int  getMODIStable(MODFILE *file, char const *tablename, char const *groupname,
+-                   char const *fieldname, long int start, long int recno,
+-                   long int *buffsize, unsigned char *data)
++                   char const *fieldname, int32 start, int32 recno,
++                   int32 *buffsize, unsigned char *data)
+ 
+ /*
+ !C************************************************************************
+@@ -149,7 +149,7 @@
+    VDINFO	*vdinfo;
+    int32 	nrecords;             /* total number of record */
+    int32 	rec_byte_size;         /* byte size of Vdata field(s) */
+-   long int 	buffsize_in;        /* input *buffsize value */
++   int32 	buffsize_in;        /* input *buffsize value */
+    int32	output_size;
+  
+    /* initialize return status to MFAIL */
+diff -aur old/srclib/MODISsizeof.c new/srclib/MODISsizeof.c
+--- old/srclib/MODISsizeof.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/MODISsizeof.c	2013-01-11 11:40:43.000000000 -0500
+@@ -3,7 +3,7 @@
+ #include <stdlib.h>
+ #include "mapic.h"
+ 
+-long int MODISsizeof(char const *data_type)
++int32 MODISsizeof(char const *data_type)
+ 
+ /*****************************************************************************
+ *!C
+@@ -87,7 +87,7 @@
+ {
+   char *local_string, *next_string;  
+   int32 HDF_num_type=0L;  /* HDF number type returned from datatype_to_DFNT */
+-  long int byte_sum=0L;                           /* output number of bytes */ 
++  int32 byte_sum=0L;                           /* output number of bytes */ 
+ 
+   if(!NULLstr(data_type)){
+     local_string = (char *)malloc(strlen(data_type)+1); 
+@@ -102,7 +102,7 @@
+         if (HDF_num_type==MFAIL)
+            byte_sum = MFAIL;
+         else
+-           byte_sum += (long int)DFKNTsize(HDF_num_type);
++           byte_sum += (int32)DFKNTsize(HDF_num_type);
+         local_string = next_string;
+     }
+     free(local_string);
+diff -aur old/srclib/MPVL2ODL.c new/srclib/MPVL2ODL.c
+--- old/srclib/MPVL2ODL.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/MPVL2ODL.c	2013-01-11 11:40:43.000000000 -0500
+@@ -106,7 +106,7 @@
+   int32	     num_SDS;
+   int32	     nglobal_attr;
+   char	     *buffer;
+-  char	     attr_name[MAX_NC_NAME];
++  char	     attr_name[H4_MAX_NC_NAME];
+   int32	     num_type; 
+   int32	     count;  /*number of elements being read*/
+   intn	     ret;
+@@ -148,7 +148,7 @@
+   /* Following added suffix and for loop to handle the family attribute.
+      Almost a rewrite. Nov-28-2000. */
+   
+-  strncpy(attr_name, PVLAttrName, MAX_NC_NAME);
++  strncpy(attr_name, PVLAttrName, H4_MAX_NC_NAME);
+   suffix = &attr_name[strlen(attr_name)];
+   
+   /* get the number of SDS in hdf file */
+@@ -208,7 +208,7 @@
+     if (attr_index == FAIL)
+     {
+       sprintf(buff, "ERROR: MPVL2ODL unable to find the PVL\n"
+-	      "\t attribute %.*s in file %.*s\n", MAX_NC_NAME,
++	      "\t attribute %.*s in file %.*s\n", H4_MAX_NC_NAME,
+ 	      attr_name, MAXILEN, file->filename);
+       MAPIERR(buff, funcname);
+       count = FAIL;
+@@ -223,7 +223,7 @@
+ 	sprintf(buff, "ERROR: MPVL2ODL detected FAIL from HDF\n"
+ 		"\t procedure SDattrinfo while attempting to retrieve\n"
+ 		"\t the PVL attribute %.*s from HDF file %.*s\n", 
+-		MAX_NC_NAME, attr_name, MAXILEN, file->filename);
++		H4_MAX_NC_NAME, attr_name, MAXILEN, file->filename);
+ 	MAPIERR(buff, funcname);
+ 	count = FAIL;
+       }
+@@ -280,7 +280,7 @@
+     sprintf(buff, "ERROR:MPVL2ODL detected FAIL from PGS procedure\n"
+ 	    "\t PGS_MET_ConvertToOdl while attempting to\n"
+ 	    "\t retrieve the PVL attribute %.*s from HDF\n"
+-	    "\t file %.*s.\n", MAX_NC_NAME, PVLAttrName, MAXILEN,
++	    "\t file %.*s.\n", H4_MAX_NC_NAME, PVLAttrName, MAXILEN,
+ 	    file->filename);
+     MAPIERR(buff, funcname);
+   }
+diff -aur old/srclib/MTYPEc2f.c new/srclib/MTYPEc2f.c
+--- old/srclib/MTYPEc2f.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/MTYPEc2f.c	2013-01-11 11:44:07.000000000 -0500
+@@ -3,7 +3,7 @@
+ #include <string.h>
+ #include "mapic.h"
+ 
+-int MTYPEc2f(char *c_data_type, char *f_data_type, long int *f_length)
++int MTYPEc2f(char *c_data_type, char *f_data_type, int32 *f_length)
+ /*
+ !C**********************************************************************
+ * 
+diff -aur old/srclib/MTYPEf2c.c new/srclib/MTYPEf2c.c
+--- old/srclib/MTYPEf2c.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/MTYPEf2c.c	2013-01-11 11:52:55.000000000 -0500
+@@ -3,7 +3,7 @@
+ #include <string.h>
+ #include "mapic.h" 
+ 
+-int MTYPEf2c(char *f_data_type, char *c_data_type, long int *c_length)
++int MTYPEf2c(char *f_data_type, char *c_data_type, int32 *c_length)
+ /*
+ **********************************************************************
+ *!C
+diff -aur old/srclib/openMODISfile.c new/srclib/openMODISfile.c
+--- old/srclib/openMODISfile.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/openMODISfile.c	2013-01-11 11:40:43.000000000 -0500
+@@ -1,6 +1,5 @@
+ #include <stdlib.h>  
+ #include <stdio.h>
+-#include <malloc.h>
+ #include <string.h>
+ #include "mapic.h"
+ #include "local_nc.h"
+@@ -268,7 +267,7 @@
+ 		if(access == DFACC_CREATE)
+ 		    access = DFACC_WRITE;
+ 
+-		mfile->sd_id= (long int)SDstart(filename, access);
++		mfile->sd_id= (int32)SDstart(filename, access);
+ 		if (mfile->sd_id==FAIL)
+ 		{
+ 		    retval = NULL;
+diff -aur old/srclib/putMODISarinfo.c new/srclib/putMODISarinfo.c
+--- old/srclib/putMODISarinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODISarinfo.c	2013-01-11 11:40:43.000000000 -0500
+@@ -4,7 +4,7 @@
+ #include "mapic.h"
+ 
+ int  putMODISarinfo(MODFILE *file,  char const *arrayname, char const *groupname,
+-                   char const *attribute, char const *data_type, long int n_elements,
++                   char const *attribute, char const *data_type, int32 n_elements,
+                    void const *value)
+ 
+ /*
+@@ -134,7 +134,7 @@
+   int status_code;              /* return value for routine.MAPIOK = successful
+                                                             MFAIL = fail */
+   DATAID	*did;
+-  long int size;          /* total number of byte to write */
++  int32 size;          /* total number of byte to write */
+   int32 dtype;                  /* HDF attribute data type */
+ 
+   /* initialize local variables */
+@@ -157,7 +157,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s\n"
+ 			"\t array attribute without data type information.\n",		
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -166,7 +166,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s\n"
+ 			"\t array attribute without the value buffer.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -175,7 +175,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s\n"
+ 			"\t array attribute without the name of the array it\n"
+-			"\t is associated with.\n",MAX_NC_NAME,attribute);
++			"\t is associated with.\n",H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -192,7 +192,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write %ld\n"
+ 			"\t %.*s array attribute values.\n",
+-			n_elements,MAX_NC_NAME,attribute);
++			(long)n_elements,H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -201,7 +201,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s\n"
+ 			"\t array attribute in a file opened for read only.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -211,7 +211,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s\n"
+ 		"\t array attribute of data type %.*s.\n",
+-		MAX_NC_NAME,attribute,DATATYPELENMAX,data_type);
++		H4_MAX_NC_NAME,attribute,DATATYPELENMAX,data_type);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -220,7 +220,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarinfo unable to write the %.*s array\n"
+ 			"\t attribute with a %ld byte value.\n",
+-			MAX_NC_NAME,attribute,size);
++			H4_MAX_NC_NAME,attribute,(long)size);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -231,7 +231,7 @@
+     sprintf(buff,"ERROR: putMODISarinfo detected errors from\n"
+ 			"\t getMODISarrayid attempting to write the\n"
+ 			"\t %.*s array attribute.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -242,7 +242,7 @@
+     sprintf(buff, "ERROR: putMODISarinfo detected FAIL from HDF procedure\n"
+ 			"\t SDsetattr attempting to write the %.*s\n"
+ 			"\t array attribute.\n",
+-                    	MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+   }
+ 
+diff -aur old/srclib/putMODISarray.c new/srclib/putMODISarray.c
+--- old/srclib/putMODISarray.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODISarray.c	2013-01-11 11:40:43.000000000 -0500
+@@ -3,8 +3,8 @@
+ #include "mapic.h"
+ 
+ int putMODISarray(MODFILE *file, char const *arrayname, 
+-                  char const *groupname, long int const start[], 
+-                  long int const dimsizes[], void const *data)
++                  char const *groupname, int32 const start[], 
++                  int32 const dimsizes[], void const *data)
+ /*
+ !C****************************************************************************
+ *
+@@ -135,8 +135,8 @@
+   char  buff[PGS_SMF_MAX_MSGBUF_SIZE];  /* buffer to hold the error/warning
+                                            message */
+   char *funcname="putMODISarray";       /* name of this module */
+-  int32   sds_dimsizes[MAX_VAR_DIMS];
+-  int32   sds_start[MAX_VAR_DIMS];
++  int32   sds_dimsizes[H4_MAX_VAR_DIMS];
++  int32   sds_start[H4_MAX_VAR_DIMS];
+   int     i,status;
+   DATAID  *did;
+   SDSINFO *sinfo;
+@@ -154,7 +154,7 @@
+   { 
+     sprintf(buff,"ERROR: putMODISarray unable to write to the %.*s\n"
+ 			"\t array with a NULL file MODFILE structure\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -163,7 +163,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarray unable to write to the %.*s\n"
+ 			"\t array without array dimension input.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -172,7 +172,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarray unable to write to the %.*s\n"
+ 			"\t array without array start input.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -181,7 +181,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarray unable to write to the %.*s\n"
+ 			"\t array without a data buffer\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -192,7 +192,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarray unable to write to the %.*s\n"
+ 			"\t array in file opened for read only.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -201,7 +201,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISarray detected errors from\n"
+ 			"\t getMODISarrayid while attempting to write\n"
+-			"\t data to %.*s array.\n",MAX_NC_NAME,arrayname);
++			"\t data to %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+   }
+   else
+@@ -214,7 +214,7 @@
+     {
+       sprintf(buff,"ERROR: putMODISarray unable to write data to\n"
+ 			"\t invalid array structure locations in the\n"
+-			"\t %.*s array.\n",MAX_NC_NAME,arrayname);
++			"\t %.*s array.\n",H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+     }
+     else
+@@ -231,7 +231,7 @@
+ 	sprintf(buff,"ERROR: putMODISarray detected FAIL from\n"
+ 			"\t HDF procedure SDwritedata while\n"
+ 			"\t attempting to write data to %.*s array.\n",
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+ 	MAPIERR(buff,funcname);
+       }
+       else
+diff -aur old/srclib/putMODISdiminfo.c new/srclib/putMODISdiminfo.c
+--- old/srclib/putMODISdiminfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODISdiminfo.c	2013-01-11 12:27:22.000000000 -0500
+@@ -5,9 +5,9 @@
+ #define  MAXATTRLEN	120
+ 
+ int  putMODISdiminfo(MODFILE *file, char const *arrayname, 
+-                     char const *groupname, long int dimension, 
++                     char const *groupname, int32 dimension, 
+                      char const *attribute, char const *data_type,
+-                     long int n_elements, void const *value)
++                     int32 n_elements, void const *value)
+ 
+ /*
+ !C****************************************************************************
+@@ -140,7 +140,7 @@
+   DATAID	*did;
+   int	status_code;              /* return value for routine.MAPIOK = successful
+                                                             MFAIL = fail */
+-  long int size;          /* total number of byte to write */
++  int32 size;             /* total number of byte to write */
+   int32 dtype;                  /* HDF attribute data type */
+   int32 dim_id;                 /* SDS dimension id */
+ 
+@@ -165,7 +165,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute without data type\n"
+-			"\t information\n",MAX_NC_NAME,attribute);
++			"\t information\n",H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -174,7 +174,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute without the value buffer.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -184,7 +184,7 @@
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute without the name of the\n"
+ 			"\t array it is associated with.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -193,7 +193,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute with an invalid MODIS file\n"
+-			"\t structure input.\n",MAX_NC_NAME,attribute);
++			"\t structure input.\n",H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -202,7 +202,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write %ld\n"
+ 			"\t %.*s dimension attribute values.\n",
+-		 	n_elements,MAX_NC_NAME,attribute);
++			(long)n_elements,H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);	
+     return(MFAIL);
+   }
+@@ -211,7 +211,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute in a file opened for read\n"
+-			"\t only.\n",MAX_NC_NAME,attribute);
++			"\t only.\n",H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -219,7 +219,7 @@
+   if ((dtype = datatype_to_DFNT(data_type)) == MFAIL) {
+     sprintf(buff, "ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute of data type %.*s.\n",
+-                    	MAX_NC_NAME,attribute,DATATYPELENMAX, data_type);
++			H4_MAX_NC_NAME,attribute,DATATYPELENMAX, data_type);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -228,7 +228,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t dimension attribute with a %ld byte value.\n",
+-			MAX_NC_NAME,attribute,size);
++			H4_MAX_NC_NAME,attribute,(long)size);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -240,7 +240,7 @@
+     sprintf(buff,"ERROR: putMODISdiminfo detected errors from\n"
+ 			"\t getMODISarrayid attempting to write the\n"
+ 			"\t %.*s dimension attribute.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+   }
+   /* else check value of dimension is valid */
+@@ -249,7 +249,7 @@
+     sprintf(buff, "ERROR: putMODISdiminfo unable to write the %.*s\n"
+ 			"\t attribute to non-existing dimension %ld of\n"
+                     	"the %.*s array.\n",MAXATTRLEN,attribute,
+-			dimension,MAX_NC_NAME,arrayname);
++			(long)dimension,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+   }
+ 
+@@ -259,7 +259,7 @@
+     sprintf(buff, "ERROR: putMODISdiminfo detected FAIL from HDF\n"
+ 			"\t procedure SDgetdimid attempting to write the\n"
+ 			"\t %.*s dimension attribute.\n",
+-                    	MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+     MAPIERR(buff,funcname);
+   }
+ 
+@@ -270,7 +270,7 @@
+       sprintf(buff,"ERROR: putMODISdiminfo detected FAIL from HDF\n"
+ 			"\t procedure SDsetattr attempting to write\n"
+ 			"\t the %.*s dimension attribute.\n",
+-                    	MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+       MAPIERR(buff,funcname);
+     }
+ 
+diff -aur old/srclib/putMODISdimname.c new/srclib/putMODISdimname.c
+--- old/srclib/putMODISdimname.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODISdimname.c	2013-01-11 11:40:43.000000000 -0500
+@@ -5,7 +5,7 @@
+ #define  MAXDIMNAMELEN	60
+ 
+ int  putMODISdimname(MODFILE *file, char const *arrayname, 
+-                     char const *groupname, long int dimension, 
++                     char const *groupname, int32 dimension, 
+                      char const *dimname)
+ /*
+ !C****************************************************************************
+@@ -170,7 +170,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdimname unable to name a dimension\n"
+ 			"\t %.*s without the name of array the dimension\n"
+-			"\t is associated with.\n",MAX_NC_NAME,dimname);
++			"\t is associated with.\n",H4_MAX_NC_NAME,dimname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -180,7 +180,7 @@
+     sprintf(buff,"ERROR: putMODISdimname unable to name a dimension\n"
+ 			"\t %.*s in the %.*s array with an invalid\n"
+ 			"\t MODIS file structure input.\n",
+-			MAXDIMNAMELEN,dimname,MAX_NC_NAME,arrayname);
++			MAXDIMNAMELEN,dimname,H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -189,7 +189,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdimname unable to name a dimension\n"
+ 			"\t %.*s in a file opened for read only.\n",
+-			MAX_NC_NAME,dimname);
++			H4_MAX_NC_NAME,dimname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -203,7 +203,7 @@
+ 			"\t internal function getMODISarrayid while\n"
+ 			"\t attempting to name a dimension %.*s in the\n"
+ 			"\t %.*s array.\n",MAXDIMNAMELEN,dimname,
+-			MAX_NC_NAME,arrayname);
++			H4_MAX_NC_NAME,arrayname);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -215,7 +215,7 @@
+   if ( (dimension < 0) || (dimension > (sinfo->rank - 1)) )
+   {
+     sprintf(buff,"ERROR: putMODISdimname unable to name a non-existing\n"
+-			"\t dimension %.*s dimname.\n",MAX_NC_NAME,dimname);
++			"\t dimension %.*s dimname.\n",H4_MAX_NC_NAME,dimname);
+     MAPIERR(buff,funcname);
+   }
+   /* Get dimension id */
+@@ -223,7 +223,7 @@
+   {
+     sprintf(buff, "ERROR: putMODISdimname detected FAIL from HDF procedure\n"
+ 			"\t SDgetdimid attempting to name a dimension %.*s.\n",
+-                        MAX_NC_NAME,dimname);
++			H4_MAX_NC_NAME,dimname);
+     MAPIERR(buff,funcname);
+   }
+   /* Retrives number of attributes */
+@@ -231,7 +231,7 @@
+   {
+     sprintf(buff,"ERROR: putMODISdimname detected FAIL from HDF\n"
+ 			"\t procedure SDdiminfo attempting to name a\n"
+-			"\t dimension %.*s.\n",MAX_NC_NAME,dimname);
++			"\t dimension %.*s.\n",H4_MAX_NC_NAME,dimname);
+     MAPIERR(buff,funcname);
+   }
+   else
+@@ -243,8 +243,8 @@
+ 			"\t attributes currently attached to the\n"
+ 			"\t dimension. Naming the %ld dimension\n"
+ 			"\t of the %.*s array %.*s will lose\n"
+-			"\t those attributes.\n", (long)nattrs,dimension,
+-			MAX_NC_NAME,arrayname,MAXDIMNAMELEN,dimname);
++			"\t those attributes.\n", (long)nattrs,(long)dimension,
++			H4_MAX_NC_NAME,arrayname,MAXDIMNAMELEN,dimname);
+       MAPIWARN(buff,funcname);
+     }
+ 
+@@ -253,7 +253,7 @@
+     {
+       sprintf(buff, "ERROR: putMODISdimname detected FAIL from HDF procedure\n"
+ 			"\t SDsetdimname attempting to name a dimension %.*s.\n",
+-                        MAX_NC_NAME,dimname);
++			H4_MAX_NC_NAME,dimname);
+       MAPIERR(buff,funcname);
+     }
+     else
+diff -aur old/srclib/putMODISfileinfo.c new/srclib/putMODISfileinfo.c
+--- old/srclib/putMODISfileinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODISfileinfo.c	2013-01-11 11:40:43.000000000 -0500
+@@ -5,7 +5,7 @@
+ 
+ 
+  int putMODISfileinfo (MODFILE *file, char const *attribute, 
+-                       char const *data_type, long int n_elements, 
++                       char const *data_type, int32 n_elements, 
+                        void const *value)
+ /*
+ !C****************************************************************************
+@@ -114,7 +114,7 @@
+    char *funcname="putMODISfileinfo";    /* name of this module */
+    int   status;                         
+    int32 data_t = 0;                            /* integer (data_type)      */
+-   long int size = 0L;
++   int32 size = 0L;
+ 
+    status=MFAIL;
+ 
+@@ -131,7 +131,7 @@
+    {
+      sprintf(buff,"ERROR: putMODISfileinfo unable to write the %.*s\n"
+ 			"\t file attribute without data type information.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+      return(MFAIL);
+    }
+ 
+@@ -139,7 +139,7 @@
+    {
+      sprintf(buff,"ERROR: putMODISfileinfo unable to write the %.*s\n"
+ 			"\t file attribute without the value buffer.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -156,7 +156,7 @@
+    {
+      sprintf(buff,"ERROR: putMODISfileinfo unable to store %ld\n"
+ 			"\t %.*s file attribute values.\n",
+-			n_elements,MAX_NC_NAME,attribute);
++			(long)n_elements,H4_MAX_NC_NAME,attribute);
+      MAPIERR(buff,funcname);
+      return(MFAIL);
+    }
+@@ -165,14 +165,14 @@
+    {
+       sprintf(buff,"ERROR: putMODISfileinfo unable to write the %.*s\n"
+ 			"\t array attribute in a file opened for read only.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+       MAPIERR(buff,funcname);
+    }                   
+    else if ( ( data_t = datatype_to_DFNT(data_type) ) == MFAIL )
+    {
+      sprintf(buff,"ERROR: putMODISfileinfo unable to write the %.*s\n"
+ 			"\t file attribute of data type %.*s.\n",
+-			MAX_NC_NAME,attribute,
++			H4_MAX_NC_NAME,attribute,
+ 			DATATYPELENMAX,data_type);
+      MAPIERR(buff,funcname);
+    }
+@@ -182,7 +182,7 @@
+      sprintf(buff,"ERROR: putMODISfileinfo unable to write the\n"
+ 			"\t %.*s file attribute with a %ld byte\n"
+ 			"\t value which exceeds the MAX_REC,32k.\n",
+-			MAX_NC_NAME,attribute,size);
++			H4_MAX_NC_NAME,attribute,(long)size);
+      MAPIERR(buff,funcname);
+    }
+ 			
+@@ -192,7 +192,7 @@
+      sprintf(buff,"ERROR: putMODISfileinfo detected FAIL from HDF\n"
+ 			"\t procedure SDsetattr attempting to write the\n"
+ 			"\t %.*s file attribute.\n",
+-			MAX_NC_NAME,attribute);
++			H4_MAX_NC_NAME,attribute);
+      MAPIERR(buff,funcname);
+    }
+ 
+diff -aur old/srclib/putMODIStable.c new/srclib/putMODIStable.c
+--- old/srclib/putMODIStable.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/putMODIStable.c	2013-01-11 11:40:43.000000000 -0500
+@@ -4,7 +4,7 @@
+ #include "mapic.h"
+ 
+ int putMODIStable(MODFILE *file, char const *tablename, char const *groupname,
+-long int start, long int recno, unsigned char const *data)
++int32 start, int32 recno, unsigned char const *data)
+ 
+ /*
+ !C**********************************************************************
+@@ -241,7 +241,7 @@
+     {
+       sprintf(buff,"ERROR: putMODIStable unable to write data to the\n"
+                             "\t %.*s table to invalid table structure\n"
+-                            "\t record %ld\n",VSNAMELENMAX,tablename,start);
++                            "\t record %ld\n",VSNAMELENMAX,tablename,(long)start);
+       MAPIERR(buff,funcname);
+     }
+  
+diff -aur old/srclib/SDS_footprintOK.c new/srclib/SDS_footprintOK.c
+--- old/srclib/SDS_footprintOK.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/SDS_footprintOK.c	2013-01-11 11:40:43.000000000 -0500
+@@ -4,7 +4,7 @@
+ #include "mapic.h"
+ 
+ short int SDS_footprintOK(int32 const sds_dimsizes[], int32 sds_rank, 
+-                          long int const start[], long int const dimsizes[])
++                          int32 const start[], int32 const dimsizes[])
+ /*
+ !C**********************************************************************
+ * 
+@@ -97,7 +97,7 @@
+     {
+       sprintf(buff,"ERROR: SDS_footprintOK found unable to access\n"
+ 			"\t data to array structure location \"%ld\n"
+-			"\t ...%ld\".\n",start[0],start[sds_rank-1]);
++			"\t ...%ld\".\n",(long)start[0],(long)start[sds_rank-1]);
+       MAPIERR(buff,funcname);
+       status = 0;	/* access to SDS NOT advised */
+     }
+diff -aur old/srclib/searchMODISgroup.c new/srclib/searchMODISgroup.c
+--- old/srclib/searchMODISgroup.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/searchMODISgroup.c	2013-01-11 11:40:43.000000000 -0500
+@@ -120,8 +120,8 @@
+   int32  tag, ref_id;
+   int32  index;
+   int32  sds_index,sds_id,sds_rank,sds_number_type,sds_nattrs;
+-  int32  sds_dimsize[MAX_VAR_DIMS];
+-  char   sds_name[MAX_NC_NAME+1];
++  int32  sds_dimsize[H4_MAX_VAR_DIMS];
++  char   sds_name[H4_MAX_NC_NAME+1];
+   int32  vdata_id;
+   char   vdata_class[VSNAMELENMAX+1], vdata_name[VSNAMELENMAX+1];
+   int    ret = NO_OBJECT;
+diff -aur old/srclib/substrMODISECSinfo.c new/srclib/substrMODISECSinfo.c
+--- old/srclib/substrMODISECSinfo.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/substrMODISECSinfo.c	2013-01-11 11:40:43.000000000 -0500
+@@ -1,8 +1,8 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "mapic.h"
+-int substrMODISECSinfo(char const *char_value, long int n_elements,
+-                       long int *n_strings, char *substr[])
++int substrMODISECSinfo(char const *char_value, int32 n_elements,
++                       int32 *n_strings, char *substr[])
+ /*
+ !C**********************************************************************
+ * 
+@@ -137,7 +137,7 @@
+   if (n_elements < 0)
+   {
+     sprintf(buff,"ERROR: substrMODISECSinfo unable to continue with\n"
+-			"\t invalid %ld n_elements\n",n_elements);
++			"\t invalid %ld n_elements\n",(long)n_elements);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -148,7 +148,7 @@
+   {
+     sprintf(buff,"ERROR: substrMODISECSinfo unable to fit %ld\n"
+ 			"\t substrings into %ld pointers %.*s array.\n",
+-		(long)loc_n_strings,*n_strings,MAX_NC_NAME,(char *)substr);
++		    (long)loc_n_strings,(long)*n_strings,H4_MAX_NC_NAME,(char *)substr);
+     MAPIERR(buff,funcname);
+     *n_strings = loc_n_strings;
+     return(MFAIL);
+diff -aur old/srclib/VFdatatypes.c new/srclib/VFdatatypes.c
+--- old/srclib/VFdatatypes.c	2010-07-15 13:45:09.000000000 -0400
++++ new/srclib/VFdatatypes.c	2013-01-11 11:53:47.000000000 -0500
+@@ -2,7 +2,7 @@
+ #include <stdlib.h>
+ #include "mapic.h"
+ 
+-int VFdatatypes(int32 vdata_id, long int *stringlen, char *data_type) 
++int VFdatatypes(int32 vdata_id, int32 *stringlen, char *data_type) 
+ /*
+ !C**********************************************************************
+ * 
+@@ -127,7 +127,7 @@
+ {
+   char  buff[PGS_SMF_MAX_MSGBUF_SIZE];   /* buffer to hold the error/warning message */
+   char *funcname="VFdatatypes";          /* name of this routine */
+-  long int  data_typeMAXLEN;             /* local variable to hold the
++  int32  data_typeMAXLEN;                /* local variable to hold the
+                                            size of array data_type */
+   int  n;                                /* local variable to hold the
+                                            the number of fields in the

@@ -1,0 +1,40 @@
+get the latest software from
+ftp://ftp.hdfgroup.org/HDF5/current/
+
+Example install setup:
+
+- general program dependancies
+flex
+byacc
+zlib
+
+- local dependancies
+szip
+
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+setenv F9X 'f77'
+setenv F9X 'f77 -fpp -DDEC$=DEC_ -DMS$=MS_'
+
+tar xzf hdf5-1.8.10.tar.gz 
+cd hdf5-1.8.10
+./configure --prefix=/disk01/home/swdev/ocssw/lib3_64/hdf5 --enable-fortran --enable-cxx --disable-shared 
+make
+make check
+make install
+cd ..
+rm -rf hdf5-1.8.10
+
+#
+# other options
+#
+
+## copy the szip lib to the hdf install dir
+#cp -r ../szip/include ../szip/lib .
+
+#tar xzf hdf5-1.8.10.tar.gz  
+#cd hdf5-1.8.10
+
+#./configure --with-szlib=/disk01/home/swdev/ocssw/lib3_64/hdf5 --prefix=/disk01/home/swdev/ocssw/lib3_64/hdf5 --enable-fortran --enable-cxx --disable-shared 

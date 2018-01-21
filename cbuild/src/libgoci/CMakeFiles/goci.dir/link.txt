@@ -1,0 +1,2 @@
+/usr/bin/ar cr libgoci.a  CMakeFiles/goci.dir/goci.c.o CMakeFiles/goci.dir/goci_slot.c.o
+/usr/bin/ranlib libgoci.a

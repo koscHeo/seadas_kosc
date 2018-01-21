@@ -1,0 +1,44 @@
+you can get the latest sources from 
+ftp://edhs1.gsfc.nasa.gov/pub/
+
+Example install setup:
+
+- local dependancies
+szip
+hdf4
+hdf5
+hdfeos
+hdfeos5
+
+
+setenv LINUX_BRAND linux64
+setenv JPEGHOME /usr
+setenv ZLIBHOME /usr
+setenv SZIPHOME $HDFROOT
+
+
+tar xzf SDPTK5.2.17v1.00.tar.Z
+cd TOOLKIT
+
+bin/INSTALL -batch -pgshome $LIB3_DIR/sdptk/TOOLKIT -hdfhome $HDFROOT -hdf5home $HDF5ROOT -hdfeos_home $LIB3_DIR/hdfeos -hdfeos5_home $LIB3_DIR/hdfeos5 -fc_path $F77 -cc_path $CC
+
+### do we need the C++ API?
+##### -cpp -cpp_path /usr/bin/g++
+
+
+#######################
+answer these questions, take defaults for other questions
+
+- Which LINUX installation = lnx64
+- Is zlib-1.2.1 installed = yes
+- Pathname where zlib-1.2.1 is installed  = /usr
+- Is jpeg-6b installed = yes
+- Pathname where jpeg-6b is installed = /usr
+- Is szip-2.1 installed = yes
+- Pathname where szip-2.1 is installed = /disk01/home/swdev/ocssw/lib3_64/hdf4
+######################
+
+cd ..
+rm -rf TOOLKIT
+
+done

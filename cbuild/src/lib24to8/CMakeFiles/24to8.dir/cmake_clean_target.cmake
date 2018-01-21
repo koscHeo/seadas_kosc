@@ -1,0 +1,3 @@
+FILE(REMOVE_RECURSE
+  "lib24to8.a"
+)

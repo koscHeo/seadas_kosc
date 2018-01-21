@@ -1,0 +1,45 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********** Building Boost ***********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=boost_1_57_0
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+# apply patches
+patch -b -p0 < ../bootstrap.sh.patch
+
+installdir=$LIB3_DIR
+mkdir -p $installdir/lib
+mkdir -p $installdir/include
+
+# make the libraries
+./bootstrap.sh --prefix=$installdir --with-libraries=chrono,filesystem,timer
+if [ $? -ne 0 ]; then
+    echo "***** bootstrap failed *****"
+    exit 1
+fi
+
+# install library and headers
+./b2 install
+#./b2 -n
+if [ $? -ne 0 ]; then
+    echo "***** b2 install failed *****"
+    exit 1
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+   rm -rf $srcdir
+fi

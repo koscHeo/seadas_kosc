@@ -1,0 +1,82 @@
+#!/bin/sh
+
+echo
+echo "***********************************"
+echo "********** Building hdf4 **********"
+echo "***********************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=hdf-4.2.9
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+cd $srcdir
+
+# put in patches
+patch -b -p0 < ../hlimits.h.patch
+patch -b -p0 < ../atom.c.patch
+patch -b -p0 < ../hdfi.h.patch
+
+echo
+
+# make library & include directories
+installdir=$LIB3_DIR
+for subdir in lib include; do
+    mkdir -p $installdir/$subdir
+done
+mkdir -p $LIB3_BIN
+
+export CFLAGS="$CFLAGS -I$LIB3_DIR/include"
+export LDFLAGS="$LDFLAGS -L$LIB3_DIR/lib"
+
+if [  "$OCSSW_ARCH" != "macosx_intel"  ]; then
+    export LIBS="$LIBS -lxdr"
+fi
+
+export CFLAGS="$CFLAGS -O0"
+
+# build libraries
+#cmake -DCMAKE_INSTALL_PREFIX=$LIB3_DIR -DHDF4_BUILD_FORTRAN=true -DH4_JPEGLIB_HEADER=$LIB3_DIR/include/jpeglib.h -DH4_ZLIB_HEADER=$LIB3_DIR/include/zlib.h ..
+./configure --with-zlib=/usr --with-jpeg=$installdir --prefix=$installdir --enable-fortran --disable-production --disable-shared --disable-netcdf --enable-static-exec
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [  "$OCSSW_ARCH" != "linux"  ]; then
+  if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+  fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# rename ncdump
+mv -f  $installdir/bin/ncdump $installdir/bin/ncdump_hdf
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN  
+#rsync -av  mfhdf/ncdump/ncdump $LIB3_BIN/ncdump_hdf
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

@@ -1,0 +1,38 @@
+	    SUMMARY OF THE HDF4 CONFIGURATION
+	    =================================
+
+General Information:
+-------------------
+		   HDF4 Version: 4.2.9
+		  Configured on: Sun Jan 21 18:22:11 KST 2018
+		  Configured by: jaemoo@ADTS03g
+		 Configure mode: development
+		    Host system: x86_64-unknown-linux-gnu
+              Uname information: Linux ADTS03g 3.10.0-514.6.1.el7.x86_64 #1 SMP Wed Jan 18 13:06:36 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+		      Libraries: 
+	     Installation point: /home/jaemoo/seadas-7.4/ocssw/build/lib3
+
+Compiling Options:
+------------------
+               Compilation Mode: development
+                     C compiler: /usr/bin/gcc ( gcc (GCC) 4.8.5 20150623 )
+                         CFLAGS:  -O3 -I/home/jaemoo/seadas-7.4/ocssw/build/lib3/include -O0 -g -fverbose-asm
+                       CPPFLAGS:  -I/home/jaemoo/seadas-7.4/ocssw/build/lib3/include -DBIG_LONGS -DSWAP 
+               Shared Libraries: no
+               Static Libraries: yes
+  Statically Linked Executables: yes
+                        LDFLAGS: -static -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib
+ 	 	Extra libraries: -ljpeg -lz  -lxdr
+ 		       Archiver: ar
+ 		 	 Ranlib: ranlib
+
+Languages:
+----------
+                        Fortran: yes
+               Fortran Compiler: /usr/bin/gfortran ( GNU Fortran (GCC) 4.8.5 20150623 )
+                         FFLAGS: -m64 -ffixed-line-length-none -fconvert=big-endian -fno-automatic  -O3 -g
+
+Features:
+---------
+               SZIP compression: disabled
+   Support for netCDF API 2.3.2: no

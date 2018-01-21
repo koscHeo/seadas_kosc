@@ -1,0 +1,11 @@
+prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3
+exec_prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3
+libdir=/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib
+includedir=/home/jaemoo/seadas-7.4/ocssw/build/lib3/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 1.16
+Libs: -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib -lgsl ${GSL_CBLAS_LIB} -lm -lm 
+Cflags: -I/home/jaemoo/seadas-7.4/ocssw/build/lib3/include

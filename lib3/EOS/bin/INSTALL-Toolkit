@@ -1,0 +1,5573 @@
+#!/bin/csh -f 
+#-----------------------------------------------------------------------------
+# filename: 
+# 	INSTALL-Toolkit
+# 
+# description:
+# 	Install script for the SDP (PGS) Toolkit
+# 
+# usage:
+# 	cd <SDP-home-dir> 
+# 	bin/INSTALL-Toolkit [-dbug] [-f90 [-NAG]] [-ABSOFT] [-fc_path <path/compiler_name>] 
+#                           [-no_ftn][-cc_path <path/compiler_name>] [-sgi32 | -sgi64] 
+#                           [-daac][-no_hdf] [-no_hdfeos]
+# 	                    [-css_inc1 <EcUtLoggerC.h-path>]
+# 	                    [-css_inc2 <EcTypes.h-path>]
+# 	                    [-css_lib <libEcUtLogC.a-path>]
+# 	                    [-lib_only]  
+#			    [-cpp] [cpp_path <path/compiler_name>] [-cpp_lib_only]
+#			    [-c_rlib] 
+#			    
+# 	bin/INSTALL-Toolkit [-h] 
+# 
+#         (where <SDP-home-dir> is the full path of the toolkit home directory)
+#
+# 	options:
+# 	  -dbug     : build debug version of toolkit
+# 	  -f90      : build f90 version of the toolkit
+# 	              optional flag -NAG specifies NAG f90 (see notes 1 & 4)
+#         -ABSOFT   : flag that specifies absoft f77 is used for fortran 
+#                     compilation
+# 	  -fc_path  : set the path of the FORTRAN compiler to 
+#                     <path/compiler_name>
+# 	  -no_ftn   : build toolkit without full FORTRAN support
+# 	  -cc_path  : set the path of the C compiler to <path/compiler_name>
+# 	  -sgi32    : build in -n32 mode (SGI Power Challenge only)
+# 	  -sgi64    : build in -64  mode (SGI Power Challenge only)
+# 	  -daac     : build the DAAC version of the toolkit library
+# 	  -no_hdf   : build toolkit without HDF support
+# 	  -no_hdfeos: build toolkit without HDF-EOS support
+# 	  -css_inc1 : specify path for EcUtLoggerC.h (DAAC toolkit only)
+# 	  -css_inc2 : specify path for EcTypes.h (IR-1 DAAC toolkit only)
+# 	  -css_lib  : specify path for libEcUtLogC.a (IR-1 DAAC toolkit only)
+# 	  -lib_only : just build the library, don't do anything else
+# 	  -pgshome : full path of Toolkit top level directory
+# 	             (e.g. /usr/local/TOOLKIT)
+# 	             NOTE: this does NOT allow you to install the Toolkit in a
+# 	             directory other than the one created from the Toolkit tar
+# 	             file.
+# 	  -h        : display this help message and exit
+#         -cpp     : build C++ Version-only add if C++ version is wanted
+#         -cpp_path: set the path of the C++ compiler to <path> 
+# 	  -cpp_lib_only : just build the library, don't do anything else
+#         -c_rlib     : build C threadsafe Version
+# 
+# notes:
+# 	1)  The -fc_path and -cc_path options tell the script where to find
+# 	    your compilers, in the event that they are in non-standard
+# 	    locations.  If the -NAG flag is specified, you should use the
+# 	    -fc_path option to specify the path where the NAG f90 compiler 
+# 	    is located.
+#
+#           If you use -ABSOFT flag to specify that you are using absoft 
+#           Fortran compiler,  you should use the -fc_path option to specify 
+#           the path where the absoft f77 compiler is located.
+# 
+# 	2)  Unless the -no_hdf flag is specified, the environment variable
+# 	    HDFHOME must be set to point to the HDF home directory.  This is 
+# 	    handled automatically when this script is called from INSTALL.
+#
+# 	3)  Unless the -no_hdfeos flag is specified, the environment variable
+# 	    HDFEOS_HOME must be set to point to the HDF-EOS home directory. 
+#           This is handled automatically when this script is called from 
+#           INSTALL.
+#
+# 	4)  On the SGI Challenge, the -NAG flag may only be specified for 
+#           old-style 32-bit mode installation.
+#
+# 	    Under IRIX 6.1 and earlier, the script will automatically set up 
+#           to use the NAG f90 compiler regardless of whether or not -NAG was 
+#           specified. Under IRIX 6.2 and later, the script will set up to use
+#           the SGI f90 compiler unless -NAG was specified. 
+# 	    
+# 	    Except as noted above, the script will automatically set the f90 
+#           compiler on the SGI Challenge as follows:
+# 	    
+# 	    	library type    	f90 type 	option
+# 		================	======== 	=========	    
+# 	        old-style 32-bit	NAG f90		(default)
+# 	        new-style 32-bit	SGI f90		-sgi32
+# 	        64-bit        		SGI f90		-sgi64
+# 
+#  	    On the other SGI (pre-6.2) IRIX and SunOS 4.x platforms, 
+#           the script will select the NAG compiler, as that is the 
+#           only one currently supported.
+#
+# author:
+# 	Mike Sucher / Applied Research Corp.
+# 	Guru Tej S. Khalsa / Applied Research Corp.
+#       Abe Taaheri/ Emergent Information Technologies, Inc.
+#       Phuong T. Nguyen/ L3 Communications Corp.
+#        
+# history:
+# 	20-Apr-1994 MES Initial version (INSTALL)
+# 	26-Apr-1994 MES Source code frozen for PGS Toolkit delivery #2
+# 	04-May-1994 MES Fixes to the code which generates files:
+# 	                pgs-env.csh and pgs-env.ksh
+# 	20-Sep-1994 MES Release 3 version, first cut
+# 	22-Sep-1994 MES Added NAG f90 support
+# 			Changed CBP database setup to use packed file (.z)
+# 			instead of compressed file (.Z), because the Cray 
+# 			doesn't have the compress/uncompress utilities.
+# 	04-Oct-1994 MES Added code to set up PGS_TYPES.h for the Cray
+# 	07-Oct-1994 MES Added code to set up DCW/vpftable.h for the DEC
+# 	07-Oct-1994 MES Modified section that does the actual build to report
+# 			failed compilations for each tool group.
+# 	24-Oct-1994 MES Added code to build the orbit simulator
+# 	14-Feb-1995 MES Updated for Toolkit Release 4:
+# 			- added code to build the Level 0 file simulator
+# 			- added code to build the PC command utilities
+# 			- CBP database setup to no longer uses packed file
+# 	19-May-1995 MES Renamed to INSTALL-Toolkit for Toolkit Release 5
+# 			It is now called from a meta-installation script
+# 			that also handles HDF installation options.
+# 	19-May-1995 MES Revised logic for Toolkit Release 5:
+# 			- revised option handling logic
+# 			- revised platform swtiching logic using switch/case
+# 			- added -no_hdf option, revised HDF variable logic
+# 			- updated PGS environment variable logic
+# 			- added -h (help) option, updated usage message
+# 			- added check for HDF before building MET tools
+# 			- added preliminary code for -gcc option
+#	27-Jun-1995 MES/GTSK 
+# 			Added support for IRIX64, the sgi 64 bit O/S.
+#			This script will install the toolkit in 32 bit mode.
+#	30-Jun-1995 MES/GTSK 
+#  			Removed "-h stdc" from CFLAGS for Cray. 
+#	10-Jul-1995 MES Added code to build the CSC and TD utilities.
+#	20-Jul-1995 MES Added check for HDF before building AA tools.
+#	19-Sep-1995 MES Auto-configure for formal track directory structure.
+# 			Check for old library and remove it before building.
+# 			Attempt to build the library-dependent utilities,
+# 			even if there were errors building the library.
+# 			Set the  flag in pgs-dev-env.*, if needed.
+#	20-Sep-1995 MES Configure formal track distribution for architecture.
+# 	31-Oct-1995 MES Updates for IR-1 release:
+# 			 - add support for SGI compiled -n32 ($BRAND = sgi32)
+# 			 - sgi mode now set by sgi_mode in env scripts
+# 			 - dir structure now set by pgs_formal in env scripts
+# 			 - revise PGSRUN: no longer architecture-specific
+#  			 - set PGS_PC_INFO_FILE to $PGSRUN/$BRAND/PCF.ir1
+# 	01-Nov-1995 MES Rework f90 option handling, add -daac option
+# 	02-Nov-1995 MES Enhance DAAC version logic
+# 			Add -css_inc1, -css_inc2 and  -css_lib options.
+# 			Add -fc_path and -cc_path options.
+# 	06-Nov-1995 GSK Added sanity check to make sure the CSS logger
+# 			related files will be found if user specifies DAAC
+#			version of Toolkit (-daac).  Fixed minor typo:
+# 			libEcUtLoggerC.a => libEcUtLogC.a (several places).
+# 	08-Nov-1995 MES Modify directory setup to copy from ./common rather
+# 			than move, allowing multi-platform support at a single
+# 			installation.   This script must be run once for each
+# 			architecture to be supported.  Also, make symbolic 
+# 			links for de200.eos, which was moved to avoid the 
+# 			creation of multiple copies.
+# 	14-Nov-1995 MES Bug fixes and enhancements:
+# 			- fix bug that broke the -fc_path and -cc_path options
+# 			- add the -lib_only option to only rebuild the library
+# 			- add checks to avoid redoing $PGSDAT setup
+# 			- add checks for proper type of f90 compiler
+# 			- revise object cleanup to not rely on $PGSSRC/makefile
+# 			- move tool groups compilation error message back to
+# 			  installation exit section
+# 	22-Nov-1995 MES Enhancements for f90 and DAAC support:
+# 			- set env variable F77 to include f90 compiler path 
+# 			  to avoid potential problems in systems with multiple 
+# 			  f90 compilers
+# 			- updated sections that initialize pgs-dev-env.[ck]sh 
+# 			  to set the pgs_f90_comp and pgs_nag_flag variables 
+# 			  that are used to implement f90 handling
+# 			- updated sections that initialize pgs-dev-env.[ck]sh 
+# 			  to set the pgs_daac, css_inc1, css_inc1, and css_lib 
+# 			  variables that are used to implement f90 handling
+# 	04-Apr-1996 MES Update setup of pgs-dev-env files to unset all
+# 			conditional variables before doing anything else.
+# 			This was done to avoid accidentally inheriting
+# 			from any flags previously set.
+# 	15-Apr-1996 MES Updates for Release A:
+#  			- set PGS_PC_INFO_FILE to $PGSRUN/$BRAND/PCF.relA
+# 	24-Apr-1996 MES Fixed bugs that affected the handling of the
+# 			-cc_path, -fc_path, -f90 and -NAG options.
+# 	11-Jun-1996 MES Disabled IR1 DAAC sections.
+# 	24-Jul-1996 MES Updated f90 checking to handle IRIX 6.2 compiler.
+# 	25-Jul-1996 MES Output warning message and exit if -sgi32 or -sgi64
+# 			flag is used on 32-bit SGI platform.
+# 	06-Aug-1996 MES Improve handling of the -NAG flag.
+# 	26-Aug-1996 MES Update DAAC toolkit installation logic.
+# 	27-Aug-1996 MES Update HDF setup logic.
+# 	23-Sep-1996 MES Explicitly clear obsolete IR-1 DAAC variables.
+# 	25-Sep-1996 MES More updates to HDF setup logic.
+# 	22-Oct-1996 MES Allow 6.2 SGI and SGI Challenge to use native f90 in
+# 			old-style 32-bit mode.
+# 	22-Mar-1999 MEDS Updated for C++ versions of the library
+# 	09-Jun-1999 MEDS Updated for C threadsafe version of the library
+#       06-Dec-1999 Peter Dziwornooh updated for C threadsafe version of 
+#                                    the library on sgi*
+#       31-Jan-2000 Abe Taaheri      Fixed cpp section that creates pgs-env,
+#                                    pgs-dev-env shell scripts. Now this 
+#                                    section writes all to .ksh.cpp and 
+#                                    .csh.cpp files.  
+#       15-Feb-2000 AT    Added a setion to create shell scripts  pgs-env,
+#                         pgs-dev-env for treadsafe version. Also uncommented
+#                         the cleaning of cpp object files after C++ library
+#                         creation.
+#       27-June-00  Yangling Huang Ecsed26997 Exclude AA tool
+#       27-Feb-2001 AT    Modified for linux
+#       30-Mar-2001 AT    Modified for HDF5 support
+#       13-AUg-2001 Adura Adekunjo Modified for Solaris8 Support
+#       17-Jun-2002 PTN   Modified for C++ on linux: change references to 
+#                         "makefile.cpp" to "makefile.cpp_ofunix" and added 
+#                         "setenv CPP g++" and "-DLINUX" into "case linux". 
+#       14-Aug-2002 PTN   Changed opt_flag from "-Os" to "O2"
+#       27-Jan-2004 PTN   Changed the compiler paths for sgi               
+#       12-Oct-2004 MP    Changed how pgs-dev-env.* scripts are formed from
+#                         corresponding templates so that the contents of the
+#                         scripts do not consist of multiply repeated
+#                         information. (NCR_41266)
+#       24-Jan-2005 MP    Changed HDF5HOME above to 5-1.6.3
+#       08-Sep-2005 AT    Changed HDF5HOME to 5-1.6.5
+#       29-Dec-2005 AT    Added flag -qfixed for xlf90 compiler so that the
+#                         toolkit .f files are treated as fixed format
+#       10-Jul-2006 AT    Figured out that "make -r" works in Linux. So instead
+#                         of changes "makefile.cpp" to "makefile.cpp_ofunix" 
+#                         added on 17-Jun-2002, we could use "make -r". 
+#                         The "-r" option turns off the implicit make rule
+#                         processing of gmake. No modifications made to this 
+#                         script regarding "-r" at this time. One can use
+#                         "make -r" when compiling toolkit in clearcase, 
+#                         without a need for renaming makefile.cpp files
+#       15-Aug-2011 AT    Added ABSOFT usage flag to use absoft f77 for
+#                         Fortran compilation of Toolkit source code
+#       12-Sep-2011 AT    Added capabilty for enetering additional C, 
+#                         Fortran, or CPP flags
+#       30-Aug-2011 AT    Modified for correct execution of thread safe library 
+#                         for linux and macintel platforms
+#---------------------------------------------------------------------------
+#
+# Save starting directory, path
+# Create error message header
+#
+
+set start_dir=($PWD)
+set start_path=($path)
+set script_error = "`basename $0`: Error:"
+
+#
+# set default values for CSS file paths
+#
+set css_inc1 = "/ecs/formal/CSS/IR1/include"
+set css_inc2 = "/ecs/formal/COMMON/include"
+set css_lib  = ""
+
+#
+# set default values for error tracking variables
+#
+
+set bad_tools=""
+set bad_utils=""
+
+#
+# Get arguments from command line
+#
+
+set help=0
+set use_gcc=0
+set no_hdf=0
+set no_hdfeos=0
+set sgi_mode=32
+set pgs_daac=0
+set f90_flag=0
+set fc_path=""
+set cc_path=""
+set nag_flag=0
+set absoft_flag=0
+set lib_only=0
+set opt_flag=-O
+set build_ftn=1
+unsetenv PGSHOME
+set cpp_path=""
+set cpp=0
+set c_only=1
+set cpp_lib_only=0
+set pgs_c_rlib=0
+set c_rlib=0
+while ("$1" != "")
+
+    switch ("$1")
+
+      case "-h":
+        set help = 1
+        breaksw
+
+      case "-f90":
+        set f90_flag = 1
+        if ("$2" != "") then
+            switch ( `echo $2 | cut -c1` )
+              case "-":
+                breaksw
+              default:
+                 set fc_path="$2"; shift 
+                breaksw
+            endsw
+        endif
+        breaksw
+
+      case "-NAG":
+        set nag_flag = 1
+        breaksw
+
+      case "-ABSOFT":
+	set absoft_flag = 1
+	breaksw
+
+      case "-gcc":
+        set use_gcc = 1
+        breaksw
+
+      case "-no_hdf":
+        set no_hdf = 1
+        breaksw
+
+      case "-no_hdfeos":
+        set no_hdfeos = 1
+        breaksw
+
+      case "-sgi32":
+        set sgi_mode = n32
+        breaksw
+
+      case "-sgi64":
+        set sgi_mode = 64
+        breaksw
+
+      case "-daac":
+        if ("$pgs_daac" == "IR1") then
+          echo "-ir1 and -daac are mutually exclusive options,"
+          echo "-ir1 builds the IR1 DAAC version of the Toolkit"
+          exit
+        endif
+        set pgs_daac = 1
+        breaksw
+
+      case "-ir1":
+        if ("$pgs_daac" == "1") then
+          echo "-ir1 and -daac are mutually exclusive options,"
+          echo "-ir1 builds the IR1 DAAC version of the Toolkit"
+          exit
+        endif
+        set pgs_daac = "IR1"  # IR1 DAAC support
+        breaksw
+
+      case "-css_inc1":
+        set css_inc1 = "$2"
+        shift
+        breaksw
+
+      case "-css_inc2":
+        set css_inc2 = "$2"
+        shift
+        breaksw
+
+      case "-css_lib":
+        set css_lib = "$2"
+        shift
+        breaksw
+
+      case "-fc_path":
+        set fc_path="$2"
+        shift
+        breaksw
+ 
+      case "-cc_path":
+        set cc_path="$2"
+        shift
+        breaksw
+
+      case "-lib_only":
+        set lib_only=1
+        breaksw
+
+      case "-dbug":
+        set opt_flag=-g
+        breaksw
+
+      case "-no_ftn":
+        set build_ftn=0
+        breaksw
+
+      case "-pgshome":
+        setenv PGSHOME "$2"
+        shift
+	if ( ! -d $PGSHOME || ! -w $PGSHOME ) then
+	    echo "`basename $0`: error: invalid directory ($PGSHOME) specified with -pgshome switch"
+	    set help = 1
+	endif
+        breaksw
+
+      case "-cpp":
+        set cpp=1
+	set c_only=0
+        breaksw
+
+      case "-cpp_path":
+        set cpp_path="$2"
+        shift
+        breaksw
+
+      case "-cpp_lib_only":
+        set cpp_lib_only=1
+	set c_only=0
+        breaksw
+
+      case "-c_rlib":
+        set c_rlib=1
+	set c_only=0
+        breaksw
+
+      default:
+        echo "`basename $0`: error: invalid argument '$1'"
+        set help = 1
+        breaksw
+
+    endsw
+    
+    shift    
+
+end
+
+help:
+if ("$help" == "1") then
+    echo ""
+    sed -n '/filename:/,/author:/p' $0 | grep -v "author:" | cut -c3-300 | more
+    #this line must be here because it contains the string: "author:"
+    exit
+endif
+
+
+#
+# set the toolkit home directory environment variable to the startup directory
+# *** this script must be run from the toolkit home directory ***
+#
+
+if ( ! $?PGSHOME ) then
+    setenv PGSHOME $PWD
+else
+    cd $PGSHOME
+endif
+
+#
+# make sure we are starting from a valid toolkit directory,
+# by checking for the presence of all required subdirectories
+# if any of them is missing then set PGSHOME to the null string
+# and display the help message
+# 
+
+foreach dir (bin include lib message runtime src test)
+
+    if ( -d $dir ) then
+        continue
+    else
+        setenv PGSHOME ""
+        echo "$script_error not in toolkit home directory"
+        set help=1
+        goto help
+    endif
+
+end
+
+#
+# determine whether formal track directory structure is in use
+#
+
+set pgs_formal=1
+foreach dir (database doc obj objcpp)
+
+    if ( -d $dir ) then
+        continue
+    else
+        set pgs_formal=0
+    endif
+
+end
+
+
+#
+# If the -NAG option was specified:
+# - enable the -f90 option
+# - make sure that the -fc_path <compiler-path> was also specified
+#
+
+if ( $nag_flag == 1 ) then
+
+    set f90_flag = 1
+    if ( "$fc_path" == "" ) then
+        echo "$script_error Must specify -f90 and -fc_path <compiler-path> with -NAG option."
+          exit 1
+    else 
+        echo ""
+        echo "NAG option enabled, using f90 compiler (in) $fc_path"
+    endif
+
+endif
+
+
+# the ABSOFT flag is only valid if f77 was requested AND the path to the
+# ABSOFT f77 compiler also needs to be specified.
+
+if ( $absoft_flag == 1 ) then
+    if ( "$fc_path" == "" ) then
+	echo "$script_error Must set absoft f77 compiler path using -fc_path."
+	exit 1
+    else
+        echo ""
+        echo "ABSOFT option enabled, using f77 compiler (in) $fc_path"
+    endif
+endif
+
+
+
+#-----------------------------------------------------------------------------
+#
+#  Set up environment
+#
+#-----------------------------------------------------------------------------
+
+
+# set path to a base subset of directories, allowing startup on unknown host
+# note: once the host has been determined the path is appropriately customized
+
+set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/bin/X11)
+
+
+# get operating system type, login name
+# special cases: SCO and Cray  - uname works differently,
+
+setenv MACHINE `uname -m | awk '{print $1}'`	# needed on Cray & SCO
+setenv temp_ostype `uname`
+
+switch ( "$MACHINE" )
+
+    case "i386":        			# SCO box
+	setenv OSTYPE sco386
+        breaksw
+
+    case "CRAY":    				# CRAY
+	setenv OSTYPE UNICOS
+        breaksw
+
+    default:					# everybody else
+	setenv OSTYPE `uname`
+        breaksw
+
+endsw
+
+setenv CYGPL `uname | awk -F_ '{print $1}'`
+
+    # Intel Macintosh is also i386 or i686 (?) machine
+
+    if("$MACHINE" == "i386") then
+	if("$temp_ostype" == "Darwin") then 
+	    setenv OSTYPE DarwinIntel
+	endif
+	if("$CYGPL" == "CYGWIN") then 
+	    setenv OSTYPE Cygwin
+	endif
+    endif
+    if("$MACHINE" == "i686") then
+	if("$temp_ostype" == "Darwin") then 
+	    setenv OSTYPE DarwinIntel
+	endif
+	if("$CYGPL" == "CYGWIN") then 
+	    setenv OSTYPE Cygwin
+	endif
+    endif
+    if("$MACHINE" == "x86_64") then
+	if("$temp_ostype" == "Darwin") then 
+	    setenv OSTYPE DarwinIntel
+	endif
+	if("$CYGPL" == "CYGWIN") then 
+	    setenv OSTYPE Cygwin
+	endif
+    endif
+    if("$MACHINE" == "ia64") then
+	if("$temp_ostype" == "Darwin") then 
+	    setenv OSTYPE DarwinIntel
+	endif
+	if("$CYGPL" == "CYGWIN") then 
+	    setenv OSTYPE Cygwin
+	endif
+    endif
+    if("$MACHINE" == "x86_64" || "$MACHINE" == "ia64") then
+	if("$temp_ostype" == "Darwin") then 
+	    if("$MAC_BRAND" == "") then 
+		echo " Error: In 64-bit MAC platform the env. variable MAC_BRAND must be set to mac32 or mac64 before running this script."
+		exit 1
+	    endif
+	else
+	    if("$LINUX_BRAND" == "") then 
+		echo " Error: In 64-bit linux platform the env. variable LINUX_BRAND must be set to linux32 or linux64 before running this script."
+		exit 1
+	    endif
+	endif
+    endif
+
+set user = (` id | awk -F\( '{print $2}' | awk -F\) '{print $1}' `)
+if ($?LOGNAME == 0) setenv LOGNAME $user	# make sure $LOGNAME is defined
+setenv USER $LOGNAME				# make sure $USER is defined
+
+if("$OSTYPE" != "Linux") then
+    set LNX_COMP_FLAG = ""
+endif
+if("$OSTYPE" != "DarwinIntel") then
+    set MACINTEL_COMP_FLAG = ""
+endif
+# set machine-dependent environment variables:
+# 	HOST  the host name of this machine
+# 	BRAND used by other achitecture-specific code
+# 	path  the execution search path exported to PATH
+
+switch ( "$OSTYPE" )
+
+    case "AIX": 
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/bin/X11 /usr/ccs/bin /usr/sbin)
+	setenv HOST `hostname`
+	setenv BRAND ibm
+        breaksw
+
+    case "HP-UX": 
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/bin/X11)
+	setenv HOST `hostname`
+	setenv BRAND hp 
+        breaksw
+
+    case "IRIX":  
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/bsd /usr/bin/X11 /usr/sbin)
+	setenv HOST `hostname`
+	setenv BRAND sgi
+	if ("$sgi_mode" != 32) then
+	    echo "$script_error -sgi32 and -sgi64 options not supported on 32-bit SGI platform"
+	    exit 1
+	endif
+        breaksw
+
+    case "IRIX64":  
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/bsd /usr/bin/X11 /usr/sbin)
+	setenv HOST `hostname`
+	if ("$sgi_mode" == 32) then
+	    setenv BRAND sgi
+        else if ("$sgi_mode" == 64) then
+	    setenv BRAND sgi64
+        else if ("$sgi_mode" == n32) then
+	    setenv BRAND sgi32
+        else
+	    setenv BRAND sgi
+        endif
+        breaksw
+
+    case "Linux": 
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/bin/X11)
+	setenv HOST `hostname -s`
+	setenv BRAND linux
+	if("$LINUX_BRAND" == "linux64") then
+	    setenv BRAND linux64
+	else if("$LINUX_BRAND" == "linux32") then
+	    setenv BRAND linux32
+	endif
+        breaksw
+
+    case "Darwin":
+        set path=(/bin /sbin /usr/bin /usr/sbin)
+        setenv HOST `hostname -s`
+        setenv BRAND macintosh
+        breaksw
+
+    case "DarwinIntel":
+        set path=(/bin /sbin /usr/bin /usr/sbin)
+        setenv HOST `hostname -s`
+        setenv BRAND macintel32
+	if("$MAC_BRAND" == "macintel64") then
+	    setenv BRAND macintel64
+	else if("$MAC_BRAND" == "macintel32") then
+	    setenv BRAND macintel32
+	endif
+        breaksw
+
+    case "Cygwin":
+        set path=(/bin /sbin /usr/bin /usr/sbin)
+        setenv HOST `hostname`
+        setenv BRAND cygwin
+        breaksw
+
+    case "OSF1":  
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/bin/X11 /usr/ccs/bin /usr/sbin)
+	setenv HOST `hostname -s`
+	setenv BRAND dec 
+        breaksw
+
+    case "sco386": 
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/etc /usr/bin/X11)
+	setenv HOST `hostname -s`
+	setenv BRAND sco 
+        breaksw
+
+    case "SunOS": 
+	# distinguish between SunOS 5.x and 4.x versions
+          set cbrand = `uname -r | awk -F. '{print $1, $2}'`
+	if ("$cbrand" == "5 10") then 
+	    setenv BRAND sun5.10			# release V5.10 SunOS
+	    set path=(/usr/local/bin /opt/SUNWspro/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/openwin/bin /usr/openwin/demo /usr/ccs/bin /usr/sbin)
+	else if ("$cbrand" == "5 9") then 
+	    setenv BRAND sun5.9			# release V5.9 SunOS
+	    set path=(/usr/local/bin /opt/SUNWspro/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/openwin/bin /usr/openwin/demo /usr/ccs/bin /usr/sbin)
+	else if ("$cbrand" == "5 8") then 
+	    setenv BRAND sun5.8			# release V5.8 SunOS
+	    set path=(/usr/local/bin /opt/SUNWspro/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/openwin/bin /usr/openwin/demo /usr/ccs/bin /usr/sbin)
+	else if ("$cbrand" == "5 5") then                               
+            setenv BRAND sun5            	# release V5.x SunOS
+            set path=(/usr/local/bin /opt/SUNWspro/bin /bin /usr/bin /etc /usr/etc /usr/ucb /usr/openwin/bin /usr/openwin/demo /usr/ccs/bin /usr/sbin)
+       else 
+	    setenv BRAND sun4			# release V4.x SunOS
+	    set path=(/usr/local/bin /usr/local/lang /usr/lang /bin /usr/bin /etc /usr/etc /usr/ucb /usr/openwin/bin /usr/openwin/demo)
+	endif
+	setenv HOST `hostname`
+        breaksw
+
+    case "UNICOS": 
+	set path=(/usr/local/bin /bin /usr/bin /etc /usr/ucb /usr/bin/X11)
+	setenv HOST `hostname`
+	setenv BRAND cray 
+        breaksw
+
+    default:
+	echo "Operating system: $OSTYPE not supported"
+	echo "This release of the toolkit supports: "
+	echo "   Sun, SGI, HP-9000, IBM-6000, DEC-Alpha and Cray/Unicos "
+	exit 1
+        breaksw
+
+endsw
+
+# fix up css_lib following definition of BRAND
+
+if ( "$css_lib" == "" ) set css_lib  = "/ecs/formal/CSS/IR1/lib/$BRAND"
+
+
+#
+# set default values for the toolkit directory environment variables
+#
+
+setenv PGSBIN 	$PGSHOME/bin		# exectuable files
+setenv PGSDAT 	$PGSHOME/lib/database	# database files
+setenv PGSINC 	$PGSHOME/include	# include (header) files
+setenv PGSLIB 	$PGSHOME/lib 		# library files
+setenv PGSMSG 	$PGSHOME/message	# SMF message files
+setenv PGSOBJ 	$PGSHOME/lib/obj	# object files
+setenv PGSCPPO 	$PGSHOME/lib/objcpp	# C++ object files
+setenv PGSRUN 	$PGSHOME/runtime	# runtime work files
+setenv PGSSRC 	$PGSHOME/src		# toolkit source files
+setenv PGSTST 	$PGSHOME/test		# test source files
+
+#
+# set architecture dependencies for formal track directory structure
+#
+
+if ("$pgs_formal" == 1) then
+
+    setenv PGSBIN 	${PGSHOME}/bin/$BRAND		# exectuable files
+    setenv PGSDAT 	${PGSHOME}/database/$BRAND	# database files
+    setenv PGSLIB 	${PGSHOME}/lib/$BRAND  		# library files
+    setenv PGSOBJ 	${PGSHOME}/obj/$BRAND		# object files
+    setenv PGSCPPO 	${PGSHOME}/objcpp/$BRAND        # C++ object files
+endif
+
+# 
+# Set up variables needed by Process Control (PC) tools. 
+# 
+set pcf_ext=relB0 # extension of current PCF
+
+setenv PGS_PC_INFO_FILE    	$PGSRUN/$BRAND/PCF.$pcf_ext # default info file
+
+
+#
+# add PGSBIN to path
+#
+
+set path  = ($PGSBIN $path )
+setenv MAKE "make -r"
+#export MAKE
+
+# set machine-dependent compilers and compilation switches:
+#
+#
+
+switch ($BRAND)
+echo "$BRAND"
+    case cray:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc 			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS" 	# default C flags (optimize, ansi)
+	setenv C_CFH "-DCRAYFortran"    # C/cfortran.h called from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C ++flags (optimize, ansi)
+        setenv CPP_CFH "-DCRAYFortran"  # C++ w/cfortran.h called from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 cf77			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS UNICOS		# system type as defined by HDF
+	breaksw
+
+    case dec:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc 			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -std"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DDECFortran"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -std -DH5_USE_16_API $EXT_CPP_FLAGS"       # default C ++ flags (optimize, ansi)
+        setenv CPP_CFH "-DDECFortran" # C ++ w/cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS DEC_ALPHA		# system type as defined by HDF
+	breaksw
+
+    case hp:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc 			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Ae"	# default C flags (optimize, ansi)
+	setenv C_CFH "" 		# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -Aa +a1 -DH5_USE_16_API $EXT_CPP_FLAGS"    # default C ++ flags (optimize, ansi)
+        setenv CPP_CFH ""           # C ++ w/ cfortran.h callable from FORTRAN
+ 	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+	setenv F77 fort77		# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS HP9000		# system type as defined by HDF
+	breaksw
+
+    case ibm:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc 			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -qlanglvl=ansi" # default C flags (optimize, ansi)
+	setenv C_CFH "" 		# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -qlanglvl=ansi -DH5_USE_16_API $EXT_CPP_FLAGS" # default C ++ flags (optimize, ansi)
+        setenv CPP_CFH ""          # C ++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 xlf 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS IBM6000		# system type as defined by HDF
+	breaksw
+
+    case linux:
+    case linux32:
+    case linux64:
+        setenv CPP "g++ $LNX_COMP_FLAG"    # C++ compiler
+	setenv CC "gcc $LNX_COMP_FLAG"     # C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DLINUX"  # default C flags (optimize, ansi)
+        if ("$opt_flag" == "-O") then      # on Linux we need -O2 for compilation
+	set opt_flag={$opt_flag}2
+	endif
+	if( "$MACHINE" == "x86_64" ) then
+	    if( "$BRAND" == "linux64" ) then
+		setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DLINUX64"
+		setenv CPPFLAGS "-g -DLINUX64 -DH5_USE_16_API $EXT_CPP_FLAGS"  # default C ++ flags (optimize)
+	    else if( "$BRAND" == "linux32" || "$BRAND" == "linux" ) then
+		setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DLINUX"
+		setenv CPPFLAGS "-g -DLINUX -DH5_USE_16_API $EXT_CPP_FLAGS"  # default C ++ flags (optimize)
+	    endif
+	else if( "$MACHINE" == "ia64" ) then
+	    if( "$BRAND" == "linux64" ) then
+		setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DIA64"
+		setenv CPPFLAGS "-g -DIA64 -DH5_USE_16_API $EXT_CPP_FLAGS"  # default C ++ flags (optimize)
+	    else if( "$BRAND" == "linux32" || "$BRAND" == "linux" ) then
+		setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DLINUX"
+		setenv CPPFLAGS "-g -DLINUX -DH5_USE_16_API $EXT_CPP_FLAGS"  # default C ++ flags (optimize)
+	    endif
+	else
+	    setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DLINUX" # default C flags (optimize,ansi)
+	    setenv CPPFLAGS "-g -DLINUX -DH5_USE_16_API $EXT_CPP_FLAGS"      # default C ++ flags (optimize)
+	endif
+
+	setenv C_CFH "-Df2cFortran"	   # C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH"   # CFLAGS + C_CFH
+        setenv CPP_CFH "-Df2cFortran"      # C ++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 "g77 $LNX_COMP_FLAG"	   # FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"	# common FORTRAN flags
+	if ("$fc_path" != "") then
+	    if (-f $fc_path) then
+		set fort77 = `basename $fc_path`
+		if("$fort77" == "fort77" || "$fort77" == "pgf77" || "$fort77" == "pgf90") then
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"
+		else if("$fort77" == "f77" && absoft_flag == 1) then
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -W -f -s -N15 -N26"
+		else
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"
+		endif
+	    else
+		setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore" 
+	    endif
+	else
+	    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"  # common FORTRAN flags
+	endif
+
+	if( "$MACHINE" == "x86_64" ) then
+	    if( "$BRAND" == "linux64" ) then
+		setenv HDFSYS LINUX64      # system type as defined by HDF
+	    else if( "$BRAND" == "linux32" || "$BRAND" == "linux" ) then
+		setenv HDFSYS LINUX
+	    endif
+	else if( "$MACHINE" == "ia64" ) then
+	    if( "$BRAND" == "linux64" ) then
+		setenv HDFSYS IA64         # system type as defined by HDF
+	    else if( "$BRAND" == "linux32" || "$BRAND" == "linux" ) then
+		setenv HDFSYS LINUX
+	    endif
+	else
+	    setenv HDFSYS LINUX		   # system type as defined by HDF
+	endif
+
+	breaksw
+
+    case macintosh:
+        setenv CPP g++                     # C++ compiler
+        setenv CC gcc                      # C compiler
+        if ("$opt_flag" == "-O") then      # we need -O2 for compilation
+        set opt_flag={$opt_flag}2
+        endif
+        setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DMACINTOSH"  # default C flags (optimize, ansi)
+        setenv C_CFH "-Df2cFortran"        # C w/ cfortran.h callable from FORTRAN
+        setenv CFHFLAGS "$CFLAGS $C_CFH"   # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -DMACINTOSH -DH5_USE_16_API $EXT_CPP_FLAGS"   # default C ++ flags (optimize)
+        setenv CPP_CFH "-Df2cFortran"      # C ++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+        setenv F77 g77                     # FORTRAN compiler
+	if ("$fc_path" != "") then
+	    if (-f $fc_path) then
+		set fort77 = `basename $fc_path`
+		if("$fort77" == "fort77" || "$fort77" == "pgf77" || "$fort77" == "pgf90") then
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"
+		else
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"
+		endif
+	    else
+		setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore" 
+	    endif
+	else
+	    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"  # common FORTRAN flags
+	endif
+        setenv HDFSYS MACINTOSH            # system type as defined by HDF
+        breaksw
+
+    case macintel:
+    case macintel32:
+    case macintel64:
+        setenv CPP "g++  $MACINTEL_COMP_FLAG"                    # C++ compiler
+        setenv CC "gcc   $MACINTEL_COMP_FLAG"                    # C compiler
+        if ("$opt_flag" == "-O") then      # we need -O2 for compilation
+        set opt_flag={$opt_flag}2
+        endif
+        setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DMACINTEL"  # default C flags (optimize, ansi)
+        setenv C_CFH "-Df2cFortran"        # C w/ cfortran.h callable from FORTRAN
+        setenv CFHFLAGS "$CFLAGS $C_CFH"   # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -DMACINTEL -DH5_USE_16_API $EXT_CPP_FLAGS"    # default C ++ flags (optimize)
+        setenv CPP_CFH "-Df2cFortran"      # C ++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+        setenv F77 "gfortran   $MACINTEL_COMP_FLAG"                  # FORTRAN compiler
+	if ("$fc_path" != "") then
+	    if (-f $fc_path) then
+		set fort77 = `basename $fc_path`
+		if("$fort77" == "fort77" || "$fort77" == "pgf77" || "$fort77" == "pgf90") then
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"
+		else
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"
+		endif
+	    else
+		setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore" 
+	    endif
+	else
+	    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"  # common FORTRAN flags
+	endif
+        setenv HDFSYS MACINTEL            # system type as defined by HDF
+        breaksw
+
+    case cygwin:
+        setenv CPP g++                     # C++ compiler
+        setenv CC gcc                      # C compiler
+        if ("$opt_flag" == "-O") then      # we need -O2 for compilation
+        set opt_flag={$opt_flag}2
+        endif
+        setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -DCYGWIN"  # default C flags (optimize, ansi)
+        setenv C_CFH "-Df2cFortran"        # C w/ cfortran.h callable from FORTRAN
+        setenv CFHFLAGS "$CFLAGS $C_CFH"   # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -DCYGWIN -DH5_USE_16_API $EXT_CPP_FLAGS"    # default C ++ flags (optimize)
+        setenv CPP_CFH "-Df2cFortran"      # C ++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+        setenv F77 g77                     # FORTRAN compiler
+	if ("$fc_path" != "") then
+	    if (-f $fc_path) then
+		set fort77 = `basename $fc_path`
+		if("$fort77" == "fort77" || "$fort77" == "pgf77" || "$fort77" == "pgf90") then
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"
+		else
+		    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"
+		endif
+	    else
+		setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore" 
+	    endif
+	else
+	    setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS -fno-second-underscore"  # common FORTRAN flags
+	endif
+        setenv HDFSYS CYGWIN            # system type as defined by HDF
+        breaksw
+
+    case sco:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc 			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -posix"	# default C flags (optimize, ansi)
+	setenv C_CFH "-Df2cFortran"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-g -posix -DH5_USE_16_API $EXT_CPP_FLAGS"     # default C++ flags (optimize, ansi)
+        setenv CPP_CFH "-Df2cFortran"   # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 ""			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SCO		# system type as defined by HDF
+	breaksw
+
+    case sgi:
+	if ($OSTYPE == "IRIX64") then
+		setenv CPP "CC -32"                  # C++ compiler
+		setenv CC "cc -32"	# C compiler (32 bit)
+		setenv F77 "f77 -32"	# FORTRAN compiler (32 bit)
+	else
+		setenv CPP CC                   # C++ compiler
+                setenv CC cc		# C compiler
+                setenv F77 f77		# FORTRAN compiler
+	endif
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -xansi -D_POSIX_SOURCE"	# default C flags (optimize, ansi)
+	setenv C_CFH ""	 		# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-O -xansi -DSGI -DH5_USE_16_API $EXT_CPP_FLAGS"             # default C++ flags (optimize, ansi)
+        setenv CPP_CFH ""                       # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS IRIX		# system type as defined by HDF
+	breaksw
+
+    case sgi32:
+        setenv CPP "CC -n32"                  # C++ compiler
+	setenv CC "cc -n32"		# C compiler (new-style 32 bit)
+	setenv F77 "f77 -n32"		# FORTRAN compiler (new-style 32 bit)
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -xansi -D_POSIX_SOURCE"	# default C flags (optimize, ansi)
+	setenv C_CFH ""	 		# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-O -xansi -DH5_USE_16_API $EXT_CPP_FLAGS" # default C++ flags (optimize, ansi)
+        setenv CPP_CFH ""               # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS IRIX		# system type as defined by HDF
+	breaksw
+
+    case sgi64:
+	set cpu_type=`hinv | fgrep CPU | head -1 | cut -d' ' -f3 | cut -b2`
+	if ("$cpu_type" == "4") then
+	        setenv CPP "CC -64 -mips3"                  # C++ compiler
+		setenv CC "cc -64 -mips3"	# C compiler (R4?00 chip)
+		setenv F77 "f77 -64 -mips3"	# FORTRAN compiler (R4?00 chip)
+	else
+	        setenv CPP "CC -64"                   # C++ compiler
+                setenv CC "cc -64"	# C compiler
+                setenv F77 "f77 -64"	# FORTRAN compiler
+	endif
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -xansi -D_POSIX_SOURCE"	# default C flags (optimize, ansi)
+	setenv C_CFH ""	 		# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-O -xansi -DH5_USE_16_API $EXT_CPP_FLAGS" # default C++ flags (optimize, ansi)
+        setenv CPP_CFH ""                       # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS IRIX		# system type as defined by HDF
+	breaksw
+
+    case sun4:
+        setenv CPP CC                   # C++ compiler
+	setenv CC acc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Xa"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DsunFortran"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-O -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C++ flags (optimize, ansi)
+        setenv CPP_CFH ""                       # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SUN		# system type as defined by HDF
+	breaksw
+
+    case sun5:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Xa"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DsunFortran"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C flags (optimize, ansi)
+        setenv CPP_CFH ""              # C w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SUN		# system type as defined by HDF
+	breaksw
+
+    case sun5.8:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Xa"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DsunFortran -DSUNOS58X"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C flags (optimize, ansi)
+        setenv CPP_CFH ""              # C w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SUN		# system type as defined by HDF
+	breaksw
+
+    case sun5.9:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Xa"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DsunFortran -DSUNOS59X"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C flags (optimize, ansi)
+        setenv CPP_CFH ""              # C w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SUN		# system type as defined by HDF
+	breaksw
+
+    case sun5.10:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -Xa"	# default C flags (optimize, ansi)
+	setenv C_CFH "-DsunFortran -DSUNOS510X"	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS"            # default C flags (optimize, ansi)
+        setenv CPP_CFH ""              # C w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS SUN		# system type as defined by HDF
+	breaksw
+
+    default:
+        setenv CPP CC                   # C++ compiler
+	setenv CC cc			# C compiler
+	setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS"	# default C flags (optimize)
+	setenv C_CFH ""	        	# C w/ cfortran.h callable from FORTRAN
+	setenv CFHFLAGS "$CFLAGS $C_CFH" # CFLAGS + C_CFH
+        setenv CPPFLAGS "-DH5_USE_16_API $EXT_CPP_FLAGS"             # default C ++ flags (optimize)
+        setenv CPP_CFH ""                       # C++ w/ cfortran.h callable from FORTRAN
+        setenv CPPFHFLAGS "$CPPFLAGS $CPP_CFH" # CFLAGS + C_CFH for C++
+	setenv F77 f77 			# FORTRAN compiler
+	setenv F77FLAGS "$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS"	# common FORTRAN flags
+	setenv HDFSYS unknown		# system type as defined by HDF
+	breaksw
+endsw
+
+
+if ($build_ftn == 0) then
+  setenv F77 none
+  echo "WARNING: The toolkit is being built WITHOUT full FORTRAN support."
+  echo ""
+  set f90_flag=0
+  set fc_path=""
+  set cc_path=""
+  set nag_flag=0
+  set absoft_flag=0
+endif
+
+#-----------------------------------------------------------------------------
+#
+#  Additional setup
+#
+#-----------------------------------------------------------------------------
+
+echo ""
+echo "Toolkit installation script: `basename $0`"
+echo "Starting at: `date`"
+echo ""
+
+#
+# check to see if DAAC build was requested
+#
+
+
+if ("$pgs_daac" == "1") then    # yes
+
+    echo "The DAAC version of the toolkit library libPGSTK.a will be built"
+
+endif
+
+if ("$pgs_daac" == "0") then    # no
+
+    echo "The SCF version of the toolkit library libPGSTK.a will be built"
+
+endif
+
+if ("$pgs_daac" == "IR1") then    # yes
+
+    echo "The IR1 DAAC version of the toolkit library libPGSTK.a will be built"
+
+endif
+
+if ("$cpp_lib_only" == "1") then    # no
+
+    echo "The C++ version of the toolkit library libPGSTKcpp.a will be built"
+
+endif
+
+if ("$c_rlib" == "1") then    # no
+
+    echo "The threadsafe version of the toolkit library libPGSTK_r.a will be built"
+
+endif
+
+
+#
+# Make sure old IR-1 DAAC environment variables are not set !
+#
+
+if ( $?ADD_IFLAGS ) then
+    setenv ADD_IFLAGS ""
+endif
+if ( $?ADD_LFLAGS ) then
+    setenv ADD_LFLAGS ""
+endif
+if ( $?ADD_LIBS ) then
+    setenv ADD_LIBS ""
+endif
+
+#
+# check to see if valid C compiler path was specified
+#
+
+set cc=""
+
+if ("$cc_path" != "" ) then
+
+    if (-f $cc_path) then
+
+        set cc = `basename $cc_path`
+        set cc_path = `echo $cc_path | sed 's%/[^/]*$%%'`
+	switch ($BRAND)
+	    case sgi32:
+		setenv CC "$cc_path/$cc -n32"
+	    breaksw
+
+	    case sgi64:
+		set cpu_type=`hinv | fgrep CPU | head -1 | cut -d' ' -f3 | cut -b2`
+		if ("$cpu_type" == "4") then
+		    setenv CC "$cc_path/$cc -64 -mips3"
+		else
+		    setenv CC "$cc_path/$cc -64"
+		endif
+	    breaksw
+
+	    case linux:
+	    case linux32:
+	    case linux64:
+		setenv CC "$cc_path/$cc $LNX_COMP_FLAG"
+	    breaksw
+
+	    case macintel:
+	    case macintel32:
+	    case macintel64:
+		setenv CC "$cc_path/$cc $MACINTEL_COMP_FLAG"
+	    breaksw
+
+	    default:
+		if ( "$cc" == "gcc" ||  "$cc" == "g++" ) then
+		    setenv CC "$cc_path/$cc -DUSING_GNU_COMP"
+		else
+		    setenv CC "$cc_path/$cc"
+		endif 
+	    breaksw
+	endsw
+    endif
+
+    if (-d $cc_path) then		# sure cc_path is now a directory
+
+        set path = ( $cc_path $path )	# prepend cc_path to search path
+
+    else
+
+        set cc_path = ""
+        echo "Warning: C compiler directory $cc_path not found."
+        echo  "Toolkit build may fail."
+
+    endif
+
+endif
+
+
+#
+# check to see if valid FORTRAN compiler path was specified
+#
+
+set fc=""
+
+if ("$fc_path" != "") then
+
+    if (-f $fc_path) then
+
+        set fc = `basename $fc_path`
+        set fc_path = `echo $fc_path | sed 's%/[^/]*$%%'`
+	switch ($BRAND)
+	    case sgi32:
+		setenv F77 "$fc_path/$fc -n32"	# user overrides FORTRAN compiler name
+	    breaksw
+
+	    case sgi64:
+		set cpu_type=`hinv | fgrep CPU | head -1 | cut -d' ' -f3 | cut -b2`
+		if ("$cpu_type" == "4") then
+		    setenv F77 "$fc_path/$fc -64 -mips3"
+		else
+		    setenv F77 "$fc_path/$fc -64"
+		endif
+	    breaksw
+	    
+	    case linux:
+	    case linux32:
+	    case linux64:
+		if ("$fc" == "pgf77" || "$fc" == "pgf90" ) then
+		    setenv F77 "$fc_path/$fc"
+		else
+		    setenv F77 "$fc_path/$fc $LNX_COMP_FLAG"
+		endif
+	    breaksw
+
+	    case macintel:
+	    case macintel32:
+	    case macintel64:
+		    setenv F77 "$fc_path/$fc $MACINTEL_COMP_FLAG"
+	    breaksw
+
+
+	    default:
+		setenv F77 "$fc_path/$fc"        # user overrides FORTRAN compiler name
+	    breaksw
+	endsw
+    endif
+
+    if (-d $fc_path) then		# sure fc_path is now a directory
+
+        set path = ( $fc_path $path )	# prepend fc_path to search path
+
+    else
+
+        set fc_path = ""
+        echo "Warning: FORTRAN directory $fc_path not found."
+        echo  "Toolkit build may fail."
+
+    endif
+
+endif
+
+
+#
+# check to see if f90 build was requested
+#
+
+set pgs_machine = `uname -m | awk '{print $1}'`
+
+if ("$f90_flag" == "1") then    # yes, modify compilation flags
+
+    if ( "$fc" == "") then
+	if ( "$BRAND" == "linux" || "$BRAND" == "linux32" ||"$BRAND" == "linux64" ) then
+	    if( "$pgs_machine" == "x86_64" || "$pgs_machine" == "ia64" ) then  #64-bit linux machine
+		if( "$LNX_COMP_FLAG" != "-m32" ) then
+		    echo ""
+		    echo " ------- Error WARNING -------"
+		    echo " Please make sure that this pgf90 compiles "
+		    echo " in 64-bit mode, since we are compiling    "
+		    echo " TOOLKIT in 64-bit mode. Otherwise Fortran " 
+		    echo " codes may not be compiled,or TOOLKIT Library"
+		    echo " built."
+		    echo ""
+		endif
+	    endif
+	    if ( "$BRAND" == "linux32" ) then
+		set f90 = "pgf90 -Wa,--32"	# default f90 compiler
+	    else if ( "$BRAND" == "linux64" ) then
+		set f90 = "pgf90"		# default f90 compiler
+	    else
+		set f90 = "pgf90 -Wa,--32"	# default f90 compiler
+	    endif
+	else
+	    set f90 = "f90"		# default f90 compiler
+	endif
+    else 
+        set f90 = "$fc" 	# user override
+    endif
+
+    set f90flags = ""		# default f90 compiler flags
+
+    switch ($BRAND)
+
+      case sgi: 			# SGI / SGI Challenge: -32 mode
+        set os_version = `uname -a | awk '{print $3}'`
+        switch ("$os_version")		# pre-6.2 IRIX systems
+          case 4.* :
+            set nag_flag = 1		# must use NAG f90
+            breaksw
+          case 5.* :
+            set nag_flag = 1		# must use NAG f90
+            breaksw
+          case 6.0* :
+            set nag_flag = 1		# must use NAG f90
+            breaksw
+          case 6.1* : 
+            set nag_flag = 1		# must use NAG f90
+            breaksw
+          default : 			# IRIX 6.2 and higher
+            if ($OSTYPE == IRIX64) then # SGI Challenge
+                set nag_flag = 1	# must use NAG f90
+            endif
+            breaksw
+        endsw
+        breaksw
+
+      case sgi32:			# SGI Challenge: -n32 mode
+        set f90flags = '-n32'		# set compiler flags
+        set nag_flag = 0		# must NOT use NAG f90
+        breaksw
+
+      case sgi64:
+	# SGI Challenge: -64 mode
+	set f90flags = '-64'  		# set compiler flags
+	#if this is an old processor set the -mips3 flag
+	if ("$cpu_type" == "4") set f90flags = '-64 -mips3'
+        set nag_flag = 0		# must NOT use NAG f90
+        breaksw
+
+      case sun4:			# SunOS 4.x
+        set nag_flag = 1		# must use NAG f90
+        breaksw
+
+    endsw
+
+
+    #
+    # attempt to determine which f90 compiler is in the path
+    #
+
+    switch ($BRAND)			# only works on certain platforms
+
+      case sgi: 			# SGI or SGI Challenge
+      case sgi32: 			# SGI Challenge
+      case sgi64: 			# SGI Challenge
+      case sun4: 			# SunOS 4.x
+
+	if ( $?SGI_ABI ) then
+	    set saved_SGI_ABI="$SGI_ABI"
+	endif
+
+	setenv SGI_ABI "-n32"
+
+        set tmp_file = "$$.f90.tmp"
+        $f90 >&! $tmp_file
+        set buf = `awk '{print $1}' $tmp_file | sed 's/ *: *$//'`
+        /bin/rm -f $tmp_file
+    
+        switch ("$buf")
+          case "Usage" :
+            set f90_type = "NAG f90"
+            breaksw
+          case "f90" :
+            set f90_type = "native f90"
+            breaksw
+          default:
+            set f90_type = "NO f90"
+            breaksw
+        endsw
+
+	if ( $?saved_SGI_ABI ) then
+	    setenv SGI_ABI "$saved_SGI_ABI"
+	    unset saved_SGI_ABI
+	else
+	    unsetenv SGI_ABI
+	endif
+	
+        breaksw
+
+      default:				# other platforms unimplemented
+
+        if ("$nag_flag" == "1") then	# using NAG f90
+            set f90_type = "NAG f90"
+        else
+            set f90_type = "native f90"	# other f90
+        endif
+
+        breaksw
+
+    endsw
+
+
+    #
+    # handle NAG vs non-NAG f90 compiler
+    #
+
+    if ("$nag_flag" == "1") then	# using NAG f90
+
+        echo "Using NAG f90 compiler"
+        echo ""
+
+        setenv C_CFH "$C_CFH -DNAGf90F"
+        setenv CFHFLAGS "$CFLAGS $C_CFH"
+
+        if ($BRAND == sgi) then		# SGI 
+            if ($OSTYPE == IRIX64) then	# SGI Challenge: -32 mode
+                set f90flags = '-ccarg "-32" -ldarg "-32"' # set f90 flags
+            endif
+        endif
+
+        if ("$f90_type" != "NAG f90") then
+            echo "$script_error f90 compiler is the wrong type or not in path."
+            echo "You must specify the path to your f90 compiler using the -fc_path option."
+            echo "Type:  '$0 -h' for more information"
+            echo "Toolkit installation cancelled."
+            exit 1
+        endif
+
+    else
+
+        echo "Using non-NAG f90 compiler"
+        echo ""
+
+        if ("$f90_type" != "native f90") then
+            echo "$script_error f90 compiler is the wrong type or not in path."
+            echo "You must specify the path to your f90 compiler using the -fc_path option."
+            echo "Type:  '$0 -h' for more information"
+            echo "Toolkit installation cancelled."
+            exit 1
+        endif
+
+    endif
+
+
+    # 
+    # Look for the f90 compiler in the search path
+    # If not found, issue warning and halt installation
+    #
+
+    set f90_dir=""
+    foreach dir ($path)
+        if (-f "$dir/$f90") then
+            set f90_dir="$dir"
+            break
+        endif
+    end
+
+    if ("$f90_dir" == "") then
+        echo "$script_error f90 compiler is not in the search path."
+        echo "You must specify the path to your f90 compiler using the -fc_path option."
+        echo "Type:  '$0 -h' for more information"
+        echo "Toolkit installation cancelled."
+        exit 1
+    else
+        setenv F77 "$f90_dir/$f90 $f90flags"	# set f90 compiler, flags
+    endif
+
+    #
+    # if f90 build was requested and compiler is IBM's xlf90, add -qfixed 
+    # to the flags
+    #
+
+    if ("$f90_flag" == "1") then    # yes, check for xlf90 compiler
+	if ( "$fc" == "xlf90") then
+	    setenv F77 "$F77 -qfixed"
+	endif
+    endif
+
+    ## !! Modify as follows ?
+#    setenv PGSLIB "$PGSLIB/f90"
+
+    echo "The FORTRAN-90 version of the toolkit library libPGSTK.a will be built"
+
+
+else
+  if ("$build_ftn" != 0) then
+    echo "The FORTRAN-77 version of the toolkit library libPGSTK.a will be built"
+  endif
+
+    if ("$absoft_flag" == "1") then	# using ABSOFT f77
+            set f77_type = "ABSOFT f77"
+    else
+            set f77_type = "native f77"	# other f77
+    endif
+
+    #
+    # handle ABSOFT  vs non-ABSOFT f77 compiler
+    #
+
+    if ("$absoft_flag" == "1") then	# using ABSOFT f77
+
+        echo "Using absoft f77 compiler"
+        echo ""
+
+        if ($BRAND == linux || $BRAND == linux32 ) then	   # Linux 32-bit mode
+            setenv F77FLAGS "-W -f -s -N15 -N26 $opt_flag" # common FORTRAN flag
+	else
+            setenv F77FLAGS "-W -f -s -N15 -N26 $opt_flag" # common FORTRAN flags
+	endif
+
+        if ("$f77_type" != "ABSOFT f77") then
+            echo "$script_error f77 compiler is the wrong type or not in path."
+            echo "You must specify the path to your f77 compiler using the -fc_path option."
+            echo "Type:  '$0 -h' for more information"
+            echo "Toolkit installation cancelled."
+            exit 1
+        endif
+
+    else
+
+        echo "Using non-ABSOFT f77 compiler"
+        echo ""
+
+        if ("$f77_type" != "native f77") then
+            echo "$script_error f77 compiler is the wrong type or not in path."
+            echo "You must specify the path to your f77 compiler using the -fc_path option."
+            echo "Type:  '$0 -h' for more information"
+            echo "Toolkit installation cancelled."
+            exit 1
+        endif
+
+    endif
+endif
+
+echo ""
+
+
+#
+# check to see if gcc (GNU C compiler) build was requested
+#
+
+if ("$use_gcc" == "1") then 
+
+    #
+    # make sure gcc is in the path
+    #
+
+    setenv CC ""
+
+    foreach dir ($path $start_path)
+        if (-x ${dir}/gcc ) then
+            setenv CC ${dir}/gcc	# found compiler: set variable CC
+        				# append directory to path, if neeeded
+            if ("`echo $path | grep $dir`" == "") set path = ($path $dir)
+            break
+        endif
+    end
+
+    if ("$CC" == "") then
+        echo "$script_error Compiler 'gcc' was not found in the search path."
+        echo "Please set your path to include the gcc compiler and retry."
+        echo ""
+        exit 1
+    else
+        echo "Using GNU C Compiler ($CC) for the installation."
+    endif
+
+    setenv CFLAGS "$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS -ansi "	# default C flags (optimize, ansi)
+    setenv CFHFLAGS "$CFLAGS $C_CFH"    # CFLAGS + C_CFH
+
+endif
+
+echo ""
+
+
+#
+# This section contains old IR-1 DAAC toolkit code, currently unused
+#
+
+if ("$pgs_daac" == "IR1") then    # modify build flags
+
+    # search for CSS logger header files and library file (required
+    # to build DAAC version of Toolkit
+
+    set types_found=0
+    set logger_found=0
+
+    foreach directory ($css_inc1 $css_inc2 $PGSINC)
+	if ( -f ${directory}/EcTypes.h) set types_found=1
+	if ( -f ${directory}/EcUtLoggerC.h) set logger_found=1
+    end
+
+    # Check for existence of EcTypes.h
+    
+    if ( $types_found == 0 ) then
+	echo "$script_error EcTypes.h not found in:"
+	echo "    $css_inc2"
+	echo "    $css_inc1"
+	echo "    $PGSINC"
+	echo ""
+	echo "The DAAC version of the Toolkit cannot be compiled without"
+	echo "this file."
+	echo ""
+        echo "Toolkit installation cancelled."
+	echo ""
+        exit 1
+    endif
+
+    # Check for existence of EcUtLoggerC.h
+    
+    if ( $logger_found == 0 ) then
+	echo "$script_error EcUtLogger.h not found in:"
+	echo "    $css_inc1"
+	echo "    $css_inc2"
+	echo "    $PGSINC"
+	echo ""
+	echo "The DAAC version of the Toolkit cannot be compiled without"
+	echo "this file."
+	echo ""
+        echo "Toolkit installation cancelled."
+	echo ""
+        exit 1
+    endif
+
+    set logger_found=0
+    foreach directory ( $css_lib $PGSLIB )
+	if ( -f ${directory}/libEcUtLogC.a) set logger_found=1
+    end
+    
+    # Check for existence of EcUtLogC.a
+    
+    if ( $logger_found == 0 ) then
+	echo "$script_error libEcUtLogC.a not found in:"
+	echo "    $css_lib"
+	echo "    $PGSLIB"
+	echo ""
+	echo "The DAAC version of the Toolkit cannot be installed without"
+	echo "this file."
+	echo ""
+        echo "Toolkit installation cancelled."
+	echo ""
+        exit 1
+    endif
+
+    setenv ADD_IFLAGS "-I${css_inc1} -I${css_inc2}"
+    setenv ADD_LFLAGS "-L${css_lib}"
+
+    switch ($BRAND)	#set libraries to link
+      case sun5:
+        setenv ADD_LIBS "-lEcUtLogC -lnsl"
+        breaksw
+      case sun5.8:
+        setenv ADD_LIBS "-lEcUtLogC -lnsl"
+        breaksw
+      case sun5.9:
+        setenv ADD_LIBS "-lEcUtLogC -lnsl"
+        breaksw
+      case sun5.10:
+        setenv ADD_LIBS "-lEcUtLogC -lnsl"
+        breaksw
+      case sgi:
+      case sgi32:
+      case sgi64:
+        setenv ADD_LIBS "-lEcUtLogC" 
+        breaksw
+      case hp:
+        setenv ADD_LIBS "-lEcUtLogC"
+        breaksw
+      default:
+        echo "$script_error The DAAC version of the Toolkit only supports:"
+        echo ""
+        echo "    Sun (SunOS 5.x), SGI and HP"
+        echo ""
+        echo "Toolkit installation cancelled."
+	echo ""
+        exit 1
+        breaksw
+    endsw
+
+    setenv CFLAGS "$CFLAGS -DPGS_IR1"
+    setenv CFHFLAGS "$CFHFLAGS -DPGS_IR1"
+
+endif
+echo ""
+
+#
+# check to see if DAAC build was requested
+#
+
+if ("$pgs_daac" == "1") then    # modify build flags
+
+    setenv CFLAGS "$CFLAGS -DPGS_DAAC"
+    setenv CFHFLAGS "$CFHFLAGS -DPGS_DAAC"
+    setenv CPPFLAGS "$CPPFLAGS -DPGS_DAAC"
+    setenv CPPFHFLAGS "$CPPFHFLAGS -DPGS_DAAC"
+
+endif
+echo ""
+#
+# check to see if C++ build was requested
+#
+
+if ("$cpp" != "0") then    # modify build flags
+	echo "The C++ version of the toolkit library libPGSTKcpp.a will be built"
+endif
+echo ""
+
+#
+# check to see if valid C ++ compiler path was specified
+#
+
+set cppcm=""
+
+if ("$cpp_path" != "" ) then
+
+    if (-f $cpp_path) then
+
+        set cppcm = `basename $cpp_path`
+        set cpp_path = `echo $cpp_path | sed 's%/[^/]*$%%'`
+	switch ($BRAND)
+	    case sgi32:
+		setenv CPP "$cpp_path/$cppcm -n32"
+	    breaksw
+
+	    case sgi64:
+		set cpu_type=`hinv | fgrep CPU | head -1 | cut -d' ' -f3 | cut -b2`
+		if ("$cpu_type" == "4") then
+		    setenv CPP "$cpp_path/$cppcm -64 -mips3"
+		else
+		    setenv CPP "$cpp_path/$cppcm -64"
+		endif
+	    breaksw
+
+	    case linux:
+	    case linux32:
+	    case linux64:
+		setenv CPP "$cpp_path/$cppcm $LNX_COMP_FLAG"
+	    breaksw
+
+	    case macintel:
+	    case macintel32:
+	    case macintel64:
+		    setenv CPP "$cpp_path/$cppcm $MACINTEL_COMP_FLAG"
+	    breaksw
+
+
+	    default:
+		if ( "$cppcm" == "gcc" ||  "$cppcm" == "g++" ) then
+		    setenv CC "$cpp_path/$cppcm -DUSING_GNU_COMP"
+		else
+		    setenv CC "$cpp_path/$cppcm"
+		endif 
+	    breaksw
+	endsw
+    endif
+
+    if (-d $cpp_path) then		# sure cpp_path is now a directory
+
+        set path = ( $cpp_path $path )	# prepend cpp_path to search path
+
+    else
+
+        set cpp_path = ""
+        echo "Warning: C++ compiler directory $cpp_path not found."
+        echo  "Toolkit build may fail."
+
+    endif
+
+endif
+
+# we will define a compilation DFLAG if hdf4 netCDF is disabled, which
+# means "sd_" prefix is added to the netCDF function names
+
+setenv hdf4_netcdf enabled
+
+#
+# check to see if no-HDF build was requested
+#
+
+if ("$no_hdf" == "1") then
+    echo "The toolkit will be built  *** WITHOUT *** HDF support."
+    echo "Some functionality may be missing - see documentation for details."
+    echo ""
+else
+    echo "The toolkit will be built with HDF support."
+    echo ""
+
+
+    # NOTE: 
+    # The toolkit environment files derive the HDF directory environment
+    # variables from the value of the variable HDFHOME, and HDF5HOME so 
+    # it MUST be 
+    # properly set in order to install the toolkit with HDF support.
+    # Normally, this value should be passed in from the parent process.
+    # To override it, uncomment the next line and edit it for your site.
+
+    # set HDF home directory
+    # setenv HDFHOME <toolkit-path>/TOOLKIT/hdf/$BRAND/hdf-4.2.5
+    # setenv HDF5HOME <toolkit-path>/TOOLKIT/hdf/$BRAND/hdf5-1.8.5
+
+    #
+    # Set other HDF environment variables based on the value of HDFHOME and
+    # HDF5HOME.
+    # Toolkit compilations may depend on these.
+
+    if ( $?HDFHOME ) then
+
+        if ( -d $HDFHOME/bin ) then		# HDF utilities
+            setenv HDFBIN $HDFHOME/bin
+        else
+            setenv HDFBIN $HDFHOME/hdf/bin
+        endif
+
+	if ( -d $HDFHOME/include ) then	        # HDF header files
+            setenv HDFINC $HDFHOME/include
+        else
+            setenv HDFINC $HDFHOME/hdf/include
+        endif
+
+        if ( -d $HDFHOME/lib ) then		# HDF libraries
+            setenv HDFLIB $HDFHOME/lib
+        else
+            setenv HDFLIB $HDFHOME/hdf/lib
+        endif 
+    else
+        echo "$script_error Environment variable HDFHOME must be set to install with HDF."
+        set help=1
+        goto help
+    endif
+    
+    if ( $?HDF5HOME ) then
+
+        if ( -d $HDF5HOME/bin ) then            # HDF5 utilities
+            setenv HDF5BIN $HDF5HOME/bin
+        else
+            setenv HDF5BIN $HDF5HOME/hdf5/bin
+        endif
+
+        if ( -d $HDF5HOME/include ) then        # HDF5 header files
+            setenv HDF5INC $HDF5HOME/include
+        else
+            setenv HDF5INC $HDF5HOME/hdf5/include
+        endif
+
+        if ( -d $HDF5HOME/lib ) then            # HDF5 libraries
+            setenv HDF5LIB $HDF5HOME/lib
+        else
+            setenv HDF5LIB $HDF5HOME/hdf5/lib
+        endif
+    else
+        echo "$script_error Environment variable HDF5HOME must be set to install with HDF."
+        set help=1
+        goto help
+    endif
+
+# check to see if HDF4 is installed with --disable-netcdf
+# if that is the case then netcdf funtions in libmfhdf.a will hav "sd_" prefix
+# set a a TOOLKIT compilation flag to call netCDF function with or without
+# the "sd" prefix 
+
+    if (-f $HDFLIB/libmfhdf.a) then
+	set check_netcdf = `strings $HDFLIB/libmfhdf.a|grep sd_ncopen`
+	if ("$check_netcdf" != "") then
+	    setenv hdf4_netcdf disabled
+	else
+	    setenv hdf4_netcdf enabled
+	endif
+   endif
+
+    if ( $?JPEGHOME ) then
+
+        if ( -d $JPEGHOME/bin ) then            # JPEG utilities
+            setenv JPEGBIN $JPEGHOME/bin
+        else
+            setenv JPEGBIN $JPEGHOME/jpeg/bin
+        endif
+
+        if ( -d $JPEGHOME/include ) then        # JPEG header files
+            setenv JPEGINC $JPEGHOME/include
+        else
+            setenv JPEGINC $JPEGHOME/jpeg/include
+        endif
+
+        if ( -d $JPEGHOME/lib ) then            # JPEG libraries
+            setenv JPEGLIB $JPEGHOME/lib
+        else
+            setenv JPEGLIB $JPEGHOME/jpeg/lib
+        endif 
+    else
+    else
+        echo "$script_error Environment variable JPEGHOME must be set to install with HDF."
+        set help=1
+        goto help
+    endif
+
+    if ( $?ZLIBHOME ) then
+
+        if ( -d $ZLIBHOME/bin ) then            # ZLIB utilities
+            setenv ZLIBBIN $ZLIBHOME/bin
+        else
+            setenv ZLIBBIN $ZLIBHOME/zlib/bin
+        endif
+
+        if ( -d $ZLIBHOME/include ) then        # ZLIB header files
+            setenv ZLIBINC $ZLIBHOME/include
+        else
+            setenv ZLIBINC $ZLIBHOME/zlib/include
+        endif
+
+        if ( -d $ZLIBHOME/lib ) then            # ZLIB libraries
+            setenv ZLIBLIB $ZLIBHOME/lib
+        else
+            setenv ZLIBLIB $ZLIBHOME/zlib/lib
+        endif
+    else
+        echo "$script_error Environment variable ZLIBHOME must be set to install with HDF."
+        set help=1
+        goto help
+    endif
+
+endif
+
+#
+# check to see if no-HDF-EOS build was requested
+#
+
+if ("$no_hdfeos" == "1") then
+    echo "The toolkit will be built  *** WITHOUT *** HDF-EOS support."
+    echo "Some functionality may be missing - see documentation for details."
+    echo ""
+else
+    echo "The toolkit will be built with HDF-EOS support."
+    echo ""
+
+    # NOTE: 
+    # The toolkit environment files derive the HDF-EOS directory environment
+    # variables from the value of the variable HDFEOS_HOME, so it MUST be 
+    # properly set in order to install the toolkit with HDF-EOS support.
+    # Normally, this value should be passed in from the parent process.
+    # To override it, uncomment the next line and edit it for your site.
+
+    # setenv HDFEOS_HOME <toolkit-path>/TOOLKIT/hdfeos	# set HDF-EOS home directory
+
+    #
+    # Set other HDF-EOS environment variables based on the value of HDFEOS_HOME.
+    # Toolkit compilations may depend on these.
+
+    if ( $?HDFEOS_HOME ) then
+    
+        # HDF-EOS utilities
+	setenv HDFEOS_BIN $HDFEOS_HOME/bin/$BRAND
+
+        # HDF-EOS header files
+	setenv HDFEOS_INC $HDFEOS_HOME/include
+
+        # HDF-EOS libraries
+	setenv HDFEOS_LIB $HDFEOS_HOME/lib/$BRAND
+        
+    else
+
+        echo "$script_error Environment variable HDFEOS_HOME must be set to install with HDF-EOS."
+        set help=1
+        goto help
+    endif
+
+endif
+
+
+#-----------------------------------------------------------------------------
+#
+#  Install the Toolkit
+#
+#-----------------------------------------------------------------------------
+
+echo "    Installing the SDP Toolkit on host $HOST running $OSTYPE"
+echo "    Toolkit home directory is: $PGSHOME"
+echo ""
+
+#
+# If using formal track distribution, set up the architecture-dependent
+# directories by copying the common directories to the appropriate 
+# architecture.
+#
+
+if ("$pgs_formal" == 1) then
+
+    set status_msg="set up architecture-dependent directories"
+    echo "    "
+    echo "    $status_msg ..."
+    echo "    "
+
+    foreach dir ( $PGSBIN $PGSLIB $PGSOBJ $PGSCPPO)
+
+        if ( -d $dir ) then 
+	    if ( "$dir" == "$PGSLIB" ) then
+
+		if ( -d libiconv ) then
+		    continue 
+		else
+		    switch ($BRAND)
+
+			case macintosh:
+			    if ( -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintosh/libiconv-1.13_MacOSX.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+			    cd $PGSHOME
+			breaksw
+		
+			case macintel:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel/libiconv-1.13_MacIntel.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+			    cd $PGSHOME
+			breaksw
+		
+			case macintel32:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel32/libiconv-1.13_MacIntel32.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+			    cd $PGSHOME
+			breaksw
+		
+			case macintel64:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel64/libiconv-1.13_MacIntel64.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+			    cd $PGSHOME
+			breaksw
+		
+			case cygwin:
+			    if ( -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/cygwin/libiconv-1.13_CYGWIN.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+			    zcat $PGSLIB/libiconv-1.13_CYGWIN.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z
+			    cd $PGSHOME
+			breaksw
+		    endsw
+		endif
+	    else
+		continue
+	    endif
+        else
+
+            if ( -d `dirname $dir`/common ) then
+
+                # 
+                # Treat common files in lib differently
+                # 
+		if ( "$dir" == "$PGSLIB" ) then
+		    mkdir $PGSLIB
+		    switch ($BRAND)
+
+			case macintosh:
+			    if ( -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintosh/libiconv-1.13_MacOSX.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+			    cd $PGSHOME
+			breaksw
+			
+			case macintel:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel/libiconv-1.13_MacIntel.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+			    cd $PGSHOME
+			breaksw
+			
+			case macintel32:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel32/libiconv-1.13_MacIntel32.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+			    cd $PGSHOME
+			breaksw
+			
+			case macintel64:
+			    if ( -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/macintel64/libiconv-1.13_MacIntel64.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+#			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+			    cd $PGSHOME
+			breaksw
+			
+			case cygwin:
+			    if ( -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z ) then
+				rm -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z
+			    endif
+			    cp $PGSHOME/lib/common/tmp/cygwin/libiconv-1.13_CYGWIN.tar.Z $PGSLIB/.
+			    cd $PGSLIB
+			    zcat $PGSLIB/libiconv-1.13_CYGWIN.tar.Z|tar xvf -
+			    rm -f $PGSLIB/libiconv-1.13_CYGWIN.tar.Z
+			    cd $PGSHOME
+			breaksw
+		    endsw
+			continue 
+		endif
+                echo "Setting up $dir"
+
+                # 
+                # Cray patch: create .placeholder files in each
+                # subdirectory of common so they won't get dropped
+                # by Cray tar
+                # 
+
+                if ( "$BRAND" == "cray" ) then
+
+                    cd `dirname $dir`/common
+                    set dirs = (`find . -type d -print`)
+                    foreach tmp_dir ($dirs)
+                        touch $tmp_dir/.placeholder
+                    end
+
+                endif
+
+                cd `dirname $dir`
+
+                tar cf - common | ( chdir $PGSTST ; tar xf - )
+                mv $PGSTST/common $dir
+
+
+                # 
+                # Remove .placeholder files in each
+                # subdirectory of common (created
+                # by Cray patch above)
+                # 
+
+                if ( "$BRAND" == "cray" ) then
+
+                    cd `dirname $dir`/common
+                    foreach tmp_dir ($dirs)
+                        \rm $tmp_dir/.placeholder
+                    end
+
+                    cd $dir
+                    foreach tmp_dir ($dirs)
+                         \rm $tmp_dir/.placeholder
+                    end
+
+                endif
+
+            else
+
+                echo "Can't set up $dir"
+                set error_flag=1
+                goto done
+
+            endif
+
+        endif
+    end
+
+    # $PGSDAT is a special case
+      
+    if ( ! -d $PGSDAT ) then
+	mkdir $PGSDAT
+	cd $PGSDAT
+
+	mkdir CBP EPH PC
+
+	if ( "$pgs_daac" != "1" ) then
+
+
+	    # For backward compatibility with older versions of the Toolkit.
+	    # Do this ONLY for SCFs, the DAACs had better not need this!
+
+	    mkdir CSC TD
+
+	    ln -s ../../common/CSC/utcpole.dat CSC/utcpole.dat
+	    ln -s ../../common/CSC/earthfigure.dat CSC/earthfigure.dat
+	    ln -s ../../common/TD/leapsec.dat TD/leapsec.dat
+
+	endif
+	
+    endif
+
+    # $PGSRUN is also a special case
+
+    cd $PGSRUN
+	
+    if ( ! -d $PGSRUN/$BRAND ) then
+
+	mkdir $PGSRUN/$BRAND
+
+    endif
+
+    set tk_major_version=`egrep '#define[ \t]+PGSd_TOOLKIT_MAJOR_VERSION' $PGSINC/PGS_SMF.h | cut -d'"' -f2`
+
+    # this comment is here because it contains the double quote (") character
+
+    if ( $pgs_daac == 1 ) then
+	set tk_minor_version="DAAC"
+    else
+	set tk_minor_version="SCF"
+    endif
+
+    set tk_version="$tk_minor_version $tk_major_version"
+
+    sed "s^TK_VERSION_STRING^$tk_version^" .PCF.$pcf_ext.template | \
+    sed "s^REMOVE THIS VERSION^EDIT OR REMOVE THIS^" | \
+    sed 's^$BRAND'"^$BRAND^" >! $BRAND/PCF.$pcf_ext
+	
+    cp $PGSRUN/$BRAND/PCF.$pcf_ext $PGSDAT/PC
+
+#####ECSed26997 eclude AA tools
+    set rea_file_list = ""
+    if ( "$pgs_daac" != "1" ) then
+	
+	if( "$AA_install" == "0" ) then
+          set rea_file_list = "../database/common/GCT/* ../database/common/CUC/*"
+        else
+          set rea_file_list = "../database/common/AA/* ../database/common/GCT/* ../database/common/CUC/*"
+        endif
+
+        # For backward compatibility with older versions of the Toolkit.
+        # Do this ONLY for SCFs, the DAACs had better not need this!
+
+        foreach real_file ($rea_file_list)
+
+            set bogus_file=`basename $real_file`
+	    if ( ! -f $bogus_file ) then
+		ln -s $real_file $bogus_file
+	    endif
+	end
+	unset bogus_file
+	unset real_file
+    endif
+
+    # create a file in the Toolkit "home" directory indicating
+    # the version of the Toolkit that is being installed
+    
+    echo "${BRAND}:	$tk_version" | cat >>! ${PGSHOME}/VERSION
+    
+endif
+
+cd $PGSHOME
+
+#
+# misc setup
+#
+
+umask 22		# set file permission mask
+set error_flag=0	# inititalize the error flag 
+set status_msg=()	# inititalize the status message
+
+if ($BRAND == "cray") then	# Cray uses different version of PGS_types.h
+
+    cd $PGSINC
+    set status_msg="set up PGS_TYPES.h for the Cray platform"
+    echo "    "
+    echo "    $status_msg ..."
+    echo "    "
+
+
+    if (-f PGS_TYPES.h.cray) then
+        if (! -f PGS_TYPES.h.non-cray) then
+            cp PGS_TYPES.h PGS_TYPES.h.non-cray # backup default PGS_TYPES.h
+        endif
+        cp PGS_TYPES.h.cray  PGS_TYPES.h   # use Cray version of PGS_TYPES.h
+    else
+        echo "    Can't find PGS_TYPES.h.cray"
+        set error_flag=1
+        goto done
+    endif
+
+    cd $PGSHOME
+
+endif
+
+#
+# Set up soft links for linux for backward compatibility with 
+#                 older versions of the Toolkit
+# Do this ONLY for SCFs
+#
+
+    if ( "$pgs_daac" != "1" ) then
+	if ("$pgs_formal" == 1) then
+	    if ( "$BRAND" == "linux64" ) then
+		echo "64-bit structure is the default in this machine. Creating linux as soft link to linux64 in bin, lib, runtime, database, and obj directories."
+	        cd ${PGSBIN}/..
+	    	if( ! -d linux) then
+	    	    ln -s ./linux64 linux
+	    	endif
+	        cd ${PGSDAT}/..
+	    	if( ! -d linux) then
+	    	    ln -s ./linux64 linux
+	    	endif
+	        cd ${PGSLIB}/..
+	    	if( ! -d linux) then
+	    	    ln -s ./linux64 linux
+	    	endif
+	        cd ${PGSOBJ}/..
+	    	if( ! -d linux) then
+	    	    ln -s ./linux64 linux
+	    	endif
+	        cd ${PGSCPPO}/..
+	    	if( ! -d linux) then
+	    	    ln -s ./linux64 linux
+	    	endif
+	        cd ${PGSRUN}
+	    	if( ! -d linux) then
+		    ln -s ${PGSRUN}/$BRAND linux
+	    	endif
+	        cd $PGSHOME
+	    endif
+
+	    if ( "$BRAND" == "linux" ) then
+
+		echo "32-bit structure is the default in this machine. Creating linux32 as soft link to linux in bin, lib, runtime, database, and obj directories."
+	        cd ${PGSBIN}/..
+	    	if( ! -d linux32) then
+	    	    ln -s ./linux linux32
+	    	endif
+	        cd ${PGSDAT}/..
+	    	if( ! -d linux32) then
+	    	    ln -s ./linux linux32
+	    	endif
+	        cd ${PGSLIB}/..
+	    	if( ! -d linux32) then
+	    	    ln -s ./linux linux32
+	    	endif
+	        cd ${PGSOBJ}/..
+	    	if( ! -d linux32) then
+	    	    ln -s ./linux linux32
+	    	endif
+	        cd ${PGSCPPO}/..
+	    	if( ! -d linux32) then
+	    	    ln -s ./linux linux32
+	    	endif
+	        cd ${PGSRUN}
+	    	if( ! -d linux32) then
+		    ln -s ${PGSRUN}/$BRAND linux32
+	    	endif
+	        cd $PGSHOME
+	    endif
+
+	    if ( "$BRAND" == "macintel32" ) then
+		echo "macintel directories will be soft linked to macintel32. Creating macintel as soft link to macintel32 in bin, lib, runtime, database, and obj directories."
+	        cd ${PGSBIN}/..
+	    	if( ! -d macintel) then
+	    	    ln -s ./macintel32 macintel
+	    	endif
+	        cd ${PGSDAT}/..
+	    	if( ! -d macintel) then
+	    	    ln -s ./macintel32 macintel
+	    	endif
+	        cd ${PGSLIB}/..
+	    	if( ! -d macintel) then
+	    	    ln -s ./macintel32 macintel
+	    	endif
+	        cd ${PGSOBJ}/..
+	    	if( ! -d macintel) then
+	    	    ln -s ./macintel32 macintel
+	    	endif
+	        cd ${PGSCPPO}/..
+	    	if( ! -d macintel) then
+	    	    ln -s ./macintel32 macintel
+	    	endif
+	        cd ${PGSRUN}
+	    	if( ! -d macintel) then
+		    ln -s ${PGSRUN}/$BRAND macintel
+	    	endif
+	        cd $PGSHOME
+	    endif
+
+	    if ( "$BRAND" == "macintel" ) then
+
+		echo "macintel32 directories will be soft linked to macintel. Creating macintel32 as soft link to macintel in bin, lib, runtime, database, and obj directories."
+	        cd ${PGSBIN}/..
+	    	if( ! -d macintel32) then
+	    	    ln -s ./macintel macintel32
+	    	endif
+	        cd ${PGSDAT}/..
+	    	if( ! -d macintel32) then
+	    	    ln -s ./macintel macintel32
+	    	endif
+	        cd ${PGSLIB}/..
+	    	if( ! -d macintel32) then
+	    	    ln -s ./macintel macintel32
+	    	endif
+	        cd ${PGSOBJ}/..
+	    	if( ! -d macintel32) then
+	    	    ln -s ./macintel macintel32
+	    	endif
+	        cd ${PGSCPPO}/..
+	    	if( ! -d macintel32) then
+	    	    ln -s ./macintel macintel32
+	    	endif
+	        cd ${PGSRUN}
+	    	if( ! -d macintel32) then
+		    ln -s ${PGSRUN}/$BRAND macintel32
+	    	endif
+	        cd $PGSHOME
+	    endif
+
+	endif
+    endif
+
+#
+# build preliminary utilities
+#
+
+if ("$cpp_lib_only" == "1" ) goto cpp
+
+#if ("$cpp_lib_only" == "1" && "$lib_only" != "1") goto lib_only3   # just build CPP library
+#if ("$lib_only" == "1") goto lib_only1                             # just build C   library
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Building utilities and SMF files"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+
+
+set status_msg="build the smfcompile utility"
+echo "    "
+echo "    $status_msg ...C version"
+echo "    "
+
+cd $PGSSRC/SMF
+
+touch ../ecs.options
+
+make smfcompile
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+set status_msg="build the SMF message and header files"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSMSG
+make smffiles
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+setenv PGSRLIB NO
+set status_msg="build the ephtobin utility"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC/CBP 
+make ephtobin
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+rehash
+
+#
+# set appropriate data files for this machine: 
+#
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Setting up installation-dependent database files"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+set status_msg="set up database file CBP/de200.eos"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSDAT/CBP
+
+if (-f de200.eos) rm -f de200.eos    # get rid of old binary, if there
+
+echo "        Creating the CBP/de200.eos binary ..."
+$PGSBIN/ephtobin $PGSHOME/database/common/CBP/de200.dat
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+if ("$hdf4_netcdf" == "disabled") then
+    setenv CFLAGS "$CFLAGS -DHDF4_NETCDF_HAVE_SD"
+    setenv CFHFLAGS "$CFHFLAGS -DHDF4_NETCDF_HAVE_SD"
+    setenv CPPFLAGS "$CPPFLAGS -DHDF4_NETCDF_HAVE_SD"
+    setenv CPPFHFLAGS "$CPPFHFLAGS -DHDF4_NETCDF_HAVE_SD"
+endif
+
+#
+# set appropriate scripts/utilities for this machine:
+#
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Setting up installation-dependent scripts"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+cd $PGSBIN
+
+if (-f tmp/pgs-env.ksh.tmp) then
+
+    echo "    Setting up  Korn shell (ksh) script 'pgs-env.ksh' "
+    echo "    Korn shell users should call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-env.ksh  "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under ksh."
+    echo "    "
+
+    echo "# " > ! pgs-env.ksh
+    echo "# set the toolkit home directory environment variable" >> pgs-env.ksh
+    echo "# SDP installation done on `date` " >> pgs-env.ksh
+    echo "# " >> pgs-env.ksh
+    echo " " >> pgs-env.ksh
+
+    echo "PGSHOME=$PGSHOME	# set the toolkit home directory" >> pgs-env.ksh
+
+    echo "pgs_formal=$pgs_formal		# formal directory structure (1=yes/0=no)" >> pgs-env.ksh 
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64			# set SGI for -64 mode" >> pgs-env.ksh
+        breaksw
+      case n32:
+        echo "sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.ksh
+        breaksw
+      default:
+        echo "sgi_mode=32			# set SGI for standard mode" >> pgs-env.ksh
+        breaksw
+    endsw
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.ksh
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.ksh
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-env.ksh
+        breaksw
+    endsw
+  endif
+
+ if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.ksh
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.ksh
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.ksh
+        breaksw
+    endsw
+  endif
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-env.ksh
+    echo "export AA_install" >> pgs-env.ksh
+
+    echo " " >> pgs-env.ksh
+
+    cat tmp/pgs-env.ksh.tmp >> pgs-env.ksh
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.ksh.tmp) then
+
+    echo "    Setting up Korn shell (ksh) script 'pgs-dev-env.ksh' "
+    echo "    Korn shell users may call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-dev-env.ksh  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.ksh.1
+
+    echo '# Clear all conditional flags'  	>> pgs-dev-env.ksh.1
+    echo 'sgi_mode=""'  	>> pgs-dev-env.ksh.1
+    echo 'pgs_daac=""'  	>> pgs-dev-env.ksh.1
+    echo 'pgs_f90_comp=""' 	>> pgs-dev-env.ksh.1
+    echo 'pgs_nag_flag=""' 	>> pgs-dev-env.ksh.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+      echo "pgs_absoft_flag=1"  >> pgs-dev-env.ksh.1
+    else
+      echo "pgs_absoft_flag=0" 	>> pgs-dev-env.ksh.1
+    endif
+
+    echo "fc_path=$fc_path" 	>> pgs-dev-env.ksh.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.ksh.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.ksh.1
+    echo "# " >> pgs-dev-env.ksh.1
+    echo " " >> pgs-dev-env.ksh.1
+
+    echo "PGSHOME=$PGSHOME	# set the toolkit home directory" >> pgs-dev-env.ksh.1
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64			# set SGI for -64 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      case n32:
+        echo "sgi_mode=n32			# set SGI for -n32 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      default:
+        echo "sgi_mode=32			# set SGI for standard mode" >> pgs-dev-env.ksh.1
+        breaksw
+    endsw
+    
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-dev-env.ksh.1
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.ksh.1
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.ksh.1
+        breaksw
+    endsw
+  endif
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-dev-env.ksh.1
+    echo "export AA_install" >> pgs-dev-env.ksh.1
+
+
+    if ("$pgs_daac" == "1") then    	# do DAAC setup
+
+         echo "pgs_daac=1		# enable DAAC toolkit version" >> pgs-dev-env.ksh.1
+
+    endif
+
+    if ("$f90_flag" == "1") then        # do FORTRAN-90 setup
+
+        echo "pgs_f90_comp='$F77' 		# set f90 compiler" >> pgs-dev-env.ksh.1
+
+        if ("$nag_flag" == "1") then    # using NAG f90
+            echo "pgs_nag_flag=1		# using NAG f90" >> pgs-dev-env.ksh.1
+        endif
+            echo "pgs_c_rlib=0		# using threadsafe version of library" >> pgs-dev-env.ksh.1
+    endif
+
+    echo " " >> pgs-dev-env.ksh.2
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+	sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+	sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" | \
+	sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^"  >> \
+	pgs-dev-env.ksh.2
+    else if ($?HDFHOME) then
+	sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+	sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" >> \
+	pgs-dev-env.ksh.2
+    else if ($?HDFEOS_HOME) then
+	sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+	sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^" >> \
+	pgs-dev-env.ksh.2
+    else
+	sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+	pgs-dev-env.ksh.2
+    endif
+        if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^"  >> \
+        pgs-dev-env.ksh.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" >> \
+        pgs-dev-env.ksh.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^" >> \
+        pgs-dev-env.ksh.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.ksh.3
+    endif
+
+if("$OSTYPE" != "Linux" && "$OSTYPE" != "DarwinIntel") then
+ if ($?HDFEOS5_HOME) then
+         sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.3 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^"  \
+        >> pgs-dev-env.ksh.4
+ endif
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    if ($?HDFEOS5_HOME) then
+	sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.3 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+	sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"		      \
+	>> pgs-dev-env.ksh.4
+    endif
+ else
+    if ($?HDFEOS5_HOME) then
+	sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.3 |  \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+	sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			      \
+	>> pgs-dev-env.ksh.4
+    endif
+ endif
+endif
+
+    if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# JPEGHOME=+++JPEGHOME+++^JPEGHOME=$JPEGHOME^" >> \
+        pgs-dev-env.ksh.5
+        /bin/rm -f pgs-dev-env.ksh.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# ZLIBHOME=+++ZLIBHOME+++^ZLIBHOME=$ZLIBHOME^" >> \
+        pgs-dev-env.ksh.6
+        /bin/rm -f pgs-dev-env.ksh.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# SZIPHOME=+++SZIPHOME+++^SZIPHOME=$SZIPHOME^" >> \
+        pgs-dev-env.ksh.7
+        /bin/rm -f pgs-dev-env.ksh.6
+    endif
+
+
+    cat pgs-dev-env.ksh.1 > ! pgs-dev-env.ksh
+
+    if (-f pgs-dev-env.ksh.7) then
+       cat pgs-dev-env.ksh.7 >> pgs-dev-env.ksh
+       /bin/rm -f pgs-dev-env.ksh.7
+    endif
+
+    /bin/rm -f pgs-dev-env.ksh.1
+    /bin/rm -f pgs-dev-env.ksh.2
+    /bin/rm -f pgs-dev-env.ksh.3
+
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-env.csh.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-env.csh' "
+    echo "    C shell users should call this file from their .cshrc "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-env.csh  "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under csh."
+    echo "    "
+
+    echo "# " > ! pgs-env.csh
+    echo "# set the toolkit home directory environment variable" >> pgs-env.csh
+    echo "# SDP installation done on `date` " >> pgs-env.csh
+    echo "# " >> pgs-env.csh
+    echo " " >> pgs-env.csh
+    echo "setenv PGSHOME $PGSHOME	# set the toolkit home directory" >> pgs-env.csh
+
+    echo "set pgs_formal=$pgs_formal	# formal directory structure (1=yes/0=no)" >> pgs-env.csh 
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64			# set SGI for -64 mode" >> pgs-env.csh
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.csh
+        breaksw
+      default:
+        echo "set sgi_mode=32			# set SGI for standard mode" >> pgs-env.csh
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.csh
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.csh
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-env.csh
+        breaksw
+    endsw
+  endif
+
+
+ if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.csh
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.csh
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.csh
+        breaksw
+    endsw
+  endif
+
+    echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-env.csh
+    echo " " >> pgs-env.csh
+
+    cat tmp/pgs-env.csh.tmp >> pgs-env.csh
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.csh.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-dev-env.csh' "
+    echo "    This file may be called from your .cshrc file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-dev-env.csh  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.csh.1
+
+    echo '# Clear all conditional flags'        >> pgs-dev-env.csh.1
+    echo "unset sgi_mode"       >> pgs-dev-env.csh.1
+    echo "unset pgs_daac"       >> pgs-dev-env.csh.1
+    echo "unset pgs_f90_comp"   >> pgs-dev-env.csh.1
+    echo "unset pgs_nag_flag"   >> pgs-dev-env.csh.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+	echo "set pgs_absoft_flag=1"   >> pgs-dev-env.csh.1
+    else
+	echo "set pgs_absoft_flag=0"   >> pgs-dev-env.csh.1
+    endif
+
+    echo "setenv fc_path $fc_path" >> pgs-dev-env.csh.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.csh.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.csh.1
+    echo "# " >> pgs-dev-env.csh.1
+    echo " " >> pgs-dev-env.csh.1
+
+    echo "setenv PGSHOME $PGSHOME       # set the toolkit home directory" >> pgs-dev-env.csh.1
+
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64                   # set SGI for -64 mode" >> pgs-dev-env.csh.1
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32                  # set SGI for -n32 mode" >> pgs-dev-env.csh.1
+        breaksw
+      default:
+        echo "set sgi_mode=32                   # set SGI for standard mode" >> pgs-dev-env.csh.1
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.csh.1
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.csh.1
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-dev-env.csh.1
+        breaksw
+    endsw
+  endif
+
+ if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.csh.1
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.csh.1
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.csh.1
+        breaksw
+    endsw
+  endif
+
+
+    echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-dev-env.csh.1
+
+    if ("$pgs_daac" == "1") then        # do DAAC setup
+
+         echo "set pgs_daac=1           # enable DAAC toolkit version" >> pgs-dev-env.csh.1
+
+    endif
+
+    if ("$f90_flag" == "1") then        # do FORTRAN-90 setup
+
+        echo "set pgs_f90_comp='$F77'           # set f90 compiler" >> pgs-dev-env.csh.1
+
+        if ("$nag_flag" == "1") then    # using NAG f90
+            echo "set pgs_nag_flag=1            # using NAG f90" >> pgs-dev-env.csh.1
+        endif
+
+        echo "set pgs_c_rlib=0              # using threadsafe version of C library" >> pgs-dev-env.csh.1
+
+    endif
+
+    echo " " >> pgs-dev-env.csh.2
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.2
+    else if ($?HDFHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" >> \
+        pgs-dev-env.csh.2
+    else if ($?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.2
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.2
+    endif
+
+    if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" >> \
+        pgs-dev-env.csh.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.3
+    endif
+
+if("$OSTYPE" != "Linux" && "$OSTYPE" != "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.3   \
+    >> pgs-dev-env.csh.4
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.3 |  \
+    sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"		      \
+    >> pgs-dev-env.csh.4
+ else
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.3 |  \
+    sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			      \
+    >> pgs-dev-env.csh.4
+ endif
+endif
+    if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv JPEGHOME +++JPEGHOME+++^setenv JPEGHOME $JPEGHOME^" >> \
+        pgs-dev-env.csh.5
+        /bin/rm -f pgs-dev-env.csh.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv ZLIBHOME +++ZLIBHOME+++^setenv ZLIBHOME $ZLIBHOME^" >> \
+        pgs-dev-env.csh.6
+        /bin/rm -f pgs-dev-env.csh.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv SZIPHOME +++SZIPHOME+++^setenv SZIPHOME $SZIPHOME^" >> \
+        pgs-dev-env.csh.7
+        /bin/rm -f pgs-dev-env.csh.6
+    endif
+
+    cat pgs-dev-env.csh.1 > ! pgs-dev-env.csh
+
+    if (-f pgs-dev-env.csh.7) then
+       cat pgs-dev-env.csh.7 >> pgs-dev-env.csh
+       /bin/rm -f pgs-dev-env.csh.7
+    endif
+
+    /bin/rm -f pgs-dev-env.csh.1
+    /bin/rm -f pgs-dev-env.csh.2
+    /bin/rm -f pgs-dev-env.csh.3
+
+    sleep 5
+
+endif
+
+
+#
+#  Build the toolkit libraries
+#
+
+lib_only1:
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Creating the Toolkit regular Library"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+ 
+set status_msg="compile toolkit source files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+
+touch ecs.options
+
+if (-f $PGSLIB/libPGSTK.a) then
+    /bin/rm -f $PGSLIB/libPGSTK.a 
+    if ($status != 0) then
+        echo "Unable to remove old library: $PGSLIB/libPGSTK.a"
+        echo "Please remove it manually and re-run the installation."
+        set error_flag=1
+        goto done
+    endif
+endif
+
+
+foreach dir (`\ls`)
+    if (-d $dir) then
+
+        switch ( "$dir" ) 
+	  case "DEM":
+            if ("$no_hdfeos" == "1") then
+
+                echo "    "
+                echo "        No HDF-EOS support: skipping $dir"
+                echo "    "
+                breaksw
+	    else
+	      cd $dir
+              echo "    "
+              echo "        Making all in $dir"
+              echo "    "
+              make -r
+
+              if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+              endif
+              sleep 5
+
+              cd $PGSSRC
+            endif
+          breaksw
+
+          
+	  case "MET":
+            if ("$no_hdf" == "1") then
+
+                echo "    "
+                echo "        No HDF support: skipping $dir"
+                echo "    "
+
+                breaksw
+	    else
+	      cd $dir
+              echo "    "
+              echo "        Making all in $dir"
+              echo "    "
+              make -r
+
+              if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+              endif
+              sleep 5
+
+              cd $PGSSRC
+            endif
+          breaksw
+
+          case "AA":
+
+            if ( "$AA_install" == "1" && "$no_hdf" == "1" ) then
+
+               echo " "
+               echo "	No HDF support......"
+               echo "   If you need to install AA tools, You have to install HDF Package first...."
+               echo "   Building Toolkit failed without HDF support......"
+               exit 1
+            
+            else if ( "$AA_install" == "1" && "$no_hdf" == "0" ) then
+
+                echo "    "
+                echo "        Building Toolkit with AA Tool"
+                echo "    "
+                 
+                cd $dir
+                echo "    "
+                echo "        Making all in $dir"
+                echo "    "
+                make -r
+
+                if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+                endif
+                sleep 5
+
+                cd $PGSSRC
+                
+                breaksw
+	    
+             else
+	    
+                echo "    "
+                echo "    Building Toolkit without AA tool...."
+                echo "    "
+              endif
+            endif
+           
+          breaksw
+
+          case "TSF":
+              cd $PGSSRC
+	  breaksw
+
+          default:
+
+            cd $dir
+              echo "    "
+              echo "        Making all in $dir"
+              echo "    "
+              make -r
+
+              if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+              endif
+              sleep 5
+
+              cd $PGSSRC
+
+           breaksw
+
+        endsw
+
+    endif
+
+end
+
+if ("$bad_tools" != "") then	# flag error in tool group compilation
+    set error_flag=2
+endif
+
+
+#
+# build additional utilities - these depend on libPGSTK.a
+#
+
+if ("$lib_only" == "1") goto skip_utilities   # just build the library
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Building additional utilites"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+
+#
+#  Build the Level 0 data file simulator
+#
+
+set status_msg="build the Level 0 data file simulator utility"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+sleep 5
+
+cd $PGSSRC/IO/L0/L0sim
+make -r
+if ($status != 0) then
+    set error_flag=1
+    set bad_utils="$bad_utils IO/L0"
+endif
+
+#
+#  Build the PC command utilities
+#
+
+set status_msg="build the PC command utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+sleep 5
+
+cd $PGSSRC/PC 
+make pctcheck commands
+if ($status != 0) then
+    set error_flag=1
+    set bad_utils="$bad_utils PC"
+endif
+
+#
+#  Build the CSC utilities
+#
+
+set status_msg="build the CSC utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+sleep 5
+
+cd $PGSSRC/CSC 
+make utilities
+if ($status != 0) then
+    set error_flag=1
+    set bad_utils="$bad_utils CSC"
+endif
+
+#
+#  Build the TD utilities
+#
+
+set status_msg="build the TD utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+sleep 5
+
+cd $PGSSRC/TD 
+make utilities
+if ($status != 0) then
+    set error_flag=1
+    set bad_utils="$bad_utils TD"
+endif
+
+
+#
+#  Build the EPH orbit simulator & s/c ephemeris check utilities
+#
+
+set status_msg="build the orbit simulator & s/c ephemeris check utilities"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+sleep 5
+
+if ( "$BRAND" == "macintosh" || "$BRAND" == "macintel"  || "$BRAND" == "macintel32"  || "$BRAND" == "macintel64"  || "$BRAND" == "cygwin") then
+   ranlib $JPEGLIB/libjpeg.a
+   ranlib $HDFLIB/libjpeg.a
+   ranlib $HDFLIB/libsz.a
+   ranlib $SZIPLIB/libsz.a
+endif
+
+cd $PGSSRC/EPH/orbsim
+make -r all clean
+if ($status != 0) then
+    make clean
+    set error_flag=1
+    set bad_utils="$bad_utils EPH"
+endif
+
+cd $PGSSRC/EPH/gbadsim
+make -r all clean
+if ($status != 0) then
+    make clean
+    set error_flag=1
+    set bad_utils="$bad_utils EPH"
+endif
+
+
+if ( "$error_flag" == "1" ) then
+    set status_msg="build toolkit utilities"
+endif
+
+skip_utilities:
+
+#
+#  Clean up toolkit object files
+#
+
+set status_msg="clean up toolkit object files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+echo "Removing all object files in PGS source directories..." 
+find $PGSSRC -name \*.o -print -exec rm -f {} \; 
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+echo "Removing all object files in PGS object directories..." 
+find $PGSOBJ -name \*.o -print -exec rm -f {} \;
+if ($status != 0) then
+    set error_flag=1
+    goto done
+endif
+
+
+#
+#  Installation complete for regular library
+#
+
+done:
+
+echo ""
+echo ""
+echo ""
+
+if ("$bad_tools" != "") then
+    echo ""
+    echo "Error occurred while attempting to compile toolkit source files"
+    echo "The following tool groups had compilation errors:"
+    echo "    ${bad_tools}"
+    echo ""
+endif
+
+if ("$bad_utils" != "") then
+    echo ""
+    echo "Error occurred while attempting to compile toolkit utilities"
+    echo "The following tool groups had compilation errors:"
+    echo "    ${bad_utils}"
+    echo ""
+endif
+
+switch ($error_flag)
+
+  case 0:
+    echo "`basename $0` completed successfully at `date`"
+    echo "The C library is in $PGSLIB"
+    switch ($c_only)
+	case 0:      # we want CPP and/or thread safe libraries too
+	   breaksw
+
+	case 1:      # we are done and we do not want CPP and/or 
+                     # thread safe libraries, just exit
+           exit
+	   breaksw
+    endsw
+    breaksw
+     case 1:
+       echo "Error occurred while attempting to ${status_msg}"
+       echo "`basename $0` completed with errors at `date`"
+       exit 1
+       breaksw
+
+     case 2:
+       echo "`basename $0` completed with errors at `date`"
+       exit 1
+       breaksw
+endsw
+
+# do we want thread safe library? if yes, then continue
+
+if ("$c_rlib" == "1") then
+   set pgs_c_rlib=1
+endif
+
+if ("$pgs_c_rlib" == "1") then    # modify build flags
+   switch ($BRAND)
+     case sun5:
+       setenv PGSRLIB "YES"
+       setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       breaksw
+     case sun5.8:
+       setenv PGSRLIB "YES"
+       setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       breaksw
+     case sun5.9:
+       setenv PGSRLIB "YES"
+       setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       breaksw
+     case sun5.10:
+       setenv PGSRLIB "YES"
+       setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       breaksw
+     case sgi:
+	setenv PGSRLIB "YES"
+	setenv CFLAGS  "$CFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L" 
+	setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L"
+        breaksw 
+        case sgi32:
+           setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L"
+           setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L"
+           setenv  PGSRLIB "YES"
+        breaksw
+        case sgi64:
+           setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L"
+           setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_REENTRANT -D_POSIX_C_SOURCE=199506L"
+           setenv  PGSRLIB "YES"
+        breaksw
+     case linux:
+     case linux32:
+     case linux64:
+     case macintel:
+     case macintel32:
+     case macintel64:
+       setenv PGSRLIB "YES"
+       setenv CFLAGS "$CFLAGS -D_PGS_THREADSAFE -D_THREADS -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       setenv CFHFLAGS "$CFHFLAGS -D_PGS_THREADSAFE -D_THREADS -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
+       breaksw
+
+     default:
+       setenv PGSRLIB "NO"
+       breaksw
+   endsw
+endif
+
+# skip threadsafe and cpp if we just wanted c library
+if ( "$c_rlib" == "0"  && "$c_only" == "1" && "$cpp" == "0" ) goto all_done
+
+# skip threadsafe build and build headers & CPP library
+if ( "$c_rlib" == "0" ) goto cpp
+
+# skip threadsafe build and just build CPP library
+#if ("$cpp_lib_only" == "1" && "$lib_only" != "1"  ) goto lib_only3
+
+# skip threadsafe build and build headers & CPP library
+#if ("$cpp_lib_only" == "1" ) goto cpp
+
+# skip threadsafe build and build headers & CPP library
+#if ( "$c_rlib" == "0" ) goto cpp
+
+#
+# set appropriate scripts/utilities for this machine:
+#
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Setting up installation-dependent scripts"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+cd $PGSBIN
+
+if (-f tmp/pgs-env.ksh.tsf.tmp) then
+
+    echo "    Setting up  Korn shell (ksh) script 'pgs-env.ksh.tsf' "
+    echo "    Korn shell users should call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-env.ksh.tsf  "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under ksh."
+    echo "    "
+
+    echo "# " > ! pgs-env.ksh.tsf
+    echo "# set the toolkit home directory environment variable" >> pgs-env.ksh.tsf
+    echo "# SDP installation done on `date` " >> pgs-env.ksh.tsf
+    echo "# " >> pgs-env.ksh.tsf
+    echo " " >> pgs-env.ksh.tsf
+
+    echo "PGSHOME=$PGSHOME	# set the toolkit home directory" >> pgs-env.ksh.tsf
+
+    echo "pgs_formal=$pgs_formal		# formal directory structure (1=yes/0=no)" >> pgs-env.ksh.tsf
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64			# set SGI for -64 mode" >> pgs-env.ksh.tsf
+        breaksw
+      case n32:
+        echo "sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.ksh.tsf
+        breaksw
+      default:
+        echo "sgi_mode=32			# set SGI for standard mode" >> pgs-env.ksh.tsf
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.ksh.tsf
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.ksh.tsf
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-env.ksh.tsf
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.ksh.tsf
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.ksh.tsf
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.ksh.tsf
+        breaksw
+    endsw
+  endif
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-env.ksh.tsf
+    echo "export AA_install" >> pgs-env.ksh.tsf
+
+     
+    echo " " >> pgs-env.ksh.tsf
+    echo "pgs_c_rlib=1" >> pgs-env.ksh.tsf;	    	    
+    echo "PGSRLIB=YES" >> pgs-env.ksh.tsf
+    echo " " >> pgs-env.ksh.tsf
+
+    cat tmp/pgs-env.ksh.tsf.tmp >> pgs-env.ksh.tsf
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.ksh.tsf.tmp) then
+
+    echo "    Setting up Korn shell (ksh) script 'pgs-dev-env.ksh.tsf' "
+    echo "    Korn shell users may call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-dev-env.ksh.tsf  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.ksh.tsf.1
+
+    echo '# Clear all conditional flags'        >> pgs-dev-env.ksh.tsf.1
+    echo 'sgi_mode=""'          >> pgs-dev-env.ksh.tsf.1
+    echo 'pgs_daac=""'          >> pgs-dev-env.ksh.tsf.1
+    echo 'pgs_f90_comp=""'      >> pgs-dev-env.ksh.tsf.1
+    echo 'pgs_nag_flag=""'      >> pgs-dev-env.ksh.tsf.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+      echo "pgs_absoft_flag=1"  >> pgs-dev-env.ksh.tsf.1
+    else
+      echo "pgs_absoft_flag=0" 	>> pgs-dev-env.ksh.tsf.1
+    endif
+
+    echo "fc_path=$fc_path" 	>> pgs-dev-env.ksh.tsf.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.ksh.tsf.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.ksh.tsf.1
+    echo "# " >> pgs-dev-env.ksh.tsf.1
+    echo " " >> pgs-dev-env.ksh.tsf.1
+
+    echo "PGSHOME=$PGSHOME      # set the toolkit home directory" >> pgs-dev-env.ksh.tsf.1
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64                       # set SGI for -64 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      case n32:
+        echo "sgi_mode=n32                      # set SGI for -n32 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      default:
+        echo "sgi_mode=32                       # set SGI for standard mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.ksh.tsf.1
+        breaksw
+    endsw
+  endif
+
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-dev-env.ksh.tsf.1
+    echo "export AA_install" >> pgs-dev-env.ksh.tsf.1
+
+    if ("$pgs_daac" == "1") then        # do DAAC setup
+
+         echo "pgs_daac=1               # enable DAAC toolkit version" >> pgs-dev-env.ksh.tsf.1
+
+    endif
+
+    if ("$pgs_formal" == 1) then        # do formal Toolkit setup
+
+         echo "pgs_formal=1             # enable formal Toolkit version" >> pgs-dev-env.ksh.tsf.1
+
+    endif
+
+    echo " " >> pgs-dev-env.ksh.tsf.1
+    echo "pgs_c_rlib=1" >> pgs-dev-env.ksh.tsf.1
+    echo "PGSRLIB=YES" >> pgs-dev-env.ksh.tsf.1
+    echo " " >> pgs-dev-env.ksh.tsf.2
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" | \
+        sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^"  >> \
+        pgs-dev-env.ksh.tsf.2
+    else if ($?HDFHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" >> \
+        pgs-dev-env.ksh.tsf.2
+    else if ($?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^" >> \
+        pgs-dev-env.ksh.tsf.2
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.ksh.tsf.2
+    endif
+
+        if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^"  >> \
+        pgs-dev-env.ksh.tsf.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" >> \
+        pgs-dev-env.ksh.tsf.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^" >> \
+        pgs-dev-env.ksh.tsf.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.ksh.tsf.3
+    endif
+
+if("$OSTYPE" != "Linux" && "$OSTYPE" != "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.tsf.3   \
+    >> pgs-dev-env.ksh.tsf.4
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.tsf.3 |  \
+    sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"			  \
+    >> pgs-dev-env.ksh.tsf.4
+ else
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.tsf.3 |  \
+    sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			          \
+    >> pgs-dev-env.ksh.tsf.4
+ endif
+endif
+     if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# JPEGHOME=+++JPEGHOME+++^JPEGHOME=$JPEGHOME^" >> \
+        pgs-dev-env.ksh.tsf.5
+        /bin/rm -f pgs-dev-env.ksh.tsf.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# ZLIBHOME=+++ZLIBHOME+++^ZLIBHOME=$ZLIBHOME^" >> \
+        pgs-dev-env.ksh.tsf.6
+        /bin/rm -f pgs-dev-env.ksh.tsf.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.tsf.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# SZIPHOME=+++SZIPHOME+++^SZIPHOME=$SZIPHOME^" >> \
+        pgs-dev-env.ksh.tsf.7
+        /bin/rm -f pgs-dev-env.ksh.tsf.6
+    endif
+    cat pgs-dev-env.ksh.tsf.1 > ! pgs-dev-env.ksh.tsf
+
+    if (-f pgs-dev-env.ksh.tsf.7) then
+       cat pgs-dev-env.ksh.tsf.7 >> pgs-dev-env.ksh.tsf
+       /bin/rm -f pgs-dev-env.ksh.tsf.7
+    endif
+
+    /bin/rm -f pgs-dev-env.ksh.tsf.1
+    /bin/rm -f pgs-dev-env.ksh.tsf.2
+    /bin/rm -f pgs-dev-env.ksh.tsf.3
+
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-env.csh.tsf.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-env.csh.tsf' "
+    echo "    C shell users should call this file from their .cshrc "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-env.csh.tsf "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under csh."
+    echo "    "
+
+    echo "# " > ! pgs-env.csh.tsf
+    echo "# set the toolkit home directory environment variable" >> pgs-env.csh.tsf
+    echo "# SDP installation done on `date` " >> pgs-env.csh.tsf
+    echo "# " >> pgs-env.csh.tsf
+    echo " " >> pgs-env.csh.tsf
+    echo "setenv PGSHOME $PGSHOME	# set the toolkit home directory" >> pgs-env.csh.tsf
+
+    echo "set pgs_formal=$pgs_formal	# formal directory structure (1=yes/0=no)" >> pgs-env.csh.tsf
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64			# set SGI for -64 mode" >> pgs-env.csh.tsf
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.csh.tsf
+        breaksw
+      default:
+        echo "set sgi_mode=32			# set SGI for standard mode" >> pgs-env.csh.tsf
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.csh.tsf
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.csh.tsf
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-env.csh.tsf
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.csh.tsf
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.csh.tsf
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.csh.tsf
+        breaksw
+    endsw
+  endif
+
+
+   echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-env.csh.tsf
+
+    echo " " >> pgs-env.csh.tsf
+    echo "set pgs_c_rlib=1" >> pgs-env.csh.tsf
+    echo "setenv PGSRLIB YES" >> pgs-env.csh.tsf
+    echo " " >> pgs-env.csh.tsf
+
+    cat tmp/pgs-env.csh.tsf.tmp >> pgs-env.csh.tsf
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.csh.tsf.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-dev-env.csh.tsf' "
+    echo "    This file may be called from your .cshrc file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-dev-env.csh.tsf  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.csh.tsf.1
+
+    echo '# Clear all conditional flags'        >> pgs-dev-env.csh.tsf.1
+    echo "unset sgi_mode"       >> pgs-dev-env.csh.tsf.1
+    echo "unset pgs_daac"       >> pgs-dev-env.csh.tsf.1
+    echo "unset pgs_f90_comp"   >> pgs-dev-env.csh.tsf.1
+    echo "unset pgs_nag_flag"   >> pgs-dev-env.csh.tsf.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+	echo "set pgs_absoft_flag=1"   >> pgs-dev-env.csh.tsf.1
+    else
+	echo "set pgs_absoft_flag=0"   >> pgs-dev-env.csh.tsf.1
+    endif
+
+    echo "setenv fc_path $fc_path" >> pgs-dev-env.csh.tsf.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.csh.tsf.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.csh.tsf.1
+    echo "# " >> pgs-dev-env.csh.tsf.1
+    echo " " >> pgs-dev-env.csh.tsf.1
+
+    echo "setenv PGSHOME $PGSHOME       # set the toolkit home directory" >> pgs-dev-env.csh.tsf.1
+
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64                   # set SGI for -64 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32                  # set SGI for -n32 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      default:
+        echo "set sgi_mode=32                   # set SGI for standard mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+    endsw
+  endif
+
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.csh.tsf.1
+        breaksw
+    endsw
+  endif
+
+    echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-dev-env.csh.tsf.1
+
+    if ("$pgs_daac" == "1") then        # do DAAC setup
+
+         echo "set pgs_daac=1           # enable DAAC toolkit version" >> pgs-dev-env.csh.tsf.1
+
+    endif
+
+    if ("$f90_flag" == "1") then        # do FORTRAN-90 setup
+
+        echo "set pgs_f90_comp='$F77'           # set f90 compiler" >> pgs-dev-env.csh.tsf.1
+
+        if ("$nag_flag" == "1") then    # using NAG f90
+            echo "set pgs_nag_flag=1            # using NAG f90" >> pgs-dev-env.csh.tsf.1
+        endif
+
+    endif
+
+    echo " " >> pgs-dev-env.csh.tsf.1
+    echo "set pgs_c_rlib=1" >> pgs-dev-env.csh.tsf
+    echo "setenv PGSRLIB YES">> pgs-dev-env.csh.tsf
+    echo " " >> pgs-dev-env.csh.tsf.2
+
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.tsf.2
+    else if ($?HDFHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" >> \
+        pgs-dev-env.csh.tsf.2
+    else if ($?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.tsf.2
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.tsf.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.tsf.2
+    endif
+
+    if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.tsf.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" >> \
+        pgs-dev-env.csh.tsf.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.tsf.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.tsf.3
+    endif
+
+if("$OSTYPE" != "Linux" && "$OSTYPE" != "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.tsf.3   \
+    >> pgs-dev-env.csh.tsf.4
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.tsf.3 |  \
+    sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"			          \
+    >> pgs-dev-env.csh.tsf.4
+ else
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.tsf.3 |  \
+    sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			          \
+    >> pgs-dev-env.csh.tsf.4
+ endif
+endif
+    if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv JPEGHOME +++JPEGHOME+++^setenv JPEGHOME $JPEGHOME^" >> \
+        pgs-dev-env.csh.tsf.5
+        /bin/rm -f pgs-dev-env.csh.tsf.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv ZLIBHOME +++ZLIBHOME+++^setenv ZLIBHOME $ZLIBHOME^" >> \
+        pgs-dev-env.csh.tsf.6
+        /bin/rm -f pgs-dev-env.csh.tsf.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.tsf.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv SZIPHOME +++SZIPHOME+++^setenv SZIPHOME $SZIPHOME^" >> \
+        pgs-dev-env.csh.tsf.7
+        /bin/rm -f pgs-dev-env.csh.tsf.6
+    endif
+
+    cat pgs-dev-env.csh.tsf.1 > ! pgs-dev-env.csh.tsf
+
+    if (-f pgs-dev-env.csh.tsf.7) then
+       cat pgs-dev-env.csh.tsf.7 >> pgs-dev-env.csh.tsf
+       /bin/rm -f pgs-dev-env.csh.tsf.7
+    endif
+
+    /bin/rm -f pgs-dev-env.csh.tsf.1
+    /bin/rm -f pgs-dev-env.csh.tsf.2
+    /bin/rm -f pgs-dev-env.csh.tsf.3
+
+    sleep 5
+
+endif
+
+
+#
+#  Build the toolkit libraries
+#
+
+lib_only5:
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Creating the Toolkit thread safe Library"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+ 
+set status_msg="compile toolkit source files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+
+touch ecs.options
+
+if (-f $PGSLIB/libPGSTK_r.a) then
+    /bin/rm -f $PGSLIB/libPGSTK_r.a 
+    if ($status != 0) then
+        echo "Unable to remove old library: $PGSLIB/libPGSTK_r.a"
+        echo "Please remove it manually and re-run the installation."
+        set error_flag=1
+        goto done3
+    endif
+endif
+
+
+foreach dir (`\ls`)
+
+    if (-d $dir) then
+
+        switch ( "$dir" ) 
+	  case "DEM":
+
+            if ("$no_hdfeos" == "1") then
+
+                echo "    "
+                echo "        No HDF-EOS support: skipping $dir"
+                echo "    "
+
+                breaksw
+	     else
+	      cd $dir
+              echo "    "
+              echo "        Making all in $dir"
+              echo "    "
+              make -r
+
+              if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+              endif
+              sleep 5
+
+              cd $PGSSRC
+            endif
+          breaksw
+
+	  case "MET":
+
+            if ("$no_hdf" == "1") then
+
+                echo "    "
+                echo "        No HDF support: skipping $dir"
+                echo "    "
+
+                breaksw
+	    else
+	      cd $dir
+              echo "    "
+              echo "        Making all in $dir"
+              echo "    "
+              make -r
+
+              if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+              endif
+              sleep 5
+
+              cd $PGSSRC
+            endif
+          breaksw
+
+          
+         case "AA":
+
+           if ( "$AA_install" == "1" && "$no_hdf" == "1" ) then
+
+               echo " "
+               echo "	No HDF support......"
+               echo "   If you need to install AA tools, You have to install HDF Package first...."
+               echo "   Building Toolkit failed without HDF support......"
+               exit 1
+            
+            else if ( "$AA_install" == "1" && "$no_hdf" == "0" ) then
+
+                echo "    "
+                echo "        Building Toolkit with AA Tool"
+                echo "    "
+                 
+                cd $dir
+                echo "    "
+                echo "        Making all in $dir"
+                echo "    "
+                make -r
+
+                if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+                endif
+                sleep 5
+
+                cd $PGSSRC
+                
+                breaksw
+	    
+             else
+	    
+                echo "    "
+                echo "    Building Toolkit without AA tool...."
+                echo "    "
+
+              endif
+            endif
+              
+          breaksw
+
+          default:
+
+            cd $dir
+
+            echo "    "
+            echo "        Making all in $dir"
+            echo "    "
+
+            make -r
+
+            if ($status != 0) then
+                set bad_tools=( $bad_tools $dir )
+            endif
+            sleep 5
+
+            cd $PGSSRC
+
+           breaksw
+
+        endsw
+
+    endif
+
+end
+
+if ("$bad_tools" != "") then	# flag error in tool group compilation
+    set error_flag=2
+endif
+
+#
+#  Clean up toolkit object files
+#
+
+set status_msg="clean up toolkit object files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+echo "Removing all object files in PGS source directories..." 
+find $PGSSRC -name \*.o -print -exec rm -f {} \; 
+if ($status != 0) then
+    set error_flag=1
+    goto done3
+endif
+
+echo "Removing all object files in PGS object directories..." 
+find $PGSOBJ -name \*.o -print -exec rm -f {} \;
+if ($status != 0) then
+    set error_flag=1
+    goto done3
+endif
+
+
+#
+#  Installation complete
+#
+
+done3:
+
+echo ""
+echo ""
+echo ""
+
+if ("$bad_tools" != "") then
+    echo ""
+    echo "Error occurred while attempting to compile toolkit source files"
+    echo "The following tool groups had compilation errors:"
+    echo "    ${bad_tools}"
+    echo ""
+endif
+
+switch ($error_flag)
+
+  case 0:
+    echo "`basename $0` completed successfully at `date`"
+    echo "The C threadsafe library is in $PGSLIB"
+    switch ($c_only)
+	case 0:   
+	    breaksw
+	case 1:
+           exit
+	   breaksw
+
+    endsw
+    breaksw
+
+    switch ($cpp_lib_only)
+	case 0:   
+	   if ("cpp" == "0") exit
+	   breaksw
+	case 1:
+	   breaksw
+
+    endsw
+    breaksw
+     case 1:
+       echo "Error occurred while attempting to ${status_msg}"
+       echo "`basename $0` completed with errors at `date`"
+       exit 1
+       breaksw
+
+     case 2:
+       echo "`basename $0` completed with errors at `date`"
+       exit 1
+       breaksw
+ 
+endsw
+
+echo "" 
+
+
+if("$cpp" == "0" && "$cpp_lib_only" == "0") goto all_done 
+
+#
+# build preliminary utilities
+#
+cpp:
+
+
+# Only regular C library or C & threadsafe libraries were requested
+#if ("$c_only" == "1" || "$cpp_lib_only" == "0" || "cpp" == "0") exit
+
+# just build CPP library and skip headers build
+if ("$cpp_lib_only" == "0") goto skip_prelim_util
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Building utilities and SMF files"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+
+
+set status_msg="build the smfcompile utility"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+echo  "$PGSSRC/SMF" 
+cd $PGSSRC/SMF
+if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+make -f makefile.cpp_ofunix smfcompile
+else
+make -f makefile.cpp smfcompile
+endif
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+set status_msg="build the SMF message and header files"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSMSG
+if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+make -f makefile.cpp_ofunix smffiles
+else
+make -f makefile.cpp smffiles
+endif
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+
+set status_msg="build the ephtobin utility"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC/CBP
+if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+make -f makefile.cpp_ofunix ephtobin
+else
+make -f makefile.cpp ephtobin
+endif 
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+rehash
+
+#
+# set appropriate data files for this machine: 
+#
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Setting up installation-dependent database files"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+set status_msg="set up database file CBP/de200.eos"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSDAT/CBP
+
+if (-f de200.eos) rm -f de200.eos    # get rid of old binary, if there
+
+echo "        Creating the CBP/de200.eos binary ..."
+$PGSBIN/ephtobin $PGSHOME/database/common/CBP/de200.dat
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+skip_prelim_util:
+
+
+#
+# set appropriate scripts/utilities for this machine:
+#
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Setting up installation-dependent scripts"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+cd $PGSBIN
+
+if (-f tmp/pgs-env.ksh.cpp.tmp) then
+
+    echo "    Setting up  Korn shell (ksh) script 'pgs-env.ksh.cpp' "
+    echo "    Korn shell users should call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-env.ksh.cpp  "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under ksh."
+    echo "    "
+
+    echo "# " > ! pgs-env.ksh.cpp
+    echo "# set the toolkit home directory environment variable" >> pgs-env.ksh.cpp
+    echo "# SDP installation done on `date` " >> pgs-env.ksh.cpp
+    echo "# " >> pgs-env.ksh.cpp
+    echo " " >> pgs-env.ksh.cpp
+
+    echo "PGSHOME=$PGSHOME	# set the toolkit home directory" >> pgs-env.ksh.cpp
+
+    echo "pgs_formal=$pgs_formal		# formal directory structure (1=yes/0=no)" >> pgs-env.ksh.cpp
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64			# set SGI for -64 mode" >> pgs-env.ksh.cpp
+        breaksw
+      case n32:
+        echo "sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.ksh.cpp
+        breaksw
+      default:
+        echo "sgi_mode=32			# set SGI for standard mode" >> pgs-env.ksh.cpp
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.ksh.cpp
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.ksh.cpp
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-env.ksh.cpp
+        breaksw
+    endsw
+  endif
+
+ if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.ksh.cpp
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.ksh.cpp
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.ksh.cpp
+        breaksw
+    endsw
+  endif
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-env.ksh.cpp
+    echo "export AA_install" >> pgs-env.ksh.cpp
+
+
+    echo " " >> pgs-env.ksh.cpp
+
+    cat tmp/pgs-env.ksh.cpp.tmp >> pgs-env.ksh.cpp
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.ksh.cpp.tmp) then
+
+    echo "    Setting up Korn shell (ksh) script 'pgs-dev-env.ksh.cpp' "
+    echo "    Korn shell users may call this file from their .profile "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        . <PGS-home-dir>/bin/pgs-dev-env.ksh.cpp  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.ksh.cpp.1
+
+    echo '# Clear all conditional flags'        >> pgs-dev-env.ksh.cpp.1
+    echo 'sgi_mode=""'          >> pgs-dev-env.ksh.cpp.1
+    echo 'pgs_daac=""'          >> pgs-dev-env.ksh.cpp.1
+    echo 'pgs_f90_comp=""'      >> pgs-dev-env.ksh.cpp.1
+    echo 'pgs_nag_flag=""'      >> pgs-dev-env.ksh.cpp.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+      echo "pgs_absoft_flag=1"  >> pgs-dev-env.ksh.cpp.1
+    else
+      echo "pgs_absoft_flag=0" 	>> pgs-dev-env.ksh.cpp.1
+    endif
+
+    echo 'fc_path="$fc_path"' 	>> pgs-dev-env.ksh.cpp.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.ksh.cpp.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.ksh.cpp.1
+    echo "# " >> pgs-dev-env.ksh.cpp.1
+    echo " " >> pgs-dev-env.ksh.cpp.1
+
+    echo "PGSHOME=$PGSHOME      # set the toolkit home directory" >> pgs-dev-env.ksh.cpp.1
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "sgi_mode=64                       # set SGI for -64 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      case n32:
+        echo "sgi_mode=n32                      # set SGI for -n32 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      default:
+        echo "sgi_mode=32                       # set SGI for standard mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      case linux32:
+        echo "LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      default:
+        echo "LINUX_BRAND=linux			# set LINUX for standard mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+    endsw
+  endif
+
+ if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      case macintel32:
+        echo "MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+      default:
+        echo "MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.ksh.cpp.1
+        breaksw
+    endsw
+  endif
+
+    echo "AA_install=$AA_install    #set option for AA tool instalation" >> pgs-dev-env.ksh.cpp.1
+    echo "export AA_install" >> pgs-dev-env.ksh.cpp.1
+
+    if ("$pgs_daac" == "1") then        # do DAAC setup
+
+         echo "pgs_daac=1               # enable DAAC toolkit version" >> pgs-dev-env.ksh.cpp.1
+
+    endif
+
+    if ("$pgs_formal" == 1) then        # do formal Toolkit setup
+
+         echo "pgs_formal=1             # enable formal Toolkit version" >> pgs-dev-env.ksh.cpp.1
+
+    endif
+
+    echo " " >> pgs-dev-env.ksh.cpp.2
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" | \
+        sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^"  >> \
+        pgs-dev-env.ksh.cpp.2
+    else if ($?HDFHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFHOME=+++HDFHOME+++^HDFHOME=$HDFHOME^" >> \
+        pgs-dev-env.ksh.cpp.2
+    else if ($?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFEOS_HOME=+++HDFEOS_HOME+++^HDFEOS_HOME=$HDFEOS_HOME^" >> \
+        pgs-dev-env.ksh.cpp.2
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.ksh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.ksh.cpp.2
+    endif
+
+        if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^"  >> \
+        pgs-dev-env.ksh.cpp.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDF5HOME=+++HDF5HOME+++^HDF5HOME=$HDF5HOME^" >> \
+        pgs-dev-env.ksh.cpp.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# HDFEOS5_HOME=+++HDFEOS5_HOME+++^HDFEOS5_HOME=$HDFEOS5_HOME^" >> \
+        pgs-dev-env.ksh.cpp.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.ksh.cpp.3
+    endif
+
+if("$OSTYPE" != "Linux"&& "$OSTYPE" != "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.cpp.3 |  \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        >> pgs-dev-env.ksh.cpp.4
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.cpp.3 |  \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"		      \
+        >> pgs-dev-env.ksh.cpp.4
+ else
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.ksh.cpp.3 |  \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			          \
+        >> pgs-dev-env.ksh.cpp.4
+ endif
+endif
+     if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# JPEGHOME=+++JPEGHOME+++^JPEGHOME=$JPEGHOME^" >> \
+        pgs-dev-env.ksh.cpp.5
+        /bin/rm -f pgs-dev-env.ksh.cpp.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# ZLIBHOME=+++ZLIBHOME+++^ZLIBHOME=$ZLIBHOME^" >> \
+        pgs-dev-env.ksh.cpp.6
+        /bin/rm -f pgs-dev-env.ksh.cpp.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.ksh.cpp.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# SZIPHOME=+++SZIPHOME+++^SZIPHOME=$SZIPHOME^" >> \
+        pgs-dev-env.ksh.cpp.7
+        /bin/rm -f pgs-dev-env.ksh.cpp.6
+    endif
+
+    cat pgs-dev-env.ksh.cpp.1 > ! pgs-dev-env.ksh.cpp
+
+    if (-f pgs-dev-env.ksh.cpp.7) then
+       cat pgs-dev-env.ksh.cpp.7 >> pgs-dev-env.ksh.cpp
+       /bin/rm -f pgs-dev-env.ksh.cpp.7
+    endif
+
+    /bin/rm -f pgs-dev-env.ksh.cpp.1
+    /bin/rm -f pgs-dev-env.ksh.cpp.2
+    /bin/rm -f pgs-dev-env.ksh.cpp.3
+
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-env.csh.cpp.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-env.csh.cpp' "
+    echo "    C shell users should call this file from their .cshrc "
+    echo "    file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-env.csh.cpp "
+    echo "    "
+    echo "    It sets up environment variables needed to run toolkit"
+    echo "    code under csh."
+    echo "    "
+
+    echo "# " > ! pgs-env.csh.cpp
+    echo "# set the toolkit home directory environment variable" >> pgs-env.csh.cpp
+    echo "# SDP installation done on `date` " >> pgs-env.csh.cpp
+    echo "# " >> pgs-env.csh.cpp
+    echo " " >> pgs-env.csh.cpp
+    echo "setenv PGSHOME $PGSHOME	# set the toolkit home directory" >> pgs-env.csh.cpp
+
+    echo "set pgs_formal=$pgs_formal	# formal directory structure (1=yes/0=no)" >> pgs-env.csh.cpp
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64			# set SGI for -64 mode" >> pgs-env.csh.cpp
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32			# set SGI for -n32 mode" >> pgs-env.csh.cpp
+        breaksw
+      default:
+        echo "set sgi_mode=32			# set SGI for standard mode" >> pgs-env.csh.cpp
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-env.csh.cpp
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-env.csh.cpp
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-env.csh.cpp
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-env.csh.cpp
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-env.csh.cpp
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-env.csh.cpp
+        breaksw
+    endsw
+  endif
+
+
+    echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-env.csh.cpp
+
+    echo " " >> pgs-env.csh.cpp
+
+    cat tmp/pgs-env.csh.cpp.tmp >> pgs-env.csh.cpp
+    sleep 5
+
+endif
+
+if (-f tmp/pgs-dev-env.csh.cpp.tmp) then
+
+    echo "    Setting up C-shell (csh) script 'pgs-dev-env.csh.cpp' "
+    echo "    This file may be called from your .cshrc file via the the line:"
+    echo "    "
+    echo "        source <PGS-home-dir>/bin/pgs-dev-env.csh.cpp  "
+    echo "    "
+    echo "    It sets up machine-specific environment variables needed "
+    echo "    by the toolkit makefiles for compilation and linking."
+    echo "    "
+
+    echo "# " > ! pgs-dev-env.csh.cpp.1
+
+    echo '# Clear all conditional flags'        >> pgs-dev-env.csh.cpp.1
+    echo "unset sgi_mode"       >> pgs-dev-env.csh.cpp.1
+    echo "unset pgs_daac"       >> pgs-dev-env.csh.cpp.1
+    echo "unset pgs_f90_comp"   >> pgs-dev-env.csh.cpp.1
+    echo "unset pgs_nag_flag"   >> pgs-dev-env.csh.cpp.1
+    if ("$absoft_flag" == "1") then    # using ABSOFT f77
+	echo "set pgs_absoft_flag=1"   >> pgs-dev-env.csh.cpp.1
+    else
+	echo "set pgs_absoft_flag=0"   >> pgs-dev-env.csh.cpp.1
+    endif
+
+    echo "setenv fc_path $fc_path" >> pgs-dev-env.csh.cpp.1
+
+    echo "# set the toolkit home directory environment variable" >> pgs-dev-env.csh.cpp.1
+    echo "# SDP installation done on `date` " >> pgs-dev-env.csh.cpp.1
+    echo "# " >> pgs-dev-env.csh.cpp.1
+    echo " " >> pgs-dev-env.csh.cpp.1
+
+    echo "setenv PGSHOME $PGSHOME       # set the toolkit home directory" >> pgs-dev-env.csh.cpp.1
+
+
+    switch ("$sgi_mode")
+      case 64:
+        echo "set sgi_mode=64                   # set SGI for -64 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      case n32:
+        echo "set sgi_mode=n32                  # set SGI for -n32 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      default:
+        echo "set sgi_mode=32                   # set SGI for standard mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+    endsw
+    
+
+  if("$OSTYPE" == "Linux") then
+    switch ("$LINUX_BRAND")
+      case linux64:
+        echo "set LINUX_BRAND=linux64		# set LINUX for -64 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      case linux32:
+        echo "set LINUX_BRAND=linux32		# set LINUX for -32 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      default:
+        echo "set LINUX_BRAND=linux		# set LINUX for standard mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+    endsw
+  endif
+
+  if("$OSTYPE" == "DarwinIntel") then
+    switch ("$MAC_BRAND")
+      case macintel64:
+        echo "set MAC_BRAND=macintel64		# set MACINTEL for -64 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      case macintel32:
+        echo "set MAC_BRAND=macintel32		# set MACINTEL for -32 mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+      default:
+        echo "set MAC_BRAND=macintel		# set MACINTEL for standard mode" >> pgs-dev-env.csh.cpp.1
+        breaksw
+    endsw
+  endif
+
+    echo "setenv AA_install $AA_install    #set option for AA tool instalation" >> pgs-dev-env.csh.cpp.1
+
+    if ("$pgs_daac" == "1") then        # do DAAC setup
+
+         echo "set pgs_daac=1           # enable DAAC toolkit version" >> pgs-dev-env.csh.cpp.1
+
+    endif
+
+    if ("$pgs_formal" == "1") then      # use formal Toolkit structure
+
+         echo "set pgs_formal=1         # enable formal toolkit version" >> pgs-dev-env.csh.cpp.1
+
+
+    if ("$f90_flag" == "1") then        # do FORTRAN-90 setup
+
+        echo "set pgs_f90_comp='$F77'           # set f90 compiler" >> pgs-dev-env.csh.cpp.1
+
+        if ("$nag_flag" == "1") then    # using NAG f90
+            echo "set pgs_nag_flag=1            # using NAG f90" >> pgs-dev-env.csh.cpp.1
+        endif
+
+    endif
+
+    echo " " >> pgs-dev-env.csh.cpp.2
+
+    if ($?HDFHOME && $?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.cpp.2
+    else if ($?HDFHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFHOME +++HDFHOME+++^setenv HDFHOME $HDFHOME^" >> \
+        pgs-dev-env.csh.cpp.2
+    else if ($?HDFEOS_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS_HOME +++HDFEOS_HOME+++^setenv HDFEOS_HOME $HDFEOS_HOME^" >> \
+        pgs-dev-env.csh.cpp.2
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" tmp/pgs-dev-env.csh.cpp.tmp | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.cpp.2
+    endif
+
+    if ($?HDF5HOME && $?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.cpp.3
+    else if ($?HDF5HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDF5HOME +++HDF5HOME+++^setenv HDF5HOME $HDF5HOME^" >> \
+        pgs-dev-env.csh.cpp.3
+    else if ($?HDFEOS5_HOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv HDFEOS5_HOME +++HDFEOS5_HOME+++^setenv HDFEOS5_HOME $HDFEOS5_HOME^" >> \
+        pgs-dev-env.csh.cpp.3
+    else
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.2 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" >> \
+        pgs-dev-env.csh.cpp.3
+    endif
+
+if("$OSTYPE" != "Linux" && "$OSTYPE" != "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.cpp.3   \
+    >> pgs-dev-env.csh.cpp.4
+else
+ if ("$OSTYPE" == "DarwinIntel") then
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.cpp.3 |  \
+    sed "s^MACINTEL_CMP_FLAG^$MACINTEL_COMP_FLAG^"			          \
+    >> pgs-dev-env.csh.cpp.4
+else
+    sed "s^TK_LD_LIBRARY_PATH^$LD_LIBRARY_PATH^" pgs-dev-env.csh.cpp.3 |  \
+    sed "s^LNX_CMP_FLAG^$LNX_COMP_FLAG^"			          \
+    >> pgs-dev-env.csh.cpp.4
+ endif
+endif
+    if ($?JPEGHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.4 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv JPEGHOME +++JPEGHOME+++^setenv JPEGHOME $JPEGHOME^" >> \
+        pgs-dev-env.csh.cpp.5
+        /bin/rm -f pgs-dev-env.csh.cpp.4
+    endif
+    if ($?ZLIBHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.5 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv ZLIBHOME +++ZLIBHOME+++^setenv ZLIBHOME $ZLIBHOME^" >> \
+        pgs-dev-env.csh.cpp.6
+        /bin/rm -f pgs-dev-env.csh.cpp.5
+    endif
+    if ($?SZIPHOME) then
+        sed "s^OPT_LVL_C^$opt_flag -DH5_USE_16_API $EXT_CC_FLAGS^" pgs-dev-env.csh.cpp.6 | \
+	sed "s^OPT_LVL_F^$opt_flag -DH5_USE_16_API $EXT_FC_FLAGS^" | \
+	sed "s^OPT_LVL_P^$opt_flag -DH5_USE_16_API $EXT_CPP_FLAGS^" | \
+        sed "s^# setenv SZIPHOME +++SZIPHOME+++^setenv SZIPHOME $SZIPHOME^" >> \
+        pgs-dev-env.csh.cpp.7
+        /bin/rm -f pgs-dev-env.csh.cpp.6
+ 
+    endif
+
+    cat pgs-dev-env.csh.cpp.1 > ! pgs-dev-env.csh.cpp
+
+    if (-f pgs-dev-env.csh.cpp.7) then
+       cat pgs-dev-env.csh.cpp.7 >> pgs-dev-env.csh.cpp
+       /bin/rm -f pgs-dev-env.csh.cpp.7
+    endif
+
+    /bin/rm -f pgs-dev-env.csh.cpp.1
+    /bin/rm -f pgs-dev-env.csh.cpp.2
+    /bin/rm -f pgs-dev-env.csh.cpp.3
+
+    sleep 5
+
+endif
+
+#
+#  Build the toolkit libraries
+#
+
+lib_only3:
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Creating the Toolkit CPP Library"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+ 
+set status_msg="compile toolkit source files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+
+touch ecs.options
+
+if (-f $PGSLIB/libPGSTKcpp.a) then
+    /bin/rm -f $PGSLIB/libPGSTKcpp.a 
+    if ($status != 0) then
+        echo "Unable to remove old library: $PGSLIB/libPGSTKcpp.a"
+        echo "Please remove it manually and re-run the installation."
+        set error_flag=1
+        goto done2
+    endif
+endif
+
+
+foreach dir (`\ls`)
+
+    if (-d $dir) then
+
+        switch ( "$dir" ) 
+	  case "DEM":
+
+            if ("$no_hdfeos" == "1") then
+
+                echo "    "
+                echo "        No HDF-EOS support: skipping $dir"
+                echo "    "
+
+                breaksw
+	     else
+		cd $dir
+		echo "    "
+		echo "        Making all in $dir"
+		echo "    "
+		if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel  || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+		    make -f makefile.cpp_ofunix
+		else
+		    make -f makefile.cpp
+		endif
+
+		if ($status != 0) then
+		    set bad_tools=( $bad_tools $dir )
+		endif
+
+		cd $PGSSRC
+            endif
+          breaksw
+
+	  case "MET":
+
+            if ("$no_hdf" == "1") then
+
+                echo "    "
+                echo "        No HDF support: skipping $dir"
+                echo "    "
+
+                breaksw
+	    else
+		cd $dir
+		echo "    "
+		echo "        Making all in $dir"
+		echo "    "
+		echo "    "
+		if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+		    make -f makefile.cpp_ofunix
+		else
+		    make -f makefile.cpp
+		endif
+
+		if ($status != 0) then
+		    set bad_tools=( $bad_tools $dir )
+		endif
+
+		cd $PGSSRC
+	    endif
+          breaksw
+
+          case "AA":
+
+           if ( "$AA_install" == "1" && "$no_hdf" == "1" ) then
+	    
+		echo " "
+		echo "	No HDF support......"
+		echo "   If you need to install AA tools, You have to install HDF Package first...."
+		echo "   Building Toolkit failed without HDF support......"
+		exit 1
+            
+            else if ( "$AA_install" == "1" && "$no_hdf" == "0" ) then
+
+                echo "    "
+                echo "        Building Toolkit with AA Tool"
+                echo "    "
+                 
+                cd $dir
+                echo "    "
+                echo "        Making all in $dir"
+                echo "    "
+		if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+		    make -f makefile.cpp_ofunix
+		else
+		    make -f makefile.cpp
+		endif
+
+                if ($status != 0) then
+		    set bad_tools=( $bad_tools $dir )
+                endif
+                sleep 5
+
+                cd $PGSSRC
+	    
+             else
+	    
+                echo "    "
+                echo "    Building Toolkit without AA tool...."
+                echo "    "
+
+            endif
+
+          breaksw
+
+          default:
+
+            cd $dir
+
+	    if ($dir == "TSF") then
+	       cd $PGSSRC
+	    else
+	       echo "    "
+               echo "        Making all in $dir"
+               echo "    "
+		if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+		    make -f makefile.cpp_ofunix
+		else
+		    make -f makefile.cpp
+		endif
+
+               if ($status != 0) then
+		    set bad_tools=( $bad_tools $dir )
+               endif
+
+               cd $PGSSRC
+	    endif
+
+           breaksw
+
+        endsw
+
+    endif
+
+end
+
+if ("$bad_tools" != "") then	# flag error in tool group compilation
+    set error_flag=2
+endif
+
+
+
+
+
+#
+# build additional utilities - these depend on libPGSTKcpp.a
+#
+
+#if ("$cpp_lib_only" == "1") goto skip_cpp_utilities   # We have CPP library, skip utilities
+
+echo ""
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+echo "Building additional utilites"
+echo ""
+echo "-------------------------------------------------------------------------------"
+echo ""
+
+
+#
+#  Build the Level 0 data file simulator
+#
+
+set status_msg="build the Level 0 data file simulator utility"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC/IO/L0/L0sim
+if ( ! -f $PGSBIN/L0sim) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix
+    else
+    make -f makefile.cpp
+    endif
+
+   if ($status != 0) then
+      set error_flag=1
+      set bad_utils="$bad_utils IO/L0"
+   endif
+endif
+#
+#  Build the PC command utilities
+#
+
+set status_msg="build the PC command utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSSRC/PC 
+if ( ! -f $PGSBIN/pctcheck ) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix pctcheck commands
+    else
+    make -f makefile.cpp pctcheck commands
+    endif
+    if ($status != 0) then
+	set error_flag=1
+	set bad_utils="$bad_utils PC"
+    endif
+endif
+#
+#  Build the CSC utilities
+#
+
+set status_msg="build the CSC utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSSRC/CSC 
+if ( ! -f $PGSBIN/PGS_CSC*) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix utilities
+    else
+	make -f makefile.cpp utilities
+    endif
+    if ($status != 0) then
+	set error_flag=1
+	set bad_utils="$bad_utils CSC"
+    endif
+endif
+#
+#  Build the TD utilities
+#
+
+set status_msg="build the TD utilities"
+echo "    "
+echo "    $status_msg ..."
+echo "    "
+
+cd $PGSSRC/TD 
+if ( ! -f $PGSBIN/PGS_TD*) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix utilities
+    else
+	make -f makefile.cpp utilities
+    endif
+    if ($status != 0) then
+	set error_flag=1
+	set bad_utils="$bad_utils TD"
+    endif
+endif
+
+#
+#  Build the EPH orbit simulator & s/c ephemeris check utilities
+#
+
+set status_msg="build the orbit simulator & s/c ephemeris check utilities"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC/EPH/orbsim
+if ( ! -f $PGSBIN/orbsim) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix all clean
+    else
+	make -f makefile.cpp all clean
+    endif
+    if ($status != 0) then
+	if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	    make -f makefile.cpp_ofunix clean
+	else
+	    make -f makefile.cpp clean
+	endif
+	set error_flag=1
+	set bad_utils="$bad_utils EPH"
+   endif
+endif
+
+set status_msg="build the gbadsim  utilities"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC/EPH/gbadsim
+if ( ! -f $PGSBIN/gbadsim) then
+    if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	make -f makefile.cpp_ofunix all clean
+    else
+	make -f makefile.cpp all clean
+    endif
+    if ($status != 0) then
+	if ($BRAND == linux || $BRAND == linux32 || $BRAND == linux64 || $BRAND == macintosh || $BRAND == macintel || $BRAND == macintel32 || $BRAND == macintel64 || $BRAND == cygwin) then
+	    make -f makefile.cpp_ofunix clean
+	else
+	    make -f makefile.cpp clean
+	endif
+	set error_flag=1
+	set bad_utils="$bad_utils EPH"
+    endif
+endif
+
+if ( "$error_flag" == "1" ) then
+    set status_msg="build toolkit utilities"
+endif
+
+
+skip_cpp_utilities:
+
+#
+#  Clean up toolkit object files
+#
+
+set status_msg="clean up toolkit object files"
+echo "    "
+echo "    $status_msg..."
+echo "    "
+
+cd $PGSSRC
+echo "Removing all object files in PGS source directories..." 
+find $PGSSRC -name \*.o -print -exec rm -f {} \; 
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+echo "Removing all object files in PGS object directories..." 
+find $PGSCPPO -name \*.o -print -exec rm -f {} \;
+if ($status != 0) then
+    set error_flag=1
+    goto done2
+endif
+
+
+#
+#  Installation complete
+#
+
+done2:
+
+echo ""
+echo ""
+echo ""
+
+if ("$bad_tools" != "") then
+    echo ""
+    echo "Error occurred while attempting to compile toolkit source files"
+    echo "The following tool groups had compilation errors:"
+    echo "    ${bad_tools}"
+    echo ""
+endif
+
+if ("$bad_utils" != "") then
+    echo ""
+    echo "Error occurred while attempting to compile toolkit utilities"
+    echo "The following tool groups had compilation errors:"
+    echo "    ${bad_utils}"
+    echo ""
+endif
+
+switch ($error_flag)
+
+  case 0:
+    echo "`basename $0` completed successfully at `date`"
+    echo "The C++ library is in $PGSLIB" 
+    breaksw
+
+  case 1:
+    echo "Error occurred while attempting to ${status_msg}"
+    echo "`basename $0` completed with errors at `date`"
+    exit 1
+    breaksw
+
+  case 2:
+    echo "`basename $0` completed with errors at `date`"
+    exit 1
+    breaksw
+
+endsw
+all_done:
+echo ""

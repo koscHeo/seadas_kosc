@@ -1,0 +1,74 @@
+--- TOOLKIT/bin/INSTALL-Toolkit.old	2013-03-27 11:17:32.000000000 -0400
++++ TOOLKIT/bin/INSTALL-Toolkit	2013-03-27 11:22:07.000000000 -0400
+@@ -2120,7 +2120,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintosh/libiconv-1.13_MacOSX.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2131,7 +2131,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel/libiconv-1.13_MacIntel.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2142,7 +2142,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel32/libiconv-1.13_MacIntel32.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2153,7 +2153,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel64/libiconv-1.13_MacIntel64.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2190,7 +2190,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintosh/libiconv-1.13_MacOSX.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacOSX.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacOSX.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2201,7 +2201,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel/libiconv-1.13_MacIntel.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2212,7 +2212,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel32/libiconv-1.13_MacIntel32.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel32.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel32.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw
+@@ -2223,7 +2223,7 @@
+ 			    endif
+ 			    cp $PGSHOME/lib/common/tmp/macintel64/libiconv-1.13_MacIntel64.tar.Z $PGSLIB/.
+ 			    cd $PGSLIB
+-			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
++#			    zcat $PGSLIB/libiconv-1.13_MacIntel64.tar.Z|tar xvf -
+ 			    rm -f $PGSLIB/libiconv-1.13_MacIntel64.tar.Z
+ 			    cd $PGSHOME
+ 			breaksw

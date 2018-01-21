@@ -1,0 +1,7 @@
+Latest source available from
+https://modaps.nascom.nasa.gov:9500/software/ftp/utilities/SDST_Toolkit/
+
+See http://modaps.nascom.nasa.gov/services/ to obtain access.
+
+SDST6.0.0.tar.gz is identical to the distribution, except that the
+"examples" directory has been removed to save space.

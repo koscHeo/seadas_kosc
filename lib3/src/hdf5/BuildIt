@@ -1,0 +1,64 @@
+#!/bin/sh
+
+echo
+echo "***********************************"
+echo "********** Building hdf5 **********"
+echo "***********************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=hdf5-1.8.10-patch1
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR
+mkdir -p $installdir
+mkdir -p $LIB3_BIN
+
+export CFLAGS="$CFLAGS -O0 -std=c99"
+
+#export LDFLAGS="$LDFLAGS -undefined dynamic_lookup"
+
+# build libraries
+#mkdir cbuild
+#cd cbuild
+#cmake -DCMAKE_INSTALL_PREFIX=$installdir -DHDF5_BUILD_FORTRAN=1 -DHDF5_BUILD_HL_LIB=1 ..
+#./configure --prefix=$installdir --enable-fortran --enable-cxx --disable-shared --with-zlib=/usr
+./configure --prefix=$installdir --enable-fortran --enable-cxx --disable-shared --with-zlib=/usr --enable-static-exec --disable-sharedlib-rpath
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install-lib failed *****"
+    exit 1
+fi
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+#if [ "$OCSSW_DEBUG" != "1" ]; then
+#    rm -rf $srcdir
+#fi

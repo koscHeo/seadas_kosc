@@ -1,0 +1,16 @@
+--- hdf/src/atom.c.old	2009-02-09 15:47:12.000000000 -0500
++++ hdf/src/atom.c	2010-08-18 09:16:31.000000000 -0400
+@@ -563,8 +563,11 @@
+     ret_value=atm_ptr;
+ 
+ #ifdef ATOMS_ARE_CACHED
+-    atom_id_cache[ATOM_CACHE_SIZE-1]=atm;
+-    atom_obj_cache[ATOM_CACHE_SIZE-1]=atm_ptr->obj_ptr;
++    if(atm_ptr) 
++      {
++          atom_id_cache[ATOM_CACHE_SIZE-1]=atm;
++          atom_obj_cache[ATOM_CACHE_SIZE-1]=atm_ptr->obj_ptr;
++      }
+ #endif /* ATOMS_ARE_CACHED */
+ 
+ done:

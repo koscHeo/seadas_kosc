@@ -1,0 +1,12 @@
+--- hdfeos5/include/cproj.h.old	2012-06-13 14:23:54.606591927 -0400
++++ hdfeos5/include/cproj.h	2012-06-13 14:24:40.378023554 -0400
+@@ -30,8 +30,7 @@
+ 
+ #define IMOD(A, B)      (A) - (((A) / (B)) * (B)) /* Integer mod function */
+ 
+-  /*#include "cproj_prototypes.h"*/ /* causes problem to hdfeos5 clearcase Lastpass build */
+-#include "HE5_GctpFunc.h"
++#include "cproj_prototypes.h"
+ 
+ #ifdef __cplusplus
+ }

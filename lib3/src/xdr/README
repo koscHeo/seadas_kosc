@@ -1,0 +1,6 @@
+XDR lib for HDF4.
+
+Seems like XDR is no longer being included in libc in newer linux systems.
+So I grabbed this one:
+
+http://code.google.com/p/bsd-xdr/

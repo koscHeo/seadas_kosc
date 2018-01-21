@@ -1,0 +1,22 @@
+/*
+ * place extra grib definitions that are inserted by hand here
+ */
+/*
+  int disc;   Section 0 Discipline
+  int mtab;   Section 1 Master Tables Version Number
+  int cntr;   Section 1 originating centre, used for local tables
+  int ltab;   Section 1 Local Tables Version Number
+  int pcat;   Section 4 Template 4.0 Parameter category
+  int pnum;   Section 4 Template 4.0 Parameter number
+  const char *name;
+  const char *desc;
+  const char *unit;
+*/
+
+/* { 0, 1, 0, 0, 0, 0, "TMP", "Temperature", "K"}, */
+
+{2,-1,7,1,0,198,"EVBS", "Direct evaporation from bare soil","W/m^2"},
+{2,-1,7,1,0,208,"EVCW", "Canopy water evaporation","W/m^2"},
+{2,-1,7,1,0,209,"TRANS", "Transpiration","W/m^2"},
+{2,-1,7,1,0,210,"ACOND", "Aerodynamic conductance", "m/s"},
+{2,-1,7,1,3,198,"EVBS","Direct evaporation from bare soil","W/m^2"},

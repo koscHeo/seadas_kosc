@@ -1,0 +1,34 @@
+--- hdfeos5/include/isin.h.old	2012-06-13 14:20:32.917115536 -0400
++++ hdfeos5/include/isin.h	2012-06-13 14:32:09.932521680 -0400
+@@ -68,27 +68,27 @@
+  
+ /* Initialize integerized sinusoidal forward transformations */
+  
+-long isinusforinit(double , double, double, double, double, double); 
++int isinusforinit(double , double, double, double, double, double); 
+  
+ Isin_t *Isin_for_init(double , double, double, double, long, int); 
+ 
+ /* Initialize integerized sinusoidal inverse transformations */
+ 
+-long isinusinvinit(double , double, double, double, double, double);
++int isinusinvinit(double , double, double, double, double, double);
+ 
+ Isin_t *Isin_inv_init(double , double, double, double, long, int);
+ 
+ /* Forward mapping; converts geographic coordinates ('lon', 'lat')
+  * to map projection coordinates ('x', 'y') */
+ 
+-long isinusfor(double, double, double *, double *);
++int isinusfor(double, double, double *, double *);
+  
+ int Isin_fwd(const Isin_t *, double, double, double *, double *); 
+ 
+ /* Inverse mapping; converts map projection coordinates ('x', 'y') to
+  * geographic coordinates ('lon', 'lat') */
+ 
+-long isinusinv(double, double, double *, double *);
++int isinusinv(double, double, double *, double *);
+  
+ int Isin_inv(const Isin_t *, double, double, double *, double *); 
+ 

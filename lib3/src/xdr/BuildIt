@@ -1,0 +1,66 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "************ Building XDR ***********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+xdr_arch=`uname -s | tr '[:upper:]' '[:lower:]'`
+
+# expand source directory
+srcdir=bsd-xdr-1.0.0
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+# apply patches
+patch -b -p0 < xdr.c.patch
+patch -b -p0 < Makefile.unix.patch
+
+cd $srcdir
+
+installdir=$LIB3_DIR
+mkdir -p $installdir/lib
+mkdir -p $installdir/include/rpc
+
+# build libraries
+make -f Makefile.unix
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+# test
+if [  "$LIB3_CHECK" = "1"  ]; then
+    echo "---- running tests ----"
+    cd $xdr_arch
+    ./xdrmem_test_static
+    if [ $? -ne 0 ]; then
+	echo "***** xdrmem_test_static failed *****"
+	exit 1
+    fi
+    ./xdrsizeof_test_static
+    if [ $? -ne 0 ]; then
+	echo "***** xdrsizeof_test_static failed *****"
+	exit 1
+    fi
+    ./xdrstdio_test_static
+    if [ $? -ne 0 ]; then
+	echo "***** xdrstdio_test_static failed *****"
+	exit 1
+    fi
+    cd ..
+fi
+
+# install library and headers
+rsync -av $xdr_arch/libxdr.a $installdir/lib
+rsync -av rpc $installdir/include
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+   rm -rf $srcdir
+fi

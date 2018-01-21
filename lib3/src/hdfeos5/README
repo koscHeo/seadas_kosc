@@ -1,0 +1,24 @@
+you can get the latest sources from 
+ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release
+
+Example install setup:
+
+- local dependancies
+szip - not yet
+hdf4
+hdf5
+
+
+setenv LINUX_BRAND linux64
+
+tar xzf HDF-EOS5.1.14.tar.Z
+cd hdfeos5
+bin/INSTALL-HDFEOS -i /disk01/home/swdev/ocssw/lib3_64/hdf5/include -l /disk01/home/swdev/ocssw/lib3_64/hdf5/lib
+mv lib include ..
+cd ..
+rm -rf hdfeos5
+
+
+other options
+
+bin/INSTALL-HDFEOS -i /disk01/home/swdev/ocssw/lib3_64/hdf5/include -l /disk01/home/swdev/ocssw/lib3_64/hdf5/lib -szi /disk01/home/swdev/ocssw/lib3_64/hdf5/include -szl /disk01/home/swdev/ocssw/lib3_64/hdf5/lib

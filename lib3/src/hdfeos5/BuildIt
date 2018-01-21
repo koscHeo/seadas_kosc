@@ -1,0 +1,65 @@
+#!/bin/sh
+
+echo
+echo "**************************************"
+echo "********** Building hdfeos5 **********"
+echo "**************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=hdfeos5
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf HDF-EOS5.1.14.tar.Z
+# too many bugs in the test code
+#if [ "$LIB3_CHECK" = "1" ]; then
+#    tar xzf HDF-EOS5.1.14_TESTDRIVERS.tar.Z
+#fi
+
+# put in patches
+patch -p0 -b < GDapi.c.patch
+patch -p0 -b < PTapi.c.patch
+patch -p0 -b < samples.he5_pt_writedata.c.patch
+patch -p0 -b < isin.h.patch 
+patch -p0 -b < cproj.h.patch
+patch -p0 -b < HE5_GctpFunc.h.patch
+
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR/EOS
+mkdir -p $installdir
+
+# build libraries
+./configure --prefix=$installdir --libdir=$installdir/lib/$EOS_LIB_PREFIX --with-zlib=$LIB3_DIR --with-hdf5=$LIB3_DIR --enable-install-include CC=$LIB3_DIR/bin/h5cc
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

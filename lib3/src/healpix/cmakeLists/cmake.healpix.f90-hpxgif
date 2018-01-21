@@ -1,0 +1,22 @@
+cmake_minimum_required (VERSION 2.6)
+
+project (HEALPIX)
+
+ADD_LIBRARY(hpxgif STATIC
+  gd.c
+  gdfontt.c
+  gdfonts.c
+  gdfontmb.c
+  gdfontl.c
+  gdfontg.c
+  gifout.c
+  gifarr.c
+  gifdim.c
+  gifstr.c
+  chopst.c
+  gifmod.f90
+  )
+
+target_link_libraries(hpxgif libcfitsio)
+
+install (TARGETS hpxgif ARCHIVE DESTINATION $ENV{LIB3_DIR}/lib)

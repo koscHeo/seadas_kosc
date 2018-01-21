@@ -1,0 +1,179 @@
+# ===========================================================================
+#	Begin Program Specific Block
+# ===========================================================================
+
+MAKEFILE = Makefile
+
+# Library to make
+LIBRARY	= libswfnav.a
+
+# Source files for LIBRARY
+SRC 	= \
+acs_block.f \
+actrng.f \
+add_elements.f \
+angles.f \
+anomly.f \
+asap_rot_int.f \
+asap_rots.f \
+asaps.f \
+attcmp.f \
+attdet.f \
+cdata.f \
+cmpaxm.f \
+conv_ins.f \
+conv_soh.f \
+conv_tel.f \
+conv_tilt.f \
+coord.f \
+crossp.f \
+delm.f \
+dens76.f \
+der.f \
+earcnst.f \
+earcomp.f \
+earth.f \
+earthsundist.f \
+eartol.f \
+eaxis.f \
+ecef.f \
+eci2ecef.f \
+ellxfm.f \
+ephem.f \
+eqnox.f \
+euler.f \
+filenv.f \
+fit3t.f \
+fitgps.f \
+fitrng.f \
+fndflg.f \
+geonav.f \
+get_elements.f \
+get_node.f \
+getorbit.f \
+gha2000.f \
+initnav.f \
+inline.f \
+ins_block.f \
+intpos.f \
+invert.f \
+jd.f \
+jdate.f \
+jddate.f \
+jul2yds.f \
+julian.f \
+kepler.f \
+kozsak2.f \
+l_sun.f \
+leapchk.f \
+legend.f \
+lenstr.f \
+make_el_file.f \
+matmpy.f \
+matvec.f \
+matvec2.f \
+mediqr.f \
+navtlm.f \
+orb_interp.f \
+orbcomp.f \
+pderiv.f \
+pout.f \
+prepnav3.f \
+proctim2.f \
+put_elements.f \
+read_analog.f \
+read_discrete.f \
+read_double.f \
+read_float.f \
+read_gps.f \
+read_long.f \
+read_short.f \
+readctl.f \
+readqc.f \
+rk78.f \
+rk78cn.f \
+runfit3t.f \
+sc_att.f \
+scpar.f \
+sctime.f \
+select.f \
+setsun.f \
+setthd.f \
+string2float.f \
+string2int.f \
+suncnst.f \
+suncomp.f \
+suntol.f \
+sunvec.f \
+sunwgt.f \
+swf_tel.f \
+swfnav.f \
+tiltcomp.f \
+vec2mean.f \
+vmag.f \
+xpose.f \
+xthird.f \
+yd2ymd.f \
+yds2jul.f \
+ydsadd.f \
+ymd2day.f \
+ymdhms2jul.f
+
+# Object modules for LIBRARY
+OBJ     = $(SRC:.f=.o)
+
+# Include file locations
+INCLUDE	= -I$(INCDIR)/swfinc -I$(HDFINC)
+
+
+# ===========================================================================
+#	Begin Project Specific Block
+# ===========================================================================
+
+PROJECT_ROOT = ../..
+BINDIR	= $(PROJECT_ROOT)/bin
+INCDIR	= $(PROJECT_ROOT)/inc
+LIBDIR	= $(PROJECT_ROOT)/lib
+HDFLIB  = $(HDFROOT)/lib
+HDFINC	= $(HDFROOT)/include
+
+# ===========================================================================
+#	Begin Fixed Block
+# ===========================================================================
+
+AR		= ar rc
+LD              = f77 -Bstatic
+FC              = f77
+CC              = cc
+CPP             = /usr/ccs/lib/cpp
+CFLAGS          = -O $(MACROS) $(INCLUDE)
+FFLAGS          = -O $(MACROS) $(INCLUDE) -c
+MACROS          = -Usun
+
+# Rebuild LIBRARY if OBJ have changed
+it: $(LIBRARY)
+$(LIBRARY): $(OBJ) 
+	$(AR) $(LIBRARY) $(OBJ)
+
+install: $(LIBDIR)/$(LIBRARY)
+$(LIBDIR)/$(LIBRARY): $(LIBRARY)
+	cp $(LIBRARY) $(LIBDIR)
+
+# Regenerate OBJ if Makefile has changed
+$(OBJ): $(MAKEFILE) 
+
+# Clean-out the directories
+clean:
+	rm -f $(LIBRARY) $(OBJ) core a.out *.bak *# *~ *.o
+
+# Really clean-out the directories
+bare:
+	make clean
+	rm -f $(LIBDIR)/$(LIBRARY)
+
+# Define recipe for fortran compilation
+.f.o:
+	$(CPP) $(MACROS) $(INCLUDE)$*.f > $*.for
+	$(FC) -c $(FFLAGS) $*.for
+	rm $*.for
+

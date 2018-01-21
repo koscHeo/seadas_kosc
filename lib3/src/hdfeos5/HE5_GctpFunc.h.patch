@@ -1,0 +1,29 @@
+--- hdfeos5/include/HE5_GctpFunc.h.old	2011-01-13 09:27:42.000000000 -0500
++++ hdfeos5/include/HE5_GctpFunc.h	2011-01-13 09:47:22.000000000 -0500
+@@ -213,20 +213,20 @@
+                 double false_east, double false_north);
+ int isinusfor(double lon, double lat, double *x, double *y);
+ int isinusinv(double x, double y, double *lon, double *lat);
+-long isinusforinit(double sphere, double lon_cen_mer, double false_east,
++int isinusforinit(double sphere, double lon_cen_mer, double false_east,
+                    double false_north, double dzone, double djustify);
+-long isinusinvinit(double sphere, double lon_cen_mer, double false_east,
++int isinusinvinit(double sphere, double lon_cen_mer, double false_east,
+                    double false_north, double dzone, double djustify);
+ int utmfor(double lon, double lat, double *x, double *y);
+ int utminv(double x, double y, double *lon, double *lat);
+ int utmforint(double r_maj, double r_min, double scale_fact, long zone);
+ int utminvint(double r_maj, double r_min, double scale_fact, long zone);
+ long calc_utm_zone(double lon);
+-int bceaforint(double r_maj, double center_lon, double center_lat,
+-	       double false_east, double false_north);
++int bceaforint(double r_maj, double r_min, double center_lon, 
++               double center_lat, double false_east, double false_north);
+ int bceafor(double lon, double lat, double *x, double *y);
+-int bceainvint(double r_maj, double center_lon, double center_lat, 
+-	       double false_east, double false_north);
++int bceainvint(double r_maj, double r_min, double center_lon, 
++               double center_lat, double false_east, double false_north);
+ int bceainv(double x, double y, double *lon, double *lat);
+ void p_error(char *what, char *where);
+ void ptitle(char *A);

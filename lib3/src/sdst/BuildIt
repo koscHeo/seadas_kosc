@@ -1,0 +1,61 @@
+#!/bin/sh
+
+echo
+echo "***********************************"
+echo "****** Building SDST Toolkit ******"
+echo "***********************************"
+
+. ../BuildIt.env
+
+# expand source directory
+export srcdir=SDST6.0.0
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+# apply patches
+patch -p1 -d $srcdir < $srcdir.patch
+
+# copy required includes to install directory
+rsync -av   --include="*.h" --exclude="*"  $srcdir/h/ $LIB3_INC
+
+# copy cmake file into subdirectory
+cp cmake.sdst $srcdir/srclib/CMakeLists.txt
+
+# build libraries
+if [ -d cbuild ]; then
+    rm -rf cbuild
+fi
+mkdir cbuild
+cd cbuild
+cmake ..
+if [ $? -ne 0 ]; then
+    echo "***** cmake failed *****"
+    exit 1
+fi
+
+make VERBOSE=1
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# install any updated static files
+if [ "$OCDATAROOT" ]; then
+    mkdir -p $OCDATAROOT/modis/static
+    rsync -av ../$srcdir/h/PGS_*[0-9] \
+	$OCDATAROOT/modis/static
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir cbuild
+fi

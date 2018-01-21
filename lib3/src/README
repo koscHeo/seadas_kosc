@@ -1,0 +1,106 @@
+==========================================================
+Steps to build lib3 from scratch:
+
+1) Make sure the correct version of ifort (or gfortran) is configured,
+   e.g. linux: /opt/intel/fc/10.1.015/bin/ifortvars.sh
+   e.g. macintel: /opt/intel/Compiler/11.1/076/bin/ifortvars.sh ia32
+
+2) In a fresh directory, pull OCSSW.env and lib3 src dir from svn:
+
+   svn export svn://svn0.domain.sdps/OCSSW/trunk/OCSSW.env
+   svn co svn://svn0.domain.sdps/OCSSW/trunk/build/lib3/src
+   mkdir install
+
+3) Edit OCSSW.env:
+
+   -set LIB3_DIR to the full path of a installation directory, e.g. ~/lib3/install
+   -set compilers via the variables CC, CXX, and FC
+
+4) Execute:
+
+   export OCSSWROOT <ocssw_root_dir>  (parent of OCSSW build dir, e.g. ~/seadas/src)
+   source OCSSW.env
+   cd src
+   ./BuildIt |& tee make.out
+
+6) Check the make.out file for errors. Only errors should be:
+
+   rm: cannot remove `src/libsdst.a': No such file or directory
+   rm: cannot remove `lib/libsdst.a': No such file or directory
+AND
+   Error: Cannot write field "Vegetat"
+   Field "Vegetat" has not been defined.
+
+
+==========================================================
+This is the order needed to compile the 3rd party libraries
+
+jpeg
+szip
+gsl
+hdf4
+hdf5
+hdfeos
+hdfeos5
+sdptk
+sdst
+mapi
+
+We're currently compiling hdf4 without szip, but we may be using it with hdf5.
+
+==========================================================
+jpeg
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+==========================================================
+gsl
+
+setenv CFLAGS -m64
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+==========================================================
+hdf4
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+==========================================================
+hdf5
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+setenv F9X 'f77'
+setenv F9X 'f77 -fpp -DDEC$=DEC_ -DMS$=MS_'
+
+==========================================================
+hdfeos
+
+setenv LINUX_BRAND linux64
+
+==========================================================
+hdfeos5
+
+setenv LINUX_BRAND linux64
+
+==========================================================
+mapi
+
+nothing
+
+==========================================================
+sdptk
+
+setenv CC gcc
+setenv F77 f77
+setenv LINUX_BRAND linux64
+#setenv LINUX_BRAND linux
+setenv JPEGHOME /usr
+setenv ZLIBHOME /usr
+setenv SZIPHOME $HDFROOT
+

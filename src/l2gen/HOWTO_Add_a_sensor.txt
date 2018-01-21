@@ -1,0 +1,103 @@
+Summary of files that will need some minor/major modification:
+include/sensorDefs.h
+include/sensorInfo.h
+l2gen/CMakeLists.txt
+l2gen/Changelog.md
+l2gen/getformat.c
+l2gen/l12_parms.h
+l2gen/l1_io.c
+l2gen/get_chl.c
+l2gen/filehandle.h
+l2gen/get_l2prod_index.c
+l2gen/l1_mysensor.h
+l2gen/l1_mysensor.c
+$OCDATAROOT/mysensor
+
+1) Modify include/sensorDefs.h
+	- increment sensor count:
+	    #define SENSOR_NUM #
+	- add definition for new sensor:
+	    #define MYSENSOR #
+
+2) Modify include/sensorInfo.h
+	- add a string for the new sensor to the end of sensorName[][],
+	- add a string for the new sensor to the end of instrumentName[][]
+	- add a string for the new sensor to the end of platformName[][]
+	- add a string for the directory name to the end of sensorDir[][]
+	- add a string to sensorSub[][] if necessary
+
+3) Modify src/l2gen/filehandle.h
+	- Add format definition:
+	    #define FMT_MYSENSOR #
+ 
+4) Modify src/l2gen/CMakesLists.txt and Changelog.md
+    - in CMakeLists.txt:
+        - set (L2GEN_VERSION_MAJOR #)
+        - set (L2GEN_VERSION_MINOR #)
+        - set (L2GEN_VERSION_PATCH_LEVEL #)
+    - in Changelog.md
+        - ## #.#.# - YYYY-MM-DD
+        
+5) Create an L1 reader function for the sensor
+	- l1_mysensor.c, include the following functions:
+          * openl1_mysensor
+          * readl1_mysensor
+          * closel1_mysensor
+	- l1_mysensor.h, with prototypes for above
+
+	The functions need to deal with populating the naviagation fields 
+	(lat,lon, senz, solz, sena, sola) as well as the Lt records in the 
+	l1rec structure
+
+6) Add a section to getformat.c to recognize the new input file format
+       - Compare attribute "title" in data file against titleStr
+       - be sure to populate format, sensorID in the file structure as
+       	  well as setting fmt to return the format ID.
+       	  
+                  if (strstr(titleStr, "title_in_data_file")){
+                    fmt = FMT_MYSENSOR;
+                    file->format = fmt;
+                    file->sensorID = MYSENSOR;
+                    if (want_verbose)
+                        printf("Input file %s is a MYSENSOR file.\n", file->name);
+                    free(titleStr);
+                    endDS(ds_id);
+                    return (fmt);
+                }
+       	  
+
+7) Modify l1_io.c
+
+  	- Add include:
+	  #include "l1_mysensor.h"
+
+	- Add FMT_MYSENSOR to case statements for: 
+	  open: 
+	    case FMT_MYSENSOR:
+                status = openl1_mysensor(l1file);
+                break;
+	  read: 
+            case FMT_MYSENSOR:
+                status = readl1_mysensor(l1file,recnum,l1rec);
+                break;
+	  close:
+            case FMT_MYSENSOR:
+                closel1_mysensor(l1file);
+                break;
+
+8) add pointer to default chlorophyll algorithm for sensor
+        - default_iprod_chl in function get_l2prod_index in get_l2prod_index.c 
+        - chl in function get_chl_ocx in get_chl.c
+        - default chl in function findProductInfo in libpiutils/productInfo.c 
+ 
+9) add l1_mysensor.c to the CMakeLists.txt "add_executable" entries for the 
+   l2gen suite.
+
+10) add sensor data definition files to $OCDATAROOT/run/data/mysensor/msl12_sensorinfo.dat
+    
+    - For hyperscpectral sensors a helpful template script is located in $OCDATAROOT/run/scripts
+      called makelambda4sens.py.
+      
+      
+
+

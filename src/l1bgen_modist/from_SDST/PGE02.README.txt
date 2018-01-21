@@ -1,0 +1,843 @@
+                 ********************************************
+                 *            README for PGE02              *
+                 *         MOD_PR02 V6.1.2(Terra)           *
+                 *         MOD_PR02 V6.1.3(Aqua)            *
+                 *  MOD_PR02QA V6.0.2(Terra)/V6.0.3(Aqua)   *
+                 *             July 22, 2009                *
+                 *                                          *
+                 *           Point of Contact:              *
+                 *             James Kuyper                 *
+                 *     SAIC General Sciences Operation      *
+                 *   MODIS Characterization Support Team    *
+                 *   EMAIL: kuyper@saicmodis.com            *
+                 *           TEL: 301-352-2150              *
+                 *           FAX: 301-352-0143              *
+                 ********************************************
+
+
+  ==============================================================================
+
+  PGE SUMMARY:
+      Runs L1B code for MODIS/TERRA or MODIS/AQUA instrument.
+
+  ============================================================================
+
+  PGE CHANGES:
+
+  ============================================================================
+  V6.1.3 (Aqua)                                                     07/22/2009
+  ============================================================================
+  Changes noted for V6.1.2 (Terra) below were also instituted for
+  V6.1.3 (Aqua).  There were no other changes to the Aqua code.
+
+  ============================================================================
+  V6.1.2 (Terra)                                                    07/22/2009
+  ============================================================================
+  Changes from v6.1.0 which do not affect scientific output:
+  1. If the ReprocessingActual from pcf is "Near Real Time",
+     the LOCALGRANULEID metadata should have an extension ".NRT".
+     It is requested to identify the NRT production.
+
+  Changes from v6.1.0 which may affect scientific output:
+  1. The sector rotation telemetry point is sampled at a frequency of 8
+     seconds (about 5 scans). However, the sector rotation may actually occur
+     during one of the scans earlier than the one where it is first reported.
+     As a result, the b1 values are inaccurate, about 20 scans (one mirror
+     side) prior to the sector rotation are contaminated with anomalously high
+     radiance values.
+     The code change in this update will use the LAST_VALID_SCAN field to find
+     the last synchronized scan (the scan number matches the value in the
+     LAST_VALID_SCAN field) before the sector rotation is reported. The scans
+     in between the last synchronized scan (not inclusive) and the first
+     reported sector rotation should be flagged as sector-rotated to minimize
+     its impact.
+
+  ============================================================================
+  ============================================================================
+  POINTS OF CONTACT:
+      James Kuyper [kuyper@saicmodis.com]
+      Science software lead, MCST
+      SAIC/GSO MODIS Support Office
+      7501 Forbes Blvd., Suite 103
+      Tel: 301-352-2150  -  Fax: 301-352-0143
+
+  BUILD:
+                  (IRIX environment)
+     1. Make sure that the environment variables "MODIS_STORE" and "MODIS_RUN"
+        are set up properly in "MODIS_setup.csh" file.
+     2. Run the UNIX command "source $MODIS_HOME/STORE/util/setup/MODIS_setup.csh".
+     3. To set up the proper system environment, type "64_f77" 
+        for the 64 bit compiler option.
+     4. Run $PGSBIN/smfcompile to compile SMF seed files:
+
+            For TERRA Operations (V5.0.42)
+         - MOD_PR02/MODIS_36100.t
+         - MOD_PR02QA/MODIS_36001.t
+
+            For AQUA Operations (V5.0.37)
+         - MOD_PR02AQUA/MODIS_36110.t
+         - MOD_PR02QA/MODIS_36001.t
+
+     5. Run the UNIX command "make -f PGE02.mk install" to create the 
+        executables.  If you are using ClearCase, run these commands:
+        "setenv MAKE clearmake"; "clearmake -f PGE02.mk install".
+
+                  (LINUX environment)
+     1.  To set up the proper environment variables on moddev5 (a LINUX machine),
+           the following commands should be executed:
+            source /SSTG/util/bin/setup.csh -f77 >& /dev/null
+            source /MODAPSint/etc/conf.csh
+     2. Use the makefile to create the executable "MOD_PR02[MOD_PR02AQUA].exe".
+            a. Optionally, remove old object files and executables:
+                make clean -f MOD_PR02.mk
+            b. Compile and link:
+                make -f MOD_PR02.mk
+
+  RUN:
+             (IRIX environment)
+     1. Set up the proper system environment by running the UNIX command 
+        "source $MODIS_HOME/COMMON/MODAPS_setup_sdp527.csh" followed by "64_f77".
+     2. Edit the process control file (PCF) to specify the directory paths of 
+        the input and output files on the local UNIX file system.  The file 
+        name of this PCF is PGE02.pcf.
+     3. Set the PGSTK environment variable PGS_PC_INFO_FILE to point to the
+        directory name plus file name of the PCF.
+     4. Run the UNIX command "$MODIS_STORE/PGE02/script/PGE02.csh" in the 
+        directory where you put the executables.
+
+              (LINUX environment)
+     1. Set up the proper system environment by running the UNIX command 
+            "source /SSTG/util/bin/setup.csh -f77 >& /dev/null" followed by
+            "source /MODAPSint/etc/conf.csh"
+     2. Edit the process control file (PCF) to specify the directory paths of 
+        the input and output files on the local UNIX file system.  The file 
+        name of this PCF is PGE02.pcf.
+     3. Set the PGSTK environment variable PGS_PC_INFO_FILE to point to the
+        directory name plus file name of the PCF.
+     4. Be sure that the command "limit stacksize unlimited" is included in 
+        your shell script so that there is enough memory to run the executable.
+
+  PRODUCTION RULES:
+
+  MOD_PR02 (or MOD_PR02AQUA) executes once for each 5 minute granule of MxD01
+      produced by PGE01, where MxD stands for MOD (MODIS/TERRA files) or MYD
+      (MODIS/AQUA files).  The total, nominal number of executions is 288 per
+      day.
+
+  MOD_PR02QA executes once following a successful execution of process MOD_PR02
+      within PGE02.  If MOD_PR02 or MOD_PR02AQUA was not successful, then
+      MOD_PR02QA should not be executed.  The total, nominal number of executions
+      is 288 per day.
+
+
+  In the following description, x = O for TERRA, x = Y for AQUA.
+
+  Each execution requires:
+  ------------------------
+
+     Input File Characterization:
+     ----------------------------
+
+     MOD_PR02 (or MOD_PR02AQUA) normally ingests three 5-minute granules of MxD01
+     data (previous, current, and following) and one granule of MxD03 data
+     (synchronized with the current MxD01 granule).  The current MxD01 granule
+     and the MxD03 granule are required.  If the previous MxD01 granule and/or
+     following MxD01 granule are not available at execution time for the current
+     granule, then MOD_PR02 (or MOD_PR02AQUA) may be executed without the missing
+     MxD01 granules.  To enable execution in the event of a missing previous
+     MxD01 granule (LUN 500000) or a following MxD01 granule (LUN 500002), omit
+     the appropriate LUN(s) from the PCF.
+
+     MOD_PR02QA requires one 5-minute granule of MxD021KM data (MODIS
+     Calibrated Radiances 5-Min L1B Swath 1km)
+
+
+     Ancillary Data Needs: (none)
+     ---------------------
+
+     Static File Needs:
+     ------------------
+
+     MOD_PR02 (or MOD_PR02AQUA) requires calibration parameters lookup tables
+     (LUTs).  These consist of three files in HDF format:
+     (1) MxD02_Reflective_LUTs.hdf,
+     (2) MxD02_Emissive_LUTs.hdf, and
+     (3) MxD02_QA_LUTs.hdf.
+     where x = "O" for TERRA data and "Y" for AQUA data.
+
+     Output Product Characterization:
+     --------------------------------
+
+     MOD_PR02 (or MOD_PR02AQUA) produces the following output granules, in HDF
+     format, which correspond to the temporal boundaries of the current MxD01
+     input granule:
+     (1) MxD021KM:  MODIS/xxxxx Calibrated Radiances 5-Min L1B Swath 1km
+     (2) MxD02HKM:  MODIS/xxxxx Calibrated Radiances 5-Min L1B Swath 500m
+     (3) MxD02QKM:  MODIS/xxxxx Calibrated Radiances 5-Min L1B Swath 250m, and
+     (4) MxD02OBC:  MODIS/xxxxx On-Board Calibrator and Engineering Data 5-Min
+     where x = "O" for TERRA data, "Y" for AQUA data, and xxxxx = TERRA or AQUA
+     respectively.
+
+     MOD_PR02QA produces the following output granule, in ASCII format, which
+     corresponds to the MxD021KM file:
+
+        MxD021QA:  MODIS QA Summary of Calibrated Radiances 5-Min L1B 1km
+
+     Associated with each of the above HDF products is an ASCII metadata
+     (".met") file that contains only the ECS inventory metadata for each
+     product.
+
+  EXIT CODES:
+      0	    Success
+
+      1	    Failure
+
+      233	    Failure in MOD_PR02 OR MOD_PR02AQUA: the current MOD01
+              (respectively MYD02) input granule (LUN 500001) has no scans.
+
+  MAPI: No M-API used
+
+  HDF: HDF 4.1r5 used
+
+  SDP TOOLKIT:   SDP toolkit 5.2.9 
+
+  OTHER LIBRARIES:  No other libraries used
+
+  SMF FILES:
+      Executable                      Seed File
+      ---------------------------------------------
+      MOD_PR02QA                      MODIS_36001.t
+      MOD_PR02                        MODIS_36100.t
+      MOD_PR02AQUA                    MODIS_36110.t
+
+  DEVELOPMENT ENVIRONMENT:
+	  SGI IRIX64 modis-xl OS 6.5
+	  MIPSpro Compilers: Version 7.2.1.2m
+
+  TEST ENVIRONMENT:
+     This code was tested on an SGI Power Challenge, OS IRIX 6.5, R10000
+     processor.
+
+  ANCILLARY DATA:
+	  None
+
+  MODIS PRODUCTS:
+
+    ESDT Short Name: MOD01
+    File Name: MOD01_Af5.3_5.in
+    Local Granule ID: MOD01.A2001001.1550.004.2003323174732.hdf
+    Data Time Coverage: 2001-01-01 15:50:00.000000 - 2001-01-01 15:55:00.000000
+    Checksum: 933508000 574141242 MOD01_Af5.3_5.in
+
+    ESDT Short Name: MOD01
+    File Name: MOD01_Af5.3_6.in
+    Local Granule ID: MOD01.A2001001.1555.004.2003323175031.hdf
+    Data Time Coverage: 2001-01-01 15:55:00.000000 - 2001-01-01 16:00:00.000000
+    Checksum: 3005347384 574141330 MOD01_Af5.3_6.in
+
+    ESDT Short Name: MOD01
+    File Name: MOD01_Af5.3_7.in
+    Local Granule ID: MOD01.A2001001.1600.004.2003323175325.hdf
+    Data Time Coverage: 2001-01-01 16:00:00.000000 - 2001-01-01 16:05:00.000000
+    Checksum: 36887112 574141243
+
+    ESDT Short Name: MOD03
+    File Name: MOD03_Af5.3_6.in
+    Local Granule ID: MOD03.A2001001.1555.004.2003323181259.hdf
+    Data Time Coverage: 2001-01-01 15:55:00.000000 - 2001-01-01 16:00:00.000000
+    Checksum: 2542210789 60670819 MOD03_Af5.3_6.in
+
+  OTHER INPUT:
+
+           For TERRA Production (V6.1.2):
+	  MOD02_Reflective_LUTs.hdf_V6.1.2.coeff
+	  MOD02_QA_LUTs.hdf_V6.1.2.coeff
+	  MOD02_Emissive_LUTs.hdf_V6.1.2.coeff
+
+           For AQUA Production (V6.1.3):
+	  MYD02_Reflective_LUTs.hdf_V6.1.3.coeff
+	  MYD02_QA_LUTs.hdf_V6.1.3.coeff
+	  MYD02_Emissive_LUTs.hdf_V6.1.3.coeff
+
+  PROBLEMS:
+	  None
+
+  OUTPUT FILE SIZE:
+
+    File Name                   Size in Bytes
+    ---------                   -------------
+    MOD021KM.Af5.3_6.met.tlcf           18235
+    MOD021KM.Af5.3_6.tlcf           343362436
+    MOD021QA.Af5.3_6.met.tlcf            2928
+    MOD021QA.Af5.3_6.tlcf               46849
+    MOD02HKM.Af5.3_6.met.tlcf           16269
+    MOD02HKM.Af5.3_6.tlcf           275066544
+    MOD02OBC.Af5.3_6.met.tlcf           18235
+    MOD02OBC.Af5.3_6.tlcf            58947240
+    MOD02QKM.Af5.3_6.met.tlcf           16269
+    MOD02QKM.Af5.3_6.tlcf           286057924
+
+  RESOURCE ESTIMATE:
+
+    COMMAND=pge02_Af5.3_testscript
+    EXIT_STATUS=0
+    ELAPSED_TIME=5071.830362
+    USER_TIME=1663.864351
+    SYSTEM_TIME=1233.749897
+    MAXIMUM_RESIDENT_SET_SIZE=46000
+    AVERAGE_SHARED_TEXT_SIZE=0
+    AVERAGE_UNSHARED_DATA_SIZE=0
+    AVERAGE_UNSHARED_STACK_SIZE=0
+    PAGE_RECLAIMS=2325
+    PAGE_FAULTS=810
+    SWAPS=0
+    BLOCK_INPUT_OPERATIONS=109289
+    BLOCK_OUTPUT_OPERATIONS=18239
+    MESSAGES_SENT=0
+    MESSAGES_RECEIVED=0
+    SIGNALS_RECEIVED=0
+    VOLUNTARY_CONTEXT_SWITCHES=98301
+    INVOLUNTARY_CONTEXT_SWITCHES=103
+
+
+  SCF TESTS PERFORMED:
+
+	  CM ran a test, the results of which are provided, viz.
+	  MODIS_RUN = /TLCF1/V2/GDAAC/PGE02/MODIS/RUN
+	  $MODIS_RUN/input			input files
+	  $MODIS_RUN/output/PGE02/Function	output files
+	  Timing results are provided under "RESOURCE ESTIMATE:"
+
+  SUMMARY OF FILES:
+
+	  NAME:    PGE02.README.txt
+	  PURPOSE: Readme file for PGE02
+
+	  NAME:    PGE02.mk
+	  PURPOSE: Makefile to build all software for PGE02 that make up PGE02
+
+	  NAME:    PGE02.pcf 
+	  PURPOSE: Process control file for PGE02
+
+
+	  * * * MOD_PR02 * * *  (CODE SPECIFIC TO MODIS/TERRA)
+
+	  NAME:    Emissive_Cal.c
+	  PURPOSE: Routines to do the emissive calibration for the earth view data
+
+	  NAME:    Emissive_Cal.h
+	  PURPOSE: Public header file for externals in Emissive_Cal.c
+
+	  NAME:    FNames.h
+	  PURPOSE: Define pcf numbers for I/O files
+
+	  NAME:    Granule.c
+	  PURPOSE: L1A/L1B granule data structures and I/O routines
+
+	  NAME:    Granule.h
+	  PURPOSE: Public header file containing macros, structure definitions
+		   and external function declarations
+
+	  NAME:    GranuleP.h
+	  PURPOSE: Private header file for Granule.c
+
+	  NAME:    HDF_Lib.c
+	  PURPOSE: Routines to read/write data and attributes from/to HDF files
+
+	  NAME:    HDF_Lib.h
+	  PURPOSE: Header file for HDF_Lib.c. Prototypes to read/write
+		   science data sets (multidimensional arrays), attributes, etc,
+		   from/to HDF files and malloc/free memory
+
+	  NAME:    L1B.c
+	  PURPOSE: Main program for L1B calibration
+
+	  NAME:    L1B_Setup.c
+	  PURPOSE: Routines to initialize some variables, create hdf data for
+		   I/O and copy geolocation data
+
+	  NAME:    L1B_Setup.h
+	  PURPOSE: Public header file containing macros, structure definitions
+		   and external function declarations
+
+	  NAME:    L1B_SetupP.h
+	  PURPOSE: Private header file for L1B_Setup.c
+
+	  NAME:    L1B_Tables.c
+	  PURPOSE: Routines to read/access lookup tables
+
+	  NAME:    L1B_Tables.h
+	  PURPOSE: Header file to be included in files where the lookup table
+		   routines are defined
+
+	  NAME:    MODIS_36100.t
+	  PURPOSE: Message seed file for PGS error routines
+
+	  NAME:	   MOD021KM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 1km file for TERRA
+
+	  NAME:	   MOD02HKM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 500m file for TERRA
+
+	  NAME:	   MOD02OBC.mcf
+	  PURPOSE: Metadata configuration file for Level 1B OBC file for TERRA
+
+	  NAME:	   MOD02QKM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 250m file for TERRA
+
+	  NAME:    MOD_PR02.mk
+	  PURPOSE: Makefile to compile and run L1B
+
+	  NAME:    Metadata.c
+	  PURPOSE: Routines to read/write metadata
+
+	  NAME:    Metadata.h
+	  PURPOSE: Header file to be included in files where to populate and
+		   write granule metadata MetadataP.h
+
+	  NAME:    MetadataP.h
+	  PURPOSE: Private header file to be used in Metadata.c only.
+
+	  NAME:    PGS_Error_Codes.h
+	  PURPOSE: Define MODIS error codes
+
+	  NAME:    Preprocess.c
+	  PURPOSE: Routines to read/process/write OBC/Engineering data and
+		   compute averages/statistics
+
+	  NAME:    Preprocess.h
+	  PURPOSE: Header file to be included in files where the preprocess
+		   routines and data structures are used
+
+	  NAME:    PreprocessP.h
+	  PURPOSE: Private header file for Preprocess.c
+
+	  NAME:    Reflective_Cal.c
+	  PURPOSE: Routines to do the reflective calibration for the earth view
+		   data
+
+	  NAME:    Reflective_Cal.h
+	  PURPOSE: Contains external declarations for reflective calculation
+		   functions
+
+	  NAME:    Reflective_CalP.h
+	  PURPOSE: Private header file for Reflective_Cal.c
+
+	  * * * MOD_PR02AQUA * * *   (CODE SPECIFIC TO MODIS/AQUA)
+
+	  NAME:    Emissive_Cal.c
+	  PURPOSE: Routines to do the emissive calibration for the earth view data
+
+	  NAME:    Emissive_Cal.h
+	  PURPOSE: Public header file for externals in Emissive_Cal.c
+
+	  NAME:    FNames.h
+	  PURPOSE: Define pcf numbers for I/O files
+
+	  NAME:    Granule.c
+	  PURPOSE: L1A/L1B granule data structures and I/O routines
+
+	  NAME:    Granule.h
+	  PURPOSE: Public header file containing macros, structure definitions
+		   and external function declarations
+
+	  NAME:    GranuleP.h
+	  PURPOSE: Private header file for Granule.c
+
+	  NAME:    HDF_Lib.c
+	  PURPOSE: Routines to read/write data and attributes from/to HDF files
+
+	  NAME:    HDF_Lib.h
+	  PURPOSE: Header file for HDF_Lib.c. Prototypes to read/write
+		   science data sets (multidimensional arrays), attributes, etc,
+		   from/to HDF files and malloc/free memory
+
+	  NAME:    L1B.c
+	  PURPOSE: Main program for L1B calibration
+
+	  NAME:    L1B_Setup.c
+	  PURPOSE: Routines to initialize some variables, create hdf data for
+		   I/O and copy geolocation data
+
+	  NAME:    L1B_Setup.h
+	  PURPOSE: Public header file containing macros, structure definitions
+		   and external function declarations
+
+	  NAME:    L1B_SetupP.h
+	  PURPOSE: Private header file for L1B_Setup.c
+
+	  NAME:    L1B_Tables.c
+	  PURPOSE: Routines to read/access lookup tables
+
+	  NAME:    L1B_Tables.h
+	  PURPOSE: Header file to be included in files where the lookup table
+		   routines are defined
+
+	  NAME:    MODIS_36110.t
+	  PURPOSE: Message seed file for PGS error routines
+
+	  NAME:	   MYD021KM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 1km file for AQUA
+
+	  NAME:	   MYD02HKM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 500m file for AQUA
+
+	  NAME:	   MYD02OBC.mcf
+	  PURPOSE: Metadata configuration file for Level 1B OBC file for AQUA
+
+	  NAME:	   MYD02QKM.mcf
+	  PURPOSE: Metadata configuration file for Level 1B 250m file for AQUA
+
+	  NAME:    MOD_PR02AQUA.mk
+	  PURPOSE: Makefile to compile and run L1B
+
+	  NAME:    Metadata.c
+	  PURPOSE: Routines to read/write metadata
+
+	  NAME:    Metadata.h
+	  PURPOSE: Header file to be included in files where to populate and
+		   write granule metadata MetadataP.h
+
+	  NAME:    MetadataP.h
+	  PURPOSE: Private header file to be used in Metadata.c only.
+
+	  NAME:    PGS_Error_Codes.h
+	  PURPOSE: Define MODIS error codes
+
+	  NAME:    Preprocess.c
+	  PURPOSE: Routines to read/process/write OBC/Engineering data and
+		   compute averages/statistics
+
+	  NAME:    Preprocess.h
+	  PURPOSE: Header file to be included in files where the preprocess
+		   routines and data structures are used
+
+	  NAME:    PreprocessP.h
+	  PURPOSE: Private header file for Preprocess.c
+
+	  NAME:    Reflective_Cal.c
+	  PURPOSE: Routines to do the reflective calibration for the earth view
+		   data
+
+	  NAME:    Reflective_Cal.h
+	  PURPOSE: Contains external declarations for reflective calculation
+		   functions
+
+	  NAME:    Reflective_CalP.h
+	  PURPOSE: Private header file for Reflective_Cal.c
+
+	  * * * MOD_PR02QA * * *
+
+	  NAME:    MODIS_36001.t
+	  PURPOSE: seed file for use with the MOD_PR02QA process
+
+	  NAME:	   MOD021QA.mcf (for MOD_PR02)
+	  PURPOSE: MCF for the MOD_PR02QA TERRA product for 1km resolution
+
+	  NAME:	   MYD021QA.mcf (for MOD_PR02AQUA)
+	  PURPOSE: MCF for the MOD_PR02QA AQUA product for 1km resolution
+
+	  NAME:    MOD_PR02QA.mk
+	  PURPOSE: makefile for MOD_PR02QA.exe
+
+	  NAME:    mod02qa.c
+	  PURPOSE: source code for MOD_PR02QA
+
+	  NAME:    mod02qaP.h
+	  PURPOSE: header file for mod02qa.c
+
+  REACTIVE MAINTENANCE:
+          Check LogStatus for error messages.
+
+  RESTART INSTRUCTIONS:
+          No special procedure.
+
+  SHUTDOWN INSTRUCTIONS:
+          Use the UNIX 'kill' command to stop MOD_PR02, MOD_PR02QA, and MOD_PR02.
+
+  ERROR LIST:
+
+
+  =============================================================================
+  MOD_PR02 and MOD_PR02AQUA ERROR LIST: (All errors are in common to TERRA
+  and AQUA codes unless otherwise noted.)
+  =============================================================================
+
+  ==============================================================================
+  "SUCCESS" ERROR CODES:
+  ==============================================================================
+  MODIS_S_OK - OK (do nothing)
+
+  ==============================================================================
+  "WARNING" ERROR CODES:
+  ==============================================================================
+  MODIS_W_TIME_INCORRECT
+
+  Meaning:
+      A time written to the file may be incorrect.
+
+  Operator Actions:
+    Check Leap Seconds and other toolkit files and environment variables.
+    Notify L1B product users that time in product may be incorrect.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_W_OUT_OF_RANGE
+
+  Meaning:
+    A value, probably from the MOD01 granule, was found to be out of the
+    valid range but Level 1B processing can continue.
+
+  Operator Actions:
+    Do nothing.
+
+  ==============================================================================
+  "FATAL" ERROR CODES:
+  ==============================================================================
+  MODIS_F_NOK
+
+  Meaning:
+    A general (non-specific) error has occurred.
+    This may imply bad data, an algorithm problem or a code defect.
+
+  Operator Actions:
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_OUT_OF_MEMORY
+
+  Meaning:
+    The function "malloc" has failed.  This is highly unlikely to occur
+    because malloc is not used in MOD_PR02/MOD_PR02AQUA for any substantial
+    memory allocation.
+
+  Operator Actions:
+    Check the system health to see if it is overloaded.
+    Try re-running the PGE with system loading reduced.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_FILE_NOT_CREATED
+
+  Meaning:
+    Could not open an output file to write to.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible
+      causes. 
+    Check the PCF file to ensure that file names and directories are correct. 
+    Check file permissions of the system. 
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_FILE_NOT_FOUND
+
+  Meaning:
+    The file name could not be obtained from the PCF file.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Check the PCF file to ensure that UR exists and PCF format is correct.
+    Check the PCF file to ensure that file names and directories are correct.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_FILE_NOT_OPENED
+
+  Meaning:
+    Could not open an input file to read from.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Check the PCF file to ensure that file names and directories are correct.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_READ_ERROR
+
+  Meaning:
+    Could not read a data item from an input file.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Check the PCF file to ensure that file names and directories are correct.
+    Check the file type and size to see if it is consistent with file category.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_WRITE_ERROR
+
+  Meaning:
+    Could not write to a file that has been opened.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Check the PCF file to ensure that file names and directories are correct.
+    Check available system disk space.
+    Check to see if file has been moved or corrupted during execution.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_OUT_OF_RANGE
+
+  Meaning:
+    A value read from an input file was found to be invalid.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Contact MCST.
+    Also contact SDST if the LUN corresponds to a MOD01 or MOD03 granule.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_HDF_ERROR
+
+  Meaning:
+    A call to a PGS or HDF library function has failed.
+
+  Operator Actions:
+    Check previous messages to identify LUN of the file and other possible 
+      causes.
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_INVALID_ARGUMENT
+
+  Meaning:
+    Value of an input argument to a function is invalid.
+    This is likely a code defect, but may be due to invalid input file values.
+
+  Operator Actions:
+    Contact MCST.
+
+  ------------------------------------------------------------------------------
+  MODIS_F_NO_MORE
+
+  Meaning:
+    This is likely a code defect.
+
+  Operator Actions:
+    Contact MCST.
+
+  =============================================================================
+  MOD_PR02QA ERROR LIST:
+  =============================================================================
+
+  ---------------------------------
+  Message: MODIS_E_MOD02_QA
+  Modules: mod02qa.c
+
+  Meaning:
+    The PGE product files cannot be opened or closed or the number of valid
+    product files cannot be read from the PCF.
+
+  Action: 
+    This may be due to corrupt product files, in which case the error         
+    action(s) associated with the other process(es) should be consulted.
+
+  Action: 
+    If the other PGE process(es) run to completion, then there is a      
+    problem in the PGE PCF and the DAAC operator should remedy the       
+    situation before any other PGEs are run with an ill-constructed      
+    PCF. The MCST should be informed if products are produced and        
+    archived but their associated QA log files are not.                  
+
+  ---------------------------------
+
+  Message: MODIS_E_OPEN_GEN_FILE
+  Modules: mod02qa.c
+
+  Meaning:
+    The output log file cannot be opened or the PCF is set up improperly.
+
+  Action: 
+    The DAAC operator should remedy the situation before any other PGEs       
+    are run with an ill-constructed PCF. The MCST should be informed if       
+    products are produced and archived but their associated QA log files      
+    are not.                                                                  
+
+  ---------------------------------
+
+  Message: MODIS_E_CLOSE_GEN_FILE
+  Modules: mod02qa.c
+
+  Meaning:
+    The output log file cannot be closed or the PCF is set up improperly.
+
+  Action: 
+    The DAAC operator should remedy the situation before any                   
+    other PGEs are run with an ill-constructed PCF. The MCST should be         
+    informed if products are produced and archived but their associated        
+    QA log files are not.                                                      
+  ---------------------------------
+
+  Message: MODIS_E_SDP_FAIL
+  Modules: mod02qa.c
+
+  Meaning:
+    There is a failure within an SDP toolkit function.
+
+  Action: 
+    If the PGE did not run to completion the error may be                
+    due to an improper output PGE product line. The error action(s)      
+    associated with the other process(es) should be consulted.
+
+  Action: 
+    If the MCF for the MOD02QA process is missing or corrupt                 
+    the DAAC operator should correct the situation before running any        
+    other PGEs with a corrupt or incorrect MCF. The MCST should be           
+    informed if products are produced and archived but their associated      
+    QA log files are not.                                                    
+
+  ---------------------------------
+
+  Message: MODIS_F_MOD02_QA
+  Modules: mod02qa.c
+
+  Meaning:
+    The PCF file is incorrect.
+
+  Action: 
+    The DAAC operator should correct the situation before running            
+    any other PGEs with a corrupt or incorrect PCF. The MCST should be       
+    informed if products are produced and archived but their associated      
+    QA log files are not.
+
+  ---------------------------------
+
+  Message: MODIS_F_MEM_FAILURE
+  Modules: mod02qa.c
+
+  Meaning:
+    There is an overall system problem.
+
+  Action: 
+    This should be rectified before any other PGEs are run. The DAAC      
+    operator should contact the system administrator to solve this        
+    problem.                                                              
+
+  ---------------------------------
+
+  Message: MODIS_F_SDP_FAIL
+
+    Does not occur within the 1.0 version of MOD_PR02QA. Reserved for
+    future versions.
+
+  Action: N/A
+  ---------------------------------
+
+  MODIS_W_TIME_INCORRECT
+  Modules: mod02qa.c
+
+  Meaning:
+    There is an overall system problem.
+
+  Action: 
+    This should be rectified before any other PGEs are run. The DAAC      
+    operator should contact the system administrator to solve this        
+    problem.                                                              
+

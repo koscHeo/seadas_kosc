@@ -1,0 +1,20 @@
+--- tiff-4.0.3/tools/tiffgt.c.orig	2012-05-15 14:12:21.000000000 -0400
++++ tiff-4.0.3/tools/tiffgt.c	2012-05-15 14:16:15.000000000 -0400
+@@ -31,11 +31,15 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
+-#if HAVE_APPLE_OPENGL_FRAMEWORK
++#if HAVE_OPENGL_GL_H
+ # include <OpenGL/gl.h>
+-# include <GLUT/glut.h>
+ #else
+ # include <GL/gl.h>
++#endif
++
++#if HAVE_GLUT_GLUT_H
++# include <GLUT/glut.h>
++#else
+ # include <GL/glut.h>
+ #endif
+ 

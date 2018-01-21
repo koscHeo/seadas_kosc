@@ -1,0 +1,2 @@
+/usr/bin/ar cr libbin++.a  CMakeFiles/bin++.dir/bin_io.cpp.o CMakeFiles/bin++.dir/bin_util.cpp.o CMakeFiles/bin++.dir/L3BinShape.cpp.o CMakeFiles/bin++.dir/L3File.cpp.o CMakeFiles/bin++.dir/L3BinShapeSMI.cpp.o CMakeFiles/bin++.dir/L3FileSMI.cpp.o
+/usr/bin/ranlib libbin++.a

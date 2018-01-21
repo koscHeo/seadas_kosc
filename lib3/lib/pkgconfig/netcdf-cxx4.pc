@@ -1,0 +1,13 @@
+prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+ccompiler=gcc
+cppcompiler=g++
+
+Name: netcdf-cxx4
+Description: NetCDF C++ Client Library
+Version: 4.2.1
+Libs: -L${libdir} -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib -static -lnetcdf_c++4 -lnetcdf
+Cflags: -I${includedir}
+

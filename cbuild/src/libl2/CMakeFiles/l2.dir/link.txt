@@ -1,0 +1,2 @@
+/usr/bin/ar cr libl2.a  CMakeFiles/l2.dir/readL2scan.c.o CMakeFiles/l2.dir/setupflags.c.o CMakeFiles/l2.dir/get_product_table.c.o
+/usr/bin/ranlib libl2.a

@@ -1,0 +1,2 @@
+/usr/bin/ar cr libhdf5utils.a  CMakeFiles/hdf5utils.dir/hdf5util.cpp.o CMakeFiles/hdf5utils.dir/hdf5_utils.f.o
+/usr/bin/ranlib libhdf5utils.a

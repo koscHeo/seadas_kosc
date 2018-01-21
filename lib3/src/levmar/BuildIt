@@ -1,0 +1,42 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********* Building levmar ***********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=levmar-2.6
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+installdir=$LIB3_DIR
+mkdir -p $installdir/lib
+mkdir -p $installdir/include
+
+
+#----------------------------
+# might want to make the demo
+# program and test it
+#----------------------------
+make liblevmar.a
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+# install library and headers
+cp -f liblevmar.a $LIB3_DIR/lib
+cp -f levmar.h $LIB3_DIR/include
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+   rm -rf $srcdir
+fi

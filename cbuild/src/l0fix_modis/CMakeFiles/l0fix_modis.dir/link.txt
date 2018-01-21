@@ -1,0 +1,1 @@
+/usr/bin/gcc  -DLINUX -Dlinux -m64 -O3 -Wno-unused-result    -static -mcmodel=large CMakeFiles/l0fix_modis.dir/l0fix_modis.c.o  -o l0fix_modis  -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib  ../../../lib3/EOS/lib/linux64/libPGSTK.a -lm -Wl,-rpath,/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib: 

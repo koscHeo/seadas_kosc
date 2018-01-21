@@ -1,0 +1,2 @@
+/usr/bin/ar cr libmap.a  CMakeFiles/map.dir/get_l3m.c.o CMakeFiles/map.dir/put_l3m.c.o
+/usr/bin/ranlib libmap.a

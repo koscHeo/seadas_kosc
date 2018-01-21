@@ -1,0 +1,121 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********** Building healpix **********"
+echo "*************************************"
+
+############ Build cfitsio #################
+. ../BuildIt.env
+
+# expand source directory
+srcdir=cfitsio
+if [ -d $srcdir ]; then
+   rm -rf $srcdir
+fi
+tar xzf cfitsio3340.tar.gz
+
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR
+mkdir -p $installdir
+mkdir -p $LIB3_BIN
+
+export LDFLAGS="-L$LIB3_DIR/lib $LDFLAGS"
+export CFLAGS="-I$LIB3_DIR/include $CFLAGS"
+
+# build libraries
+./configure --prefix=$installdir
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi
+
+############ Build HEALPIX using Cmake #################
+# This builds a subset of the healpix library:
+#    C (libchealpix.a)
+#    F90 (libhealpix.a, libsharp_healpix_f.a)
+# The F90 library libhpxgif.a was started, but the CMakeLists.txt 
+# was not completed as it is not used in OCSSW, so I left it half-baked.
+#
+# expand source directory
+export srcdir=Healpix_3.11
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf Healpix_3.11_2013Apr24.tar.gz
+
+# copy required includes to install directory
+rsync -av  --include="*.h" --exclude="*"  $srcdir/src/C/subs/ $LIB3_INC
+rsync -av  --include="*.h" --exclude="*"  $srcdir/src/f90/sharp/c_utils/ $LIB3_INC
+rsync -av  --include="*.h" --exclude="*"  $srcdir/src/f90/sharp/libfftpack/ $LIB3_INC
+rsync -av  --include="*.h" --exclude="*"  $srcdir/src/f90/sharp/libsharp/ $LIB3_INC
+rsync -av  --include="*.h" --exclude="*"  $srcdir/src/f90/lib/ $LIB3_INC
+
+# copy cmake files into appropriate subdirectories
+cp cmakeLists/cmake.healpix.C $srcdir/src/C/subs/CMakeLists.txt
+cp cmakeLists/cmake.healpix.f90 $srcdir/src/f90/mod/CMakeLists.txt
+cp cmakeLists/cmake.healpix.f90-sharp $srcdir/src/f90/sharp/CMakeLists.txt
+cp cmakeLists/cmake.healpix.f90-hpxgif $srcdir/src/f90/lib/CMakeLists.txt
+
+CC="$CC -std=c99"
+export CFLAGS="$CFLAGS -DENABLE_FITSIO -fPIC"
+# build libraries
+if [ -d cbuild ]; then
+    rm -rf cbuild
+fi
+# run the gen_fits_code script
+cd $srcdir/src/f90/mod
+./gen_fits_code
+./gen_alm_code
+./gen_udgrade_code
+cd ../../../..
+
+mkdir cbuild
+cd cbuild
+cmake ..
+if [ $? -ne 0 ]; then
+    echo "***** cmake failed *****"
+    exit 1
+fi
+
+#make VERBOSE=1
+make -j 20 
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# copy FORTRAN .mod files to $LIB3_INC
+rsync -av --include="*.mod" --exclude="*"  fortran_modules/ $LIB3_INC
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir cbuild
+fi

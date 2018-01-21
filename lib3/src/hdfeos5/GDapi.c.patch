@@ -1,0 +1,20 @@
+--- hdfeos5/src/GDapi.c.old	2012-06-12 15:24:36.314385712 -0400
++++ hdfeos5/src/GDapi.c	2012-06-12 15:27:48.481219453 -0400
+@@ -4105,7 +4105,7 @@
+       sprintf(errbuf, "Cannot allocate memory.\n");
+       H5Epush(__FILE__, "HE5_GDprojinfo", __LINE__, H5E_RESOURCE, H5E_NOSPACE, errbuf);
+       HE5_EHprint(errbuf, __FILE__, __LINE__);
+-      free(errbuf);
++      //free(errbuf);
+       free(utlstr);
+   
+       return(FAIL);
+@@ -4119,7 +4119,7 @@
+       H5Epush(__FILE__, "HE5_GDprojinfo", __LINE__, H5E_RESOURCE, H5E_NOSPACE, errbuf);
+ 
+       HE5_EHprint(errbuf, __FILE__, __LINE__);
+-      free(errbuf);
++      //free(errbuf);
+       free(utlstr);
+       free(GCTPproj[ 97 ]); 
+       return(FAIL);

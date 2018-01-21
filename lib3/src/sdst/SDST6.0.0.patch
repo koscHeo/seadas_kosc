@@ -1,0 +1,231 @@
+diff -aur old/h/SDST_L2rdr.h new/h/SDST_L2rdr.h
+--- old/h/SDST_L2rdr.h	2009-07-01 15:02:35.000000000 -0400
++++ new/h/SDST_L2rdr.h	2013-01-09 15:24:53.000000000 -0500
+@@ -64,9 +64,9 @@
+ 	const int[],
+ 	const char *,
+ 	const char *,
+-	const long int[],
+-	const long int[],
+-	long,
++	const int32[],
++	const int32[],
++	int32,
+ 	double *
+ );
+ #endif
+diff -aur old/srclib/cml2rdr.c new/srclib/cml2rdr.c
+--- old/srclib/cml2rdr.c	2007-03-20 10:24:01.000000000 -0400
++++ new/srclib/cml2rdr.c	2013-01-09 15:24:53.000000000 -0500
+@@ -126,10 +126,10 @@
+ {
+     MODFILE  *mfile;
+     char *carrnm, *cgrpnm;
+-    long int cstart[MAX_VAR_DIMS], cdims[MAX_VAR_DIMS];
+-    int ccontrol_flag[MAX_VAR_DIMS];
++    int32 cstart[H4_MAX_VAR_DIMS], cdims[H4_MAX_VAR_DIMS];
++    int ccontrol_flag[H4_MAX_VAR_DIMS];
+     DATAID *did;
+-    long int rank, i;
++    int32 rank, i;
+    
+     
+     
+diff -aur old/srclib/modisL2reader.c new/srclib/modisL2reader.c
+--- old/srclib/modisL2reader.c	2009-07-01 15:02:35.000000000 -0400
++++ new/srclib/modisL2reader.c	2013-01-09 15:24:53.000000000 -0500
+@@ -12,9 +12,9 @@
+ 	const int control_flag[],
+ 	const char *groupname,
+ 	const char *arrayname,
+-	const long int start[],
+-	const long int dimsizes[],
+-	long Fill_Value,
++	const int32 start[],
++	const int32 dimsizes[],
++	int32 Fill_Value,
+ 	double *value
+ )
+ /*
+@@ -161,16 +161,16 @@
+ {
+   char          buff[PGS_SMF_MAX_MSGBUF_SIZE];
+   char          *funcname = "modisL2reader";
+-  long int      n_elements = 1;
++  int32         n_elements = 1;
+   float64       scale_factor, add_offset;
+   float64       fillvalue;
+   float64       *FillValue = &fillvalue;
+-  long int      attr_n_elements = 1;
+-  long int      rank = MAX_VAR_DIMS;
++  int32         attr_n_elements = 1;
++  int32         rank = H4_MAX_VAR_DIMS;
+   char          datatype[DATATYPELENMAX];
+-  long int      loc_dimsizes[MAX_VAR_DIMS];
++  int32         loc_dimsizes[H4_MAX_VAR_DIMS];
+   void          *temp_value;
+-  long int           byte_of_element = 0;
++  int32         byte_of_element = 0;
+   char          attr_datatype[DATATYPELENMAX] = R64;
+   int           i;
+   int           status = MAPIOK;
+@@ -200,7 +200,7 @@
+    
+   {
+     sprintf(buff,"ERROR: modisL2reader finds incorrect datatype input %.*s while\n"
+-                     "\t converting array to geophysical data.\n", MAX_NC_NAME,datatype);
++                     "\t converting array to geophysical data.\n", H4_MAX_NC_NAME,datatype);
+     MAPIERR(buff,funcname);
+     return(MFAIL);
+   }
+@@ -218,12 +218,12 @@
+ 
+ 
+   /* Retrieve data of array */
+-  if (getMODISarray(file, (char*)arrayname, (char*)groupname, (long*)start,
+-      (long*)dimsizes, temp_value) != MAPIOK)
++  if (getMODISarray(file, (char*)arrayname, (char*)groupname, (int32*)start,
++      (int32*)dimsizes, temp_value) != MAPIOK)
+   {
+       sprintf(buff,"ERROR: modisL2reader detected MFAIL from M-API procedure\n"
+                    "\t getMODISarray while retrieving data of array %.*s.\n",
+-                   MAX_NC_NAME,arrayname);
++                   H4_MAX_NC_NAME,arrayname);
+       MAPIERR(buff,funcname);
+       free(temp_value);
+       return(MFAIL);
+@@ -238,7 +238,7 @@
+ 	{
+           sprintf(buff,"ERROR: modisL2reader detected MFAIL from M-API procedure\n"
+                           "\t getMODISarinfo while retrieving attribute %.*s from\n"
+-			  "\t array %.*s.\n",MAX_NC_NAME,MSLOPE,MAX_NC_NAME,arrayname);
++			  "\t array %.*s.\n",H4_MAX_NC_NAME,MSLOPE,H4_MAX_NC_NAME,arrayname);
+ 		      
+             MAPIERR(buff,funcname);
+ 	    free(temp_value);
+@@ -247,7 +247,7 @@
+ 	else
+ 	 {
+ 	  sprintf(buff, "WARNING: scale_factor attribute for array %.*s not found.\n"
+-			      "\t scale_factor set to 1.\n", MAX_NC_NAME,arrayname);
++			      "\t scale_factor set to 1.\n", H4_MAX_NC_NAME,arrayname);
+ 	    MAPIWARN(buff, funcname);
+ 	    scale_factor = 1;
+ 	 }
+@@ -264,7 +264,7 @@
+ 	{
+          sprintf(buff,"ERROR: modisL2reader detected MFAIL from M-API procedure\n"
+                          "\t getMODISarinfo while retrieving attribute %.*s from\n"
+-			 "\t array %.*s.\n", MAX_NC_NAME,MOFFSET,MAX_NC_NAME,arrayname);
++			 "\t array %.*s.\n", H4_MAX_NC_NAME,MOFFSET,H4_MAX_NC_NAME,arrayname);
+ 		      
+             MAPIERR(buff,funcname);
+ 	    free(temp_value);
+@@ -273,7 +273,7 @@
+ 	else
+ 	{
+ 	 sprintf(buff, "WARNING: add_offset attribute for array %.*s not found.\n"
+-			     "\t add_offset set to zero.\n", MAX_NC_NAME,arrayname);
++			     "\t add_offset set to zero.\n", H4_MAX_NC_NAME,arrayname);
+ 	    MAPIWARN(buff, funcname);
+ 	    add_offset = 0;
+ 	}
+@@ -287,7 +287,7 @@
+ 	{		     
+          sprintf(buff,"ERROR: modisL2reader detected MFAIL from M-API procedure\n"
+                          "\t getMODISarinfo while retrieving attribute %.*s from\n"
+-			 "\t array %.*s.\n", MAX_NC_NAME,MFILL_VALUE,MAX_NC_NAME,arrayname);
++			 "\t array %.*s.\n", H4_MAX_NC_NAME,MFILL_VALUE,H4_MAX_NC_NAME,arrayname);
+ 		       
+             MAPIERR(buff,funcname);
+             free(temp_value);
+@@ -296,7 +296,7 @@
+        else
+          {
+          sprintf (buff, "WARNING: _FillValue attribute for array %.*s not found.\n"
+-			      "\t _FillValue set to default.\n", MAX_NC_NAME,arrayname);
++			      "\t _FillValue set to default.\n", H4_MAX_NC_NAME,arrayname);
+ 	   
+ 	   MAPIWARN(buff, funcname);
+   
+diff -aur old/srclib/SDST_IGEO_get_gran.c new/srclib/SDST_IGEO_get_gran.c
+--- old/srclib/SDST_IGEO_get_gran.c	2010-07-15 15:14:42.000000000 -0400
++++ new/srclib/SDST_IGEO_get_gran.c	2013-01-09 15:24:53.000000000 -0500
+@@ -96,10 +96,10 @@
+ */
+ {
+    char            datatype[DATATYPELENMAX] = I32;
+-   long            n_elements = 1;
++   int32           n_elements = 1;
+    char            msgbuf[128];
+-   long            dimsizes[2];
+-   long            start[2]={0,0};
++   int32           dimsizes[2];
++   int32           start[2]={0,0};
+ 
+ 
+ 
+@@ -144,7 +144,7 @@
+       return PGS_S_SUCCESS;
+   
+    
+-   dimsizes[0] = (long)graninfo->scans;
++   dimsizes[0] = (int32)graninfo->scans;
+    dimsizes[1]= 1;
+    if(getMODISarray(geo_file, M03GEO_SCAN_QUALITY, "", start, dimsizes,
+                               graninfo->quality)!= MAPIOK ){
+diff -aur old/srclib/SDST_IGEO_get_scan.c new/srclib/SDST_IGEO_get_scan.c
+--- old/srclib/SDST_IGEO_get_scan.c	2007-03-20 10:19:56.000000000 -0400
++++ new/srclib/SDST_IGEO_get_scan.c	2013-01-10 16:32:35.000000000 -0500
+@@ -99,12 +99,12 @@
+ !END ***************************************************************************
+ */
+ {
+-   long     dimsizes[2];
+-   long     start[2];
++   int32    dimsizes[2];
++   int32    start[2];
+    float32  latitude[MAX_DETS][MAX_FRAMES];
+    float32  longitude[MAX_DETS][MAX_FRAMES];
+    char     msgbuf[128];
+-   long     line;
++   int32    line;
+    int16    frame;
+    int      i;
+ 
+@@ -116,7 +116,7 @@
+ 
+    dimsizes[0] = 1L;
+    dimsizes[1] = 0L;
+-   start[0] = (long)scan_info->iscan;
++   start[0] = (int32)scan_info->iscan;
+    start[1] = 0L;
+ 
+    if(getMODISarray( geo_file, M03EV_FRAMES, "", start, dimsizes, 
+@@ -141,7 +141,7 @@
+    if(scan_info->EV_frames == 0)
+       return PGS_S_SUCCESS;
+ 
+-   start[0] = (long)(MAX_DETS*scan_info->iscan);
++   start[0] = (int32)(MAX_DETS*scan_info->iscan);
+    if(scan_info->EV_frames == MAX_FRAMES)
+       /* Normal case: can process entire array at once. */
+       dimsizes[0] = MAX_DETS;
+@@ -151,7 +151,7 @@
+       dimsizes[0] = 1;
+ 
+    start[1] = 0;
+-   dimsizes[1] = (long)(scan_info->EV_frames);
++   dimsizes[1] = (int32)(scan_info->EV_frames);
+ 
+    for(line=0; line<MAX_DETS; line+=dimsizes[0]){
+       if(getMODISarray( geo_file, M03LATITUDE, "", start, dimsizes,
+@@ -188,7 +188,7 @@
+ 
+                sprintf(msgbuf,
+ 		 " %s for scan:(%d), line(%ld), frame(%d), %s = %f, %s = %f", 
+-                 geo_file->filename, scan_info->iscan, line, frame, M03LATITUDE,
++		       geo_file->filename, scan_info->iscan, (long)line, frame, M03LATITUDE,
+                  latitude[line][frame], M03LONGITUDE, longitude[line][frame]);
+ 
+                modsmf(MODIS_E_SDST_IGEO_BAD_DATA, msgbuf,

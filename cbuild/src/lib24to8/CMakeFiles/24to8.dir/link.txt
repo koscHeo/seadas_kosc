@@ -1,0 +1,2 @@
+/usr/bin/ar cr lib24to8.a  CMakeFiles/24to8.dir/error.c.o CMakeFiles/24to8.dir/image.c.o CMakeFiles/24to8.dir/quantize.c.o CMakeFiles/24to8.dir/signature.c.o
+/usr/bin/ranlib lib24to8.a

@@ -1,0 +1,25 @@
+you can get the latest sources from 
+ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release
+or
+http://hdfeos.org (confusing!!!)
+
+Example install setup:
+
+- local dependancies
+szip - not used yet
+hdf4
+
+setenv LINUX_BRAND linux64
+
+tar xzf HDF-EOS2.18v1.00.tar.Z
+cd hdfeos
+bin/INSTALL-HDFEOS -i /disk01/home/swdev/ocssw/lib3_64/hdf4/include -l /disk01/home/swdev/ocssw/lib3_64/hdf4/lib
+mv lib include ..
+cd ..
+rm -rf hdfeos
+
+
+
+other options
+
+bin/INSTALL-HDFEOS -i /disk01/home/swdev/ocssw/lib3_64/hdf4/include -l /disk01/home/swdev/ocssw/lib3_64/hdf4/lib -szi /disk01/home/swdev/ocssw/lib3_64/hdf4/include -szl /disk01/home/swdev/ocssw/lib3_64/hdf4/lib

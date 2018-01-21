@@ -1,0 +1,56 @@
+cmake_minimum_required (VERSION 2.6)
+
+project (MAPI)
+
+ADD_LIBRARY(mapi STATIC
+  MTYPEc2f.c
+  MTYPEf2c.c
+  MVSfind.c
+  getMODISarinfo.c
+  substrMODISECSinfo.c
+  MPVL2ODL.c
+  addMODISgroup.c
+  getMODISfields.c
+  searchMODISgroup.c
+  getMODISECSinfo.c
+  createMODISgroup.c
+  completeMODISfile.c
+  createMODISarray.c
+  createMODIStable.c
+  datatype_to_DFNT.c
+  DFNT_to_datatype.c
+  closeMODISfile.c
+  SDS_footprintOK.c
+  putMODISarray.c
+  getMODISarray.c
+  VFdatatypes.c
+  MODISsizeof.c
+  parse_string.c
+  getMODISardims.c
+  emptyVdata.c
+  getMODISfileinfo.c
+  putMODISfileinfo.c
+  Vdatattr_name.c
+  set_Vhasdata.c
+  getMODIStable.c
+  putMODISarinfo.c
+  putMODISdiminfo.c
+  putMODIStable.c
+  getMODISdiminfo.c
+  openMODISfile.c
+  addid.c
+  endMODISobjaccess.c
+  getMODISarrayid.c
+  getMODISdimname.c
+  putMODISdimname.c
+  searchid.c
+  MHDc2fstr.c
+  getMODIShobjid.c
+  getMODIStableid.c
+  createMAPIfilehandle.c
+  releaseMAPIfilehandle.c
+  )
+
+target_link_libraries(mapi PGSTK hdfeos Gctp ${HDF4_LIB} m)
+
+install (TARGETS mapi ARCHIVE DESTINATION $ENV{LIB3_DIR}/lib)

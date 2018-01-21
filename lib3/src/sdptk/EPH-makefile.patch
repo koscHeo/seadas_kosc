@@ -1,0 +1,20 @@
+--- TOOLKIT/src/EPH/orbsim/makefile.old	2013-03-27 12:11:33.000000000 -0400
++++ TOOLKIT/src/EPH/orbsim/makefile	2013-03-27 12:30:20.000000000 -0400
+@@ -74,7 +74,7 @@
+ 
+ # path for libraries linked (compiler will search in the order listed)
+ LFLAG	= -L$(PGSLIB) $(ADD_LFLAGS) -L$(HDFLIB) -L$(ZLIBLIB) -L$(JPEGLIB) -L$(HDF5LIB) -L$(SZIPLIB)
+-LFLAG_ICONV   = -L$(PGSLIB) $(ADD_LFLAGS) -L$(HDFLIB) -L$(ZLIBLIB) -L$(JPEGLIB) -L$(HDF5LIB) -L$(SZIPLIB) -L$(ICONVLIB)
++LFLAG_ICONV   = -L$(PGSLIB) $(ADD_LFLAGS) -L$(HDFLIB) -L$(ZLIBLIB) -L$(JPEGLIB) -L$(HDF5LIB) -L$(SZIPLIB)
+ 
+ # libraries linked for C build
+ LIBS     = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lpthread -lmfhdf -ldf -ljpeg $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm -ldl
+@@ -82,7 +82,7 @@
+ LIBS_HP  = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lmfhdf -ldf $(JPEGLIB)/libjpeg.a $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm -ldl
+ LIBS_CYGWIN = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lpthread -lmfhdf -ldf -ljpeg $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm /usr/lib/librpc.a -liconv.dll
+ LIBS_MACINTOSH = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lpthread -lmfhdf -ldf -ljpeg $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm -ldl -liconv
+-LIBS_MACINTEL = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lpthread -lmfhdf -ldf -ljpeg $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm -ldl /usr/lib/libiconv.dylib
++LIBS_MACINTEL = -lPGSTK $(ADD_LIBS) $(ECS_TOOLKIT_LIBS) -lpthread -lmfhdf -ldf -ljpeg $(HDF5LIB)/libhdf5.a -lz $(SZIPLIB)/libsz.a -lm -ldl
+ #
+ # object files from this sub-group needed to build library
+ #

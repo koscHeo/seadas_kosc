@@ -1,0 +1,38 @@
+--- FANN-2.2.0-Source/src/CMakeLists.txt.old	2012-08-09 10:17:47.585990192 -0400
++++ FANN-2.2.0-Source/src/CMakeLists.txt	2012-08-09 10:18:20.985773036 -0400
+@@ -8,7 +8,7 @@
+ floatfann.c
+ )
+ 
+-ADD_LIBRARY(floatfann SHARED ${floatfann_LIB_SRCS})
++ADD_LIBRARY(floatfann STATIC ${floatfann_LIB_SRCS})
+ 
+ SET_TARGET_PROPERTIES(floatfann PROPERTIES VERSION ${VERSION} SOVERSION 2 )
+ INSTALL(TARGETS floatfann DESTINATION ${LIB_INSTALL_DIR} )
+@@ -20,7 +20,7 @@
+ doublefann.c
+ )
+ 
+-ADD_LIBRARY(doublefann SHARED ${doublefann_LIB_SRCS})
++ADD_LIBRARY(doublefann STATIC ${doublefann_LIB_SRCS})
+ 
+ SET_TARGET_PROPERTIES(doublefann PROPERTIES VERSION ${VERSION} SOVERSION 2 )
+ INSTALL(TARGETS doublefann DESTINATION ${LIB_INSTALL_DIR} )
+@@ -32,7 +32,7 @@
+ fixedfann.c
+ )
+ 
+-ADD_LIBRARY(fixedfann SHARED ${fixedfann_LIB_SRCS})
++ADD_LIBRARY(fixedfann STATIC ${fixedfann_LIB_SRCS})
+ 
+ SET_TARGET_PROPERTIES(fixedfann PROPERTIES VERSION ${VERSION} SOVERSION 2 )
+ INSTALL(TARGETS fixedfann DESTINATION ${LIB_INSTALL_DIR} )
+@@ -44,7 +44,7 @@
+ floatfann.c
+ )
+ 
+-ADD_LIBRARY(fann SHARED ${fann_LIB_SRCS})
++ADD_LIBRARY(fann STATIC ${fann_LIB_SRCS})
+ 
+ SET_TARGET_PROPERTIES(fann PROPERTIES VERSION ${VERSION} SOVERSION 2 )
+ INSTALL(TARGETS fann DESTINATION ${LIB_INSTALL_DIR} )

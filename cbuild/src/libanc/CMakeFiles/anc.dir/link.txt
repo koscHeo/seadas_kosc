@@ -1,0 +1,2 @@
+/usr/bin/ar cr libanc.a  CMakeFiles/anc.dir/getanc.c.o CMakeFiles/anc.dir/HDFroutines.c.o CMakeFiles/anc.dir/dataintp.f.o CMakeFiles/anc.dir/julian.f.o
+/usr/bin/ranlib libanc.a

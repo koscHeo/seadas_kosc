@@ -1,0 +1,44 @@
+get the latest software from
+ftp://ftp.hdfgroup.org/HDF/HDF_Current/
+
+current version: 4.2.9
+
+Example install setup:
+
+- general program dependancies
+flex
+byacc
+zlib
+
+- local dependancies
+szip
+jpeg
+
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+# copy the jpeg lib to the hdf install dir
+cp -r ../jpeg/include ../jpeg/lib .
+
+tar xzf hdf-<version>.tar.gz
+cd hdf-<version>
+./configure --with-jpeg=/home/swdev/ocssw/build/lib3 --prefix=/home/swdev/ocssw/build/lib3
+make
+make check
+make install
+
+cp ./hdf/src/vgint.h ../include/
+
+cd ..
+rm -rf hdf-<version>
+
+#
+# optional config using the sz lib for compression
+#
+
+## copy the szip lib to the hdf install dir
+#cp -r ../szip/include ../szip/lib .
+
+#./configure --with-jpeg=/home/swdev/ocssw/build/lib3/lib --with-szlib=/home/swdev/ocssw/build/lib3/lib --prefix=/home/swdev/ocssw/build/lib3

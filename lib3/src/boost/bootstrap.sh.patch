@@ -1,0 +1,11 @@
+--- bootstrap.sh.old	2014-09-16 11:40:49.998026618 -0400
++++ bootstrap.sh	2014-09-16 11:37:49.890265503 -0400
+@@ -334,7 +334,7 @@
+ # file.
+ if ! $TOOLSET in [ feature.values <toolset> ]
+ {
+-    using $TOOLSET ; 
++    using $TOOLSET : : $CXX ; 
+ }
+ 
+ project : default-build <toolset>$TOOLSET ;

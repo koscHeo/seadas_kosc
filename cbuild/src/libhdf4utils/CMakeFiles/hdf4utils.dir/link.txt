@@ -1,0 +1,2 @@
+/usr/bin/ar cr libhdf4utils.a  CMakeFiles/hdf4utils.dir/hdf_utils.c.o CMakeFiles/hdf4utils.dir/hdf4_utils.c.o
+/usr/bin/ranlib libhdf4utils.a

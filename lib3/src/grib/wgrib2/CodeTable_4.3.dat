@@ -1,0 +1,10 @@
+    case 0: string="anl"; break;
+    case 1: string="init"; break;
+    case 2: string="fcst"; break;
+    case 3: string="bias-corr fcst"; break;
+    case 4: string="ens fcst"; break;
+    case 5: string="prob fcst"; break;
+    case 6: string="fcst err"; break;
+    case 7: string="anl err"; break;
+    case 8: string="obs"; break;
+    case 255: string="missing"; break;

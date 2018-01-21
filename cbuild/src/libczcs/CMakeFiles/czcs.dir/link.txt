@@ -1,0 +1,2 @@
+/usr/bin/ar cr libczcs.a  CMakeFiles/czcs.dir/czcscaleg.f.o CMakeFiles/czcs.dir/czsuba.f.o CMakeFiles/czcs.dir/satang.f.o CMakeFiles/czcs.dir/subsatxy.f.o
+/usr/bin/ranlib libczcs.a

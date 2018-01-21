@@ -1,0 +1,75 @@
+#!/bin/sh
+
+echo
+echo "************************************"
+echo "********** Building SDPTK **********"
+echo "************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+version=SDPTK5.2.18v1.00
+srcdir=TOOLKIT
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $version.tar.Z
+
+# apply patches
+patch -p1 -d $srcdir < $version.patch
+patch -b -p0 < INSTALL-Toolkit.patch
+patch -b -p0 < EPH-makefile.patch
+patch -b -p0 < XML-Makefile.patch
+patch -b -p0 < xmlversion.h.patch
+
+
+# create install directories
+installdir=$LIB3_DIR/EOS
+mkdir -p $installdir
+mkdir -p $LIB3_BIN
+
+# build libraries
+debug_flag=""
+if [ "$OCSSW_DEBUG" = "1" ]; then debug_flag="-dbug"; fi
+cd $srcdir
+bin/INSTALL $debug_flag -batch \
+    -fc_path `which $F77` -cc_path `which $CC` \
+    -hdfhome     $LIB3_DIR     -hdf5home     $LIB3_DIR \
+    -hdfeos_home $LIB3_DIR/EOS -hdfeos5_home $LIB3_DIR/EOS \
+    -zlibhome $LIB3_DIR -jpeghome $LIB3_DIR -sziphome $LIB3_DIR
+if [ $? -ne 0 ]; then
+    echo "***** INSTALL failed *****"
+    exit 1
+fi
+
+# copy required components to install directory
+find bin/ lib/ -mtime -1  -type f -exec rsync -aqR {} $installdir \;
+find include/ -name "*.h" -type f -exec rsync -aqR {} $installdir \;
+
+# copy required utilities to $LIB3_BIN
+utils="chkeph ephtobin PGS_CSC_UT1_update PGS_TD_NewLeap"
+for proc in $utils; do
+    rsync -av $installdir/bin/$EOS_LIB_PREFIX/$proc $LIB3_BIN
+done
+
+# install any updated static files
+if [ "$OCDATAROOT" ]; then
+    mkdir -p $OCDATAROOT/modis/static
+    rsync -av message/PGS_*[0-9] \
+	database/$EOS_LIB_PREFIX/CBP/de200.eos \
+	database/common/CBP/de200.dat \
+	database/common/CSC/earthfigure.dat \
+	database/common/EPH/sc_tags.dat \
+	database/common/CUC/udunits.dat \
+	$OCDATAROOT/modis/static
+#   (for reference: edit PCF templates to match latest sdptk version.)
+    mkdir -p $OCDATAROOT/modis/pcf
+    rsync -av database/$EOS_LIB_PREFIX/PC/PCF.relB0 \
+	$OCDATAROOT/modis/pcf
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

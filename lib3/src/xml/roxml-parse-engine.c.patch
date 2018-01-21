@@ -1,0 +1,12 @@
+--- libroxml-2.2.1/src/roxml-parse-engine.c.orig	2013-06-06 15:18:13.096642211 -0400
++++ libroxml-2.2.1/src/roxml-parse-engine.c	2013-06-06 15:18:18.712503197 -0400
+@@ -1047,7 +1047,8 @@
+ 						context->namespaces = context->candidat_arg;
+ 						context->last_ns = context->candidat_arg;
+ 					} else {
+-						context->last_ns->next = context->candidat_arg;
++					    if(context->last_ns)
++					        context->last_ns->next = context->candidat_arg;
+ 						context->last_ns = context->candidat_arg;
+ 					}
+ 				} else if(context->ns == 0) {

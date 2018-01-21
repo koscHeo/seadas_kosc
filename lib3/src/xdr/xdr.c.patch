@@ -1,0 +1,11 @@
+--- bsd-xdr-1.0.0/lib/xdr.c.old	2012-06-01 15:27:25.193385296 -0400
++++ bsd-xdr-1.0.0/lib/xdr.c	2012-06-01 15:31:45.159510906 -0400
+@@ -753,7 +753,7 @@
+ xdr_string (XDR * xdrs, char **cpp, u_int maxsize)
+ {
+   char *sp = *cpp;              /* sp is the actual string pointer */
+-  u_int size;
++  u_int size = 0;
+   u_int nodesize;
+ 
+   /*

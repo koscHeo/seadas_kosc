@@ -1,0 +1,3194 @@
+#! /bin/sh
+#-----------------------------------------------------------------------------
+# filename:
+# 	INSTALL
+#
+# description:
+#       Install script for the SDP (PGS) Toolkit
+#
+# usage:
+# 	cd <SDP-home-dir>
+# 	bin/INSTALL [-dbug] [-f90 [-NAG]] [-ABSOFT] [-fc_path <path/compiler_name>]
+#                   [-cc_path <path/compiler_name>]
+#                   [-no_ftn] [-sgi | -sgi32 | -sgi64] [-daac]
+#                   [-log <log-file> [-append]] [-notext] [-batch]
+#                   [-pgshome <install_dir>] [-hdfhome <installed_hdf4_dir>]
+#                   [-hdf5home <installed_hdf5_dir>]
+#                   [-hdfeos_home <installed_hdfeos_dir>]
+#                   [-hdfeos5_home <installed_hdfeos5_dir>]
+#                   [-netcdfhome <installed_netcdf_dir>]
+#                   [-cpp] [-cpp_path <path>] [-cpp_lib_only]
+#                   [-c_rlib]
+#                   [-cc_flags "c flags"] [-fc_flags "fortran flags"] 
+#                   [-cpp_flags "cpp flags"]
+# 	bin/INSTALL [-h]
+#
+#         (where <SDP-home-dir> is the full path of the toolkit home directory)
+#
+# 	options:
+# 	  -dbug    : build debug version of toolkit
+# 	  -f90     : build f90 version of the toolkit
+# 	             optional flag -NAG specifies NAG f90
+# 	  -ABSOFT  : flag that specifies absoft f77 is used for 
+#                    fortran compilation
+# 	  -fc_path : set the path of the FORTRAN compiler to 
+#                    <path/compiler_name>
+# 	  -no_ftn  : build toolkit without full FORTRAN support
+# 	  -cc_path : set the path of the C compiler to <path/compiler_name>
+# 	  -sgi     : build in -32  mode
+# 	  -sgi32   : build in -n32 mode (SGI Power Challenge only)
+# 	  -sgi64   : build in -64  mode (SGI Power Challenge only)
+# 	  -daac    : build the DAAC version of the toolkit
+# 	  -log     : send session output to new <log-file>
+# 	  -append  : append to existing <log-file>
+# 	  -notext  : skip long text messages
+# 	  -batch   : run script in batch (i.e. non-interactive) mode
+# 	  -pgshome : full path of Toolkit top level directory
+# 	             (e.g. /usr/local/TOOLKIT)
+# 	             NOTE: this does NOT allow you to install the Toolkit in a
+# 	             directory other than the one created from the Toolkit tar
+# 	             file.
+# 	  -hdfhome : full path to top level directory of installed HDF package
+# 	             package (e.g. /usr/local/TOOLKIT/hdf/sgi64/HDF4.2r3)
+# 	  -hdf5home: full path to top level directory of installed HDF5 package
+#                    package (e.g. /usr/local/TOOLKIT/hdf/sgi64/hdf5-1.6.7)
+# 	  -hdfeos_home : full path to top level directory of installed HDF-EOS
+# 	                 package (e.g. /usr/local/TOOLKIT/hdfeos)
+# 	  -hdfeos5_home: full path to top level directory of installed HDF-EOS5
+#                        package (e.g. /usr/local/TOOLKIT/hdfeos5)
+# 	  -netcdfhome : full path to top level directory of installed netCDF 
+#                       package (e.g. /usr/local/NETCDF/sgi64/netcdf-3.6.1)
+# 	             package (e.g. /usr/local/TOOLKIT/hdf/sgi64/HDF4.2r3)
+# 	  -h       : display this help message and exit
+# 	  -cpp     : build C++ Version
+# 	  -cpp_path: set the path of the C++ compiler to <path>
+# 	  -cpp_lib_only : just build the Toolkit library, don't do anything else
+# 	  -c_rlib  : build C threadsafe Version
+# 	  -cc_flags   : set some additional C flags (c flags)
+# 	  -fc_flags   : set some additional Fortran flags (f flags)
+# 	  -cpp_flags  : set some additional CPP flags (cpp flags)
+#
+#
+# notes:
+# 	1)  The -fc_path and -cc_path options tell the script where to find
+# 	    your compilers, in the event that they are in non-standard
+# 	    locations.  If the -NAG flag is specified, you should use the
+# 	    -fc_path option to specify the path where the NAG f90 compiler
+# 	    is located.
+#
+# 	    If you use -ABSOFT flag to specify that you are using absoft 
+# 	    Fortran compiler,  you should use the -fc_path option to specify 
+# 	    the path where the absoft f77 compiler is located.
+#
+# 	2)  The -pgshome switch allows you to explicity specify the top level
+# 	    Toolkit directory.  This should be the full path upto and including
+# 	    the directory "TOOLKIT" created when you untarred the Toolkit
+# 	    distribution file.  This switch CANNOT be used install the Toolkit
+# 	    anywhere other than the aforementioned directory.
+#
+# 	    This switch may be useful when installing the Toolkit in an
+# 	    automounted directory (in some cases the Toolkit will otherwise
+# 	    incorrectly set the value of the PGSHOME environment variable).
+#
+# 	3)  The -batch switch can be used to run this script in a non-
+# 	    interactive mode.  The script is not as flexible when run in this
+# 	    mode.  Namely, when using the script to install HDF and/or HDF-EOS,
+# 	    these packages will be installed under the TOOLKIT directory.  This
+# 	    behavior cannot be changed.  Also if you specify the -dbug switch
+# 	    the Toolkit, HDF and HDF-EOS will all be installed in debug mode.
+# 	    Finally if you attempt to install HDF and an installed HDF is found
+# 	    in the default location it will be deleted and the whole HDF 
+# 	    package will be reinstalled.  If you attempt to install HDF-EOS 
+# 	    and an hdfeos directory is found to exist in the default location
+# 	    it will be "re-used".
+#
+# 	4)  The -hdfhome, -hdf5home, -hdfeos_home, -hdfeos5_home and netcdfhome
+# 	    switches can be used to specify the location of previously
+# 	    installed HDF4, HDF5, HDF-EOS2, HDF-EOS5, and netCDF distributions
+# 	    (respectively).  These switches should ONLY be used when you do NOT
+# 	    intend to use this script to install HDF and/or HDF-EOS.
+# 	    The netcdf switch only used for renaming internal netCDF calls in
+# 	    HDF4 to avoid name symbol clashes if external netCDF package is 
+# 	    used with installed HDF4. 
+#
+# 	5)  The -cc_flags, -fc_flags, and cpp_flags options tell the script 
+# 	    to use some additional flags that are not default toolkit flags. 
+# 	    Such flags may be needed when users try new compilers. For example 
+# 	    with gfortran which is not the default Fortran compiler for linux 
+# 	    user may need -ff2c and/or -fPIC.  In that case user should enter 
+# 	    -fc_flags "-ff2c -fPIC" on installation command line. Please note 
+# 	    that "" must be used around the entered flags as in the forementioned 
+# 	    gfortran example.
+#
+# author:
+# 	Mike Sucher / Applied Research Corp.
+# 	Guru Tej S. Khalsa / Applied Research Corp.
+#       Megan E. Donovan Spencer / Space Applications Corporation
+#       Abe Taaheri/Space Applications Corporation
+#	Phuong T. Nguyen/EITI
+#
+# history:
+#       10-May-1995 MES Initial version
+#	13-Jul-1995 MES Recognize IRIX64, the sgi 64 bit O/S.
+#	20-Jul-1995 MES Update user HDF message.
+#	19-Sep-1995 MES Auto-configure for formal track directory structure.
+# 			Pass -sgi64 option flag to INSTALL-HDF, INSTALL-Toolkit
+# 	27-Oct-1995 MES Pass -sgi32 option flag to INSTALL-HDF, INSTALL-Toolkit
+# 	31-Oct-1995 MES Updates for IR-1 release:
+#  			- set PGS_PC_INFO_FILE to $PGSRUN/$BRAND/PCF.ir1
+# 			- various tweaks to sgi hanlding.
+# 	01-Nov-1995 MES Rework f90 option handling, add -daac option.
+# 	02-Nov-1995 MES Add -fc_path and -cc_path options.
+# 	06-Nov-1995 GSK Added interactive query for location of files necessary
+# 			for building DAAC version of Toolkit (i.e. CSS logger
+# 			related stuff).
+# 	15-Apr-1996 MES Updates for Release A:
+#  			- set PGS_PC_INFO_FILE to $PGSRUN/$BRAND/PCF.relA
+# 	24-Apr-1996 MES Updates for Release A:
+#  			- set current HDF version to HDF4.0r1p1
+# 	12-Jun-1996 MES Disabled IR1 DAAC sections.
+# 	27-Aug-1996 MES Update HDF setup logic.
+# 	27-Aug-1996 MES More updates to HDF sections.
+# 	23-Sep-1996 MES Set up environment variables that depend on $HDFHOME
+# 	15-Oct-1996 MES/GSK Added HDFEOS installation section
+#       16-Jun-1998 MEDS Updated version number for HDF-EOS
+#
+#       14-Apr-1998 MEDS Correct 1 typographical error and one where the export
+#                       statement was inaccurate (in SetArchitecture function)
+#       19-Aug-1998 MEDS Updated for version 2.4 HDF-EOS and TK 5.2.4.
+#       27-Aug-1998 MEDS Updated to have orbsim subdirectories containing
+#                        unneeded object files after installation is done
+#                        for NCR#15495
+#       18-Mar-1999 MEDS Updated to have C++ version of the Toolkit library
+#                        installed
+#       09-Jun-1999 MEDS Updated to have C threadsafe  version of the Toolkit
+#                        library installed
+#       27-Jun-2000 Yangling Huang ECSed26997 Exclude AA tools
+#       19-Mar-2001 AT   Modified to include HDF5 installation
+#       26-Sep-2001 PTN  Changed definition of current_hdfeos from HDF-EOS2.7.2v1.00
+#                        to HDF-EOS2.8v1.00 and HDF-EOS5.0 to HDF-EOS5.1.2; changed
+#                        definition of current_hdf from HDF4.1r3 to HDF4.1r5 
+#       15-May-2002 PTN  Changed definition of current_hdf5 from hdf5-1.4.1 to 
+#                        hdf5-1.4.3
+#       20-May-2002 XW   Corrected the option for cpp_path
+#       17-Jun-2002 PTN  Rename makefile.cpp to something else and change "makefile.cpp" 
+#                        in each makefile.cpp to "makefile.cpp_ofunix" for C++ on linux
+#       16-Jul-2002 PTN  Changed definition of current_hdfeos5 from HDF-EOS5.1.2
+#                        to HDF-EOS5.1.3
+#       23-Feb-2003 AA   Changed definition of current_hdf5 from hdf5-1.4.3 to
+#                        hdf5-1.4.4
+#       24-Mar-2003 PTN  Changed definition of current_hdfeos from HDF-EOS2.8v1.00
+#                        to HDF-EOS2.9v1.00 and HDF-EOS5.1.4 to HDF-EOS5.1.5
+#       20-Oct-2003  AT  Changed definition of current_hdfeos from HDF-EOS2.9v1.00
+#                        to HDF-EOS2.10v1.00 and HDF-EOS5.1.6 to HDF-EOS5.1.6
+#       20-Oct-2003  AT  Changed definition of current_hdf5 from hdf5-1.4.4 to
+#                        hdf5-1.6.1
+#       16-Mar-2004  AA  Changed definition of current HDF4 from HDF4.1r5 to 
+#                        HDF4.2r0 and hdf5.1.6.1 to hdf5.1.6.2. 
+#       24-Jan-2005  MP  Changed definition of current_hdf5 from hdf5-1.6.2 to
+#                        hdf5-1.6.3, current_szip from szip1.1 to szip1.2, current_hdfeos
+#                        from HDF-EOS2.12v1.00 to HDF-EOS2.13v1.00, current_hdfeos5
+#                        from HDF-EOS5.1.8 to HDF-EOS5.1.9
+#      06-Jul-2005   AA  Changed definition of current HDF4 from HDF4.2r0 to HDF4.2r1
+#                        and szip1.2 to szip2.0
+#      05-Jul-2007   AT  Changed definition of current HDF4 from HDF4.2r1 to HDF4.2r2,
+#                        current_hdf5 from hdf5-1.6.5-post5 to hdf5-1.6.6, current_hdfeos
+#                        HDF-EOS2.14v1.00 to HDF-EOS2.15v1.00, and current_hdfeos5
+#                        from HDF-EOS5.1.10 to HDF-EOS5.1.11
+#      05-Sep-2007   AT  Changed definition of current_szip from szip2.0 to szip2.1
+#
+#      09-May-2009   AT  Updated for HDF4.2r4 and HDF5-1.8.3,
+#      20-Jul-2010   AT  Updated for hdf-4.2.5 and HDF5-1.8.5-snap4,
+#      15-Aug-2011   AT  Added ABSOFT usage flag to use absoft f77 for
+#                        Fortran compilation of Toolkit source code
+#      12-Sep-2011   AT  Added capabilty for enetering additional C, 
+#                        Fortran, or CPP flags
+#      16-Nov-2011   AT  Updated for HDF4.2.6 and HDF5-1.8.8
+#---------------------------------------------------------------------------------------
+
+#****************************************************************
+#                                                               *
+#                   * * * Functions  * * *                      *
+#                                                               *
+#****************************************************************
+
+#
+# Function to output error message
+#
+
+WriteError()
+{
+    echo ""
+    echo "${this_script}: Error: $*"  >&2
+    if [ "$log_file" != "" ] ; then
+         echo "${this_script}: Error: $*" >> $log_file
+    fi
+}
+
+
+#
+# Function to output message to logfile and console
+#
+
+EchoAndLog()
+{
+    if [ "$1" = "-n" ] ; then		# -n: suppress leading blank line
+        shift
+    else
+        echo ""
+        if [ "$log_file" != "" ] ; then
+            echo "" >> $log_file
+        fi
+    fi
+
+    echo "$*"
+    if [ "$log_file" != "" ] ; then
+         echo "$*" >> $log_file
+    fi
+}
+
+#
+# Function to output long messages to logfile and console
+#
+
+NoteToLog()
+{
+    if [ "$1" = "-n" ] ; then		# -n: suppress leading blank line
+        shift
+    else
+        if [ "$log_file" != "" ] ; then
+            echo "" >> $log_file
+        fi
+    fi
+
+    echo "$*"
+    if [ "$log_file" != "" ] ; then
+         echo "$*" >> $log_file
+    fi
+}
+
+#
+# Function to output message to logfile only
+#
+
+Log()
+{
+    if [ "$1" = "-n" ] ; then		# -n: suppress leading blank line
+        shift
+    else
+        if [ "$log_file" != "" ] ; then
+            echo "" >> $log_file
+        fi
+    fi
+
+    if [ "$log_file" != "" ] ; then
+         echo "$*" >> $log_file
+    fi
+}
+
+
+#
+# Function to prompt for user response
+#
+
+UserPrompt()
+{
+    if [ "$BRAND" = "linux" ] || [ "$BRAND" = "linux32" ] || [ "$BRAND" = "linux64" ] ; then
+	/bin/echo "$* \c" > /dev/tty
+    else
+	echo "$* \\c" > /dev/tty
+    fi
+
+    read user_response
+}
+
+
+#
+# Function to output help message and exit
+#
+
+Help()
+{
+    sed -n '/filename:/,/author:/p' $script_dir/INSTALL | grep -v "author:" | cut -c3-300 | more
+    #this line must be here because it contains the string: "author:"
+    exit
+}
+
+
+#
+# Function to silently emulate the 'which' command
+#
+
+Which()
+{
+    if [ "$1" = "" ] ; then
+        WriteError "Which() : Too few arguments."
+        exit 1
+    fi
+
+    saveifs="$IFS"
+    IFS=:
+    which_result=0
+    which_cmd=""
+
+    for dir in $PATH;  do
+        if [ -x $dir/$1 ] ; then
+            which_result=1
+            which_cmd=$dir/$1
+            break
+        fi
+    done
+
+    IFS="$saveifs"
+}
+
+#
+# Function to set up and export the following architecture-specific variables:
+#
+#         BRAND LOGNAME PATH USER
+#
+
+
+SetArchitecture()
+{
+    # set path to a base subset of directories, allowing startup on unknown host
+    # note: once the architecture has been determined the path is customized
+
+    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/ucb:/usr/bin/X11
+    LINUX_BRAND=linux64
+
+    # get operating system type, login name
+    # special cases: SCO and Cray  - uname works differently,
+
+    pgs_machine=`uname -m | awk '{print $1}'`	# needed on Cray & SCO
+    pgs_temp_ostype=`uname`
+
+    case "$pgs_machine" in
+
+	i386 )        			# SCO box
+	    pgs_ostype=sco386
+	;;
+
+	CRAY )    				# CRAY
+	    pgs_ostype=UNICOS
+	;;
+
+	* )					# everybody else
+	    pgs_ostype=`uname`
+	;;
+
+    esac
+
+# Intel Macintosh is also i386 or i686 (?) machine
+
+    if [ "$pgs_machine" = "i386" ] ; then
+	if [ "$pgs_temp_ostype" = "Darwin" ] ; then 
+	    pgs_ostype=DarwinIntel
+	fi
+	if [ "`uname | awk -F_ '{print $1}'`" = "CYGWIN" ] ; then 
+	    pgs_ostype=Cygwin
+	fi
+    fi
+    if [ "$pgs_machine" = "i686" ] ; then
+	if [ "$pgs_temp_ostype" = "Darwin" ] ; then 
+	    pgs_ostype=DarwinIntel
+	fi
+	if [ "`uname | awk -F_ '{print $1}'`" = "CYGWIN" ] ; then 
+	    pgs_ostype=Cygwin
+	fi
+    fi
+
+    if [ "$pgs_machine" = "x86_64" ] ; then
+	if [ "$pgs_temp_ostype" = "Darwin" ] ; then 
+	    pgs_ostype=DarwinIntel
+	fi
+	if [ "`uname | awk -F_ '{print $1}'`" = "CYGWIN" ] ; then 
+	    pgs_ostype=Cygwin
+	fi
+    fi
+
+    if [ "$pgs_machine" = "ia64" ] ; then
+	if [ "$pgs_temp_ostype" = "Darwin" ] ; then 
+	    pgs_ostype=DarwinIntel
+	fi
+	if [ "`uname | awk -F_ '{print $1}'`" = "CYGWIN" ] ; then 
+	    pgs_ostype=Cygwin
+	fi
+    fi
+
+# For MAC Intel machines there is another way for determining 64-bit hardware
+    if [ "$pgs_temp_ostype" = "Darwin" ] ; then
+	if [ "$pgs_machine" = "ia64" ] ||  [ "$pgs_machine" = "i686" ] || [ "$pgs_machine" = "i386" ] || [ "$pgs_machine" = "x86_64" ] ; then
+	    pgs_ostype=DarwinIntel
+	else
+# if still we could not determine pgs_machine
+	    MACis64=`sysctl -n hw.cpu64bit_capable`
+	    if [ $MACis64 = 1 ] ; then
+# Machine is definitly 64-bit and is MacIntel type
+		pgs_ostype=DarwinIntel
+		pgs_machine=x86_64
+	    fi
+	fi
+    fi
+
+    pgs_user=`id | cut -d\( -f2 | cut -d\) -f1`
+    if [ "$LOGNAME" = "" ] ; then 		# make sure $LOGNAME is defined
+	LOGNAME=$pgs_user
+	export LOGNAME
+    fi
+    if [ "$USER" = "" ] ; then 		# make sure $LOGNAME is defined
+	USER=$LOGNAME
+	export USER
+    fi
+
+    # set machine-depdoneent environment variables:
+    # 	pgs_host  the host name of this machine
+    # 	   BRAND  used by other achitecture-specific code
+    #       PATH  the execution search path
+
+    case "$pgs_ostype" in
+
+	AIX )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/ucb:/usr/bin/X11:/usr/ccs/bin:/usr/sbin
+	    pgs_host=`hostname`
+	    BRAND=ibm
+	;;
+
+	HP-UX )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/bin/X11
+	    pgs_host=`hostname`
+	    BRAND=hp
+	;;
+
+	IRIX )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/bsd:/usr/bin/X11:/usr/sbin
+	    pgs_host=`hostname`
+	    BRAND=sgi
+	    sgi_mode=32
+	;;
+
+	IRIX64 )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/bsd:/usr/bin/X11:/usr/sbin
+	    pgs_host=`hostname`
+	    case "$sgi_mode" in
+		n32 )
+		    BRAND=sgi32
+		;;
+		64 )
+		    BRAND=sgi64
+		;;
+		old32 )
+		    BRAND=sgi
+		    sgi_mode=32
+		;;
+		* )
+		    EchoAndLog "The default Toolkit SGI installation is now 64 bit (sgi64). Other"
+		    EchoAndLog "available Toolkit SGI installation modes are new 32 bit (sgi32) and"
+		    EchoAndLog "old 32 bit (sgi)."
+		    EchoAndLog ""
+		    BRAND=sgi64
+		    sgi_mode=64
+		    if [ $batch_mode = 0 ] ; then
+			UserPrompt "Which SGI installation mode would you like [sgi64]"
+		    else
+			user_response=sgi64
+		    fi
+		    case "$user_response" in
+			sgi64 | "" )
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (64 bit) mode..."
+			    EchoAndLog ""
+		        ;;
+			sgi32 )
+			    BRAND=$user_response
+			    sgi_mode=n32
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (new 32 bit) mode..."
+			    EchoAndLog ""
+		        ;;
+			sgi )
+			    BRAND=$user_response
+			    sgi_mode=32
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (old 32 bit) mode..."
+			    EchoAndLog ""
+		        ;;
+			* )
+			    EchoAndLog ""
+			    EchoAndLog "Unknown installation mode: $user_response."
+			    EchoAndLog "Installation cancelled."
+			    exit 1
+			;;
+		    esac
+		;;
+	    esac
+	;;
+
+	Linux )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/X11/bin
+	    pgs_host=`hostname`
+	    LNX_COMP_FLAG=""
+	    export LNX_COMP_FLAG
+
+	    case "$pgs_machine" in
+
+		i686 )
+		    # Machine is 32-bit and Installation will be in 32-bit Mode.
+		    EchoAndLog "The default Toolkit LINUX installation for this machine is 32 bit."
+		    EchoAndLog "Toolkit and other software will be installed in 32 bit Mode."
+		    EchoAndLog ""
+		    #in 32 bit machine no need for -m32 flag
+		    LNX_COMP_FLAG=""
+		    export LNX_COMP_FLAG
+		    BRAND=linux
+		    LINUX_BRAND=linux
+		;;
+		
+		x86_64 | ia64 )
+		    # Machine is 64-bit and Installation will be in 32-bit or 
+		    # 64-bit Mode.
+		    NoteToLog "Note: If your system is CentOS linux, you may need -fPIC compilation flag."
+		    NoteToLog "If that is the case you better quit here (using Ctrl-c) and re-start"
+		    NoteToLog "installation with additional arguments -cc_flags \"-fPIC\" and/or "
+		    NoteToLog "-cpp_flags \"-fPIC\" and -fc_flags \"-fPIC\" if you have not done so."
+		    NoteToLog "You may type bin/INSTALL -h to see notes on how to add additional"
+		    NoteToLog "compilation flags"
+		    NoteToLog "The default Toolkit LINUX installation for this machine is 64 bit. Other"
+		    NoteToLog "available Toolkit LINUX installation mode is 32 bit Mode"
+		    NoteToLog ""
+		    
+		    if [ $batch_mode = 0 ] ; then
+			UserPrompt "Which LINUX installation mode would you like? lnx32 or lnx64 ? [lnx64]"
+		    else
+			user_response=lnx64
+		    fi
+
+		    case "$user_response" in
+			lnx64 | "" )
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (64 bit) mode..."
+			    EchoAndLog ""
+			    #in 64 bit machine no need for any flag
+			    #for 64-bit installation
+			    LNX_COMP_FLAG=""
+			    export LNX_COMP_FLAG
+			    BRAND=linux64
+			    LINUX_BRAND=linux64
+			;;
+		    
+			lnx32 )
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (32 bit) mode..."
+			    EchoAndLog ""
+			    #in 64 bit machine we need -m32 flag
+			    #for 32-bit installation
+			    LNX_COMP_FLAG="-m32"
+			    export LNX_COMP_FLAG
+			    BRAND=linux32
+			    LINUX_BRAND=linux32
+			;;
+			
+			* )
+			    EchoAndLog ""
+			    EchoAndLog "Unknown installation mode: $user_response."
+			    EchoAndLog "Needed lnx32 or lnx64 responses."
+			    EchoAndLog "Installation cancelled."
+			    exit 1
+			;;
+		    esac
+		;;
+	    esac
+	;;
+
+        Darwin )
+            PATH=/bin:/sbin:/usr/bin:/usr/sbin
+            pgs_host=`hostname`
+            BRAND=macintosh
+        ;;
+
+        DarwinIntel )
+            PATH=/bin:/sbin:/usr/bin:/usr/sbin
+            pgs_host=`hostname`
+            BRAND=macintel
+	    MACINTEL_COMP_FLAG="-m32"
+	    export MACINTEL_COMP_FLAG
+
+	    case "$pgs_machine" in
+		
+		x86_64 | ia64 | i686 | i386)
+		    # Machine is 64-bit and Installation will be in 32-bit or 
+		    # 64-bit Mode.
+		    EchoAndLog "The default Toolkit MACINTEL installation for this machine is 32 bit. Other"
+		    EchoAndLog "available Toolkit MACINTEL installation mode is 64 bit Mode"
+		    EchoAndLog ""
+		    
+		    if [ $batch_mode = 0 ] ; then
+			UserPrompt "Which MAC installation mode would you like? mac32 or mac64 ? [mac64]"
+		    else
+			user_response=mac64
+		    fi
+
+		    case "$user_response" in
+			mac64 | "" )
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (64 bit) mode..."
+			    EchoAndLog ""
+			    #in 64 bit machine we need -fPIC flag
+			    #for 64-bit installation
+			    MACINTEL_COMP_FLAG="-mmacosx-version-min=10.5 -fPIC"
+			    export MACINTEL_COMP_FLAG
+			    BRAND=macintel64
+			    MAC_BRAND=macintel64
+			;;
+		    
+			mac32 )
+			    EchoAndLog ""
+			    EchoAndLog "Installing in $BRAND (32 bit) mode..."
+			    EchoAndLog ""
+			    #in 64 bit machine we need -m32 flag
+			    #for 32-bit installation
+			    MACINTEL_COMP_FLAG="-m32"
+			    export MACINTEL_COMP_FLAG
+			    BRAND=macintel32
+			    MAC_BRAND=macintel32
+			;;
+			
+			* )
+			    EchoAndLog ""
+			    EchoAndLog "Unknown installation mode: $user_response."
+			    EchoAndLog "Needed mac32 or mac64 responses."
+			    EchoAndLog "Installation cancelled."
+			    exit 1
+			;;
+		    esac
+		;;
+	    esac
+        ;;
+
+        Cygwin )
+            PATH=/bin:/sbin:/usr/bin:/usr/sbin
+            pgs_host=`hostname`
+            BRAND=cygwin
+        ;;
+
+	OSF1 )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/ucb:/usr/bin/X11:/usr/ccs/bin:/usr/sbin
+	    pgs_host=`hostname -s`
+	    BRAND=dec
+	;;
+
+	sco386 )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/etc:/usr/bin/X11
+	    pgs_host=`hostname -s`
+	    BRAND=sco
+	;;
+
+	SunOS )
+	    # distinguish between SunOS 5.x and 4.x versions
+	    if [ "`uname -r | awk -F. '{print $1, $2}'`" = "5 10" ] ; then
+		BRAND="sun5.10"			# release V5.10 SunOS
+		PATH=/usr/local/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/usr/ucb:/bin:/usr/bin:/etc:/usr/openwin/bin:/usr/openwin/demo:/usr/sbin
+	    elif [ "`uname -r | awk -F. '{print $1, $2}'`" = "5 9" ] ; then
+		BRAND="sun5.9"			# release V5.9 SunOS
+		PATH=/usr/local/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/usr/ucb:/bin:/usr/bin:/etc:/usr/openwin/bin:/usr/openwin/demo:/usr/sbin
+	    elif [ "`uname -r | awk -F. '{print $1, $2}'`" = "5 8" ] ; then
+		BRAND="sun5.8"			# release V5.8 SunOS
+		PATH=/usr/local/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/usr/ucb:/bin:/usr/bin:/etc:/usr/openwin/bin:/usr/openwin/demo:/usr/sbin
+	    else
+                BRAND="sun5"			# release V5.x SunOS
+		PATH=/usr/local/bin:/opt/SUNWspro/bin:/usr/ucb:/bin:/usr/bin:/etc:/usr/etc:/usr/openwin/bin:/usr/openwin/demo:/usr/ccs/bin:/usr/sbin
+            fi
+            if [ "`uname -r | awk -F. '{print $1}'`" = "4" ] ; then
+		BRAND="sun4"			# release V4.x SunOS
+		PATH=/usr/local/bin:/usr/local/lang:/usr/lang:/usr/ucb:/bin:/usr/bin:/etc:/usr/etc:/usr/openwin/bin:/usr/openwin/demo
+	    fi
+	    pgs_host=`hostname`
+	;;
+
+	UNICOS )
+	    PATH=/usr/local/bin:/bin:/usr/bin:/etc:/usr/ucb:/usr/bin/X11
+	    pgs_host=`hostname`
+	    BRAND=cray
+	;;
+
+	* )
+	    WriteError "Operating system: $pgs_ostype not supported"
+	    WriteError "This release of the Toolkit supports: "
+	    WriteError "   Sun SGI Cygwin Darwin/Darwin Intel Linux IRIX/IRIX64 HP-9000 IBM-6000 DEC-Alpha and Cray/Unicos "
+	    exit 1
+	;;
+
+    esac
+
+
+    # export the architecture-specific variables
+
+    export LINUX_BRAND MAC_BRAND
+    export BRAND PATH
+}
+
+#
+# Function to install HDF (or get location of HDF installation)
+#
+
+InstallHdf()
+{
+    hdf_flags=""
+    hdf5_flags=""
+    current_zlib="zlib-1.2.5"
+    current_jpeg="jpeg-6b"
+    current_hdf="hdf-4.2.6"
+    current_hdf5="hdf5-1.8.8"
+    current_szip="szip-2.1"
+
+    if [ "$notext" = "0" -a "$batch_mode" = 0 ] ; then
+
+        more << EOF
+                    *        *        *
+
+The SDP Toolkit requires that NCSAs Hierarchical Data Format (HDF)
+package be installed on your host for full toolkit functionality.
+The current releases of HDF required by the toolkit are:
+
+      $current_hdf   and    $current_hdf5
+
+If these release of HDF are already installed on your host, you may enter
+its location when prompted.  The installation procedure will then attempt
+to use your copy of HDF to build the toolkit.   Note: this may not work if
+your HDF installation uses a non-standard directory structure for the
+installed library and header files.
+
+If the correct releases of HDF are not installed on your host, or you wish
+to re-install, you will have an opportunity to install them momentarily.  In
+order to do this, you must already have downloaded the HDF distribution
+files and szip tar file, if you wish to install HDF5 with szib.  It is 
+available on the same ftp server where the toolkit distribution files are 
+located.
+
+The SDP Toolkit may also be installed without HDF support.  In this case,
+certain tools will not be built.  The tools that are not built will be
+noted in the installation log.
+
+                    *        *        *
+
+If the toolkit is stalled with HDF support, you will have an opportunity
+to install the HDF-EOS package.  This package is also required by the
+toolkit for for full functionality.  HDF-EOS implements the EOS standard
+methods for accessing HDF format files.  Three interfaces are provided:
+Point, Swath and Grid.  Please refer to the HDF-EOS Users Guide for more
+information.  The distribution file for HDF-EOS is available on the same
+ftp server where the toolkit distribution files are located.
+
+                    *        *        *
+
+HDF4 uses an internal netCDF library. If you are going to use your externally
+installed netCDF, then HDF4 will be installed with --disable-netcdf so that 
+netCDF function in HDF4 are renamed, avoiding clash between name symbols of 
+the internal and external netCDF packages.
+
+If you answer NO to the question below regarding the netCDF (HDF4 installation
+section), or if you already have installed HDF4 that has not been configured 
+with the  --disable-netcdf flag, then there is a possibility that you may not 
+be able to use your externally installed netCDF in applications that use the 
+installed HDF4, HDF-EOS or TOOLKIT here. 
+
+You may check your pre-installed libmfhdf.a library with 
+"strings libmfhdf.a|grep sd_ncopen", to see if it contains sd_ncopen. If yes, 
+then you can use external netCDF in your applications that also uses your HDF4.
+
+EOF
+
+        UserPrompt "Continue installation [yes]"
+	case  "$user_response" in
+	    n* | N* )
+		EchoAndLog "Installation cancelled."
+		exit 0
+	    ;;
+	esac
+    fi
+
+
+    #
+    # Select ZLIB installation option
+    #
+     
+    zlib_installed=0     # assume ZLIB is not installed
+
+    if [ $batch_mode = 0 -a "$zlibhome" = "" ] ; then
+        UserPrompt "Is $current_zlib installed at your site [no]"
+        case "$user_response" in
+            y* | Y* )
+                zlib_installed=1
+            ;;
+        esac
+    elif [ "$zlibhome" != "" ] ; then
+            zlib_installed=1
+    fi
+
+    if [ $zlib_installed = 1 ] ; then
+
+        #
+        # The user says ZLIB is installed: ask where it is located (if not in batch mode)
+        #
+
+
+        if [ $batch_mode = 0 -a "$zlibhome" = "" ] ; then
+            ZLIB_path="$PGSHOME/zlib/$BRAND/$current_zlib"
+            UserPrompt "Pathname where $current_zlib is installed [$ZLIB_path]"
+
+	    if [ "$user_response" != "" ] ; then
+                if [ -d "$user_response" ] ; then
+                    ZLIB_path="$user_response"
+                fi
+            fi
+        else
+            ZLIB_path=$zlibhome
+        fi
+
+        #
+        # Make sure it is really there.
+        #
+
+        if  [ -d ${ZLIB_path} ] ; then
+
+            if [ -d ${ZLIB_path}/${current_zlib} ] ; then
+                temp=`basename ${ZLIB_path}`
+                if [ "$temp" != "$current_zlib" ] ; then
+                    zlibdirs="${ZLIB_path}/${current_zlib} ${ZLIB_path} ${ZLIB_path}/${current_zlib}/NewZLIB ${ZLIB_path}/NewZLIB"
+                else
+                    zlibdirs="${ZLIB_path}  ${ZLIB_path}/NewZLIB ${ZLIB_path}/${current_zlib} ${ZLIB_path}/${current_zlib}/NewZLIB"
+                fi
+            else
+                zlibdirs="${ZLIB_path} ${ZLIB_path}/NewZLIB"
+            fi
+
+            #
+            # Check for critical ZLIB directories
+            #
+
+            found=0                     # check for lib directory
+            for dir in ${zlibdirs} ; do
+                if [ -d $dir/lib -a -d $dir/include ] ; then
+                    ZLIBHOME=${dir}
+                    export ZLIBHOME
+                    found=1
+                    break
+                fi
+            done
+
+            if [ $found = 0 ] ; then
+                Done "The ZLIB lib or include directory was not found."
+            fi
+
+
+            EchoAndLog "Setting ZLIB home directory to: $ZLIBHOME"
+
+ else
+
+            Done "Specified ZLIB directory ($ZLIB_path) does not exist"
+
+        fi
+
+        zlib_installed=1         # flag ZLIB as successfully installed
+
+    else
+
+        #
+        # The user says ZLIB is NOT installed: ask if it should be installed now
+        #
+        if [ $batch_mode = 0 ] ; then
+            UserPrompt "Do you wish to install $current_zlib now [yes]"
+        else
+            user_response=y
+        fi
+        case  "$user_response" in
+            n* | N* )
+            ;;
+            * )
+                # Run the ZLIB installation script
+                #
+                #
+
+                EchoAndLog "Running the ZLIB Installation Script ..."
+
+                # set installation flags
+
+                home_file=${PGSHOME}/.install-zlibhome
+                zlib_flags="-cleano -w_home $home_file"
+
+                if [ "$log_file" != "" ] ; then
+                    zlib_flags="$zlib_flags -log $log_file -append"
+                fi
+
+
+                if [ "$sgi_mode" = "n32" ] ; then       # set flag for SGI n32 mode
+                    zlib_flags="$zlib_flags -sgi32"
+                elif [ "$sgi_mode" = "64" ] ; then      # set flag for SGI 64-bit mode
+                    zlib_flags="$zlib_flags -sgi64"
+                fi
+
+                if [ "$f90_flag" = "1" ] ; then # set flag for f90 build
+
+                    zlib_flags="$zlib_flags -f90"
+
+                    if [ "$nag_flag" = "1" ] ; then     # using NAG f90
+                        zlib_flags="$zlib_flags -NAG"
+                    fi
+
+                fi
+
+		if [ "$absoft_flag" = "1" ] ; then     # using ABSOFT F77
+		    zlib_flags="$zlib_flags -ABSOFT"
+		fi
+
+                if [ "$fc_path" != "" ] ; then          # path for FORTRAN compiler
+                    zlib_flags="$zlib_flags -fc_path $fc_path"
+                fi
+
+                if [ "$cc_path" != "" ] ; then          # path for C compiler
+                    zlib_flags="$zlib_flags -cc_path $cc_path"
+                fi
+
+                if [ $batch_mode = 1 ] ; then           # batch mode
+                    zlib_flags="$zlib_flags -batch"
+                fi
+
+                # run the installation script
+
+                $script_dir/INSTALL-ZLIB $zlib_flags -install_dir $PGSHOME/zlib/$BRAND
+                if [ "$?" != "0" ] ; then
+                    Done "The ZLIB Installation Script failed or had errors."
+                fi
+
+                # get ZLIB home directory from the ZLIB installation
+
+                ZLIBHOME="`cat $home_file`"
+                export ZLIBHOME
+                if [ "$?" != "0" ] ; then
+                    Done "Unable to get ZLIB home directory."
+                fi
+                if [ -f "$home_file" ] ; then
+                    \rm -f $home_file   # clean up the zlibhome file
+                fi
+                zlib_installed=1         # flag HDF as successfully installed
+            ;;
+        esac
+ fi
+
+    #
+    # Set ZLIB directories:
+    #
+    # - first look in $ZLIBHOME
+    # - if not found, default to $ZLIBHOME/zlib
+    #
+
+    if [ $?ZLIBHOME ] ; then
+
+
+        if [  -d $ZLIBHOME/include  ] ; then     # ZLIB header files
+            ZLIBINC=$ZLIBHOME/include
+        else
+            ZLIBINC=$ZLIBHOME/zlib/include
+        fi
+
+        if [  -d $ZLIBHOME/lib  ] ; then         # ZLIB libraries
+            ZLIBLIB=$ZLIBHOME/lib
+        else
+            ZLIBLIB=$ZLIBHOME/zlib/lib
+        fi
+
+        export ZLIBHOME ZLIBINC ZLIBLIB
+    fi
+
+    #
+    # Select JPEG installation option.
+    #
+
+   jpeg_installed=0     # assume JPEG is not installed
+
+    if [ $batch_mode = 0 -a "$jpeghome" = "" ] ; then
+        UserPrompt "Is $current_jpeg installed at your site [no]"
+        case "$user_response" in
+            y* | Y* )
+                jpeg_installed=1
+            ;;
+        esac
+    elif [ "$jpeghome" != "" ] ; then
+            jpeg_installed=1
+    fi
+
+    if [ $jpeg_installed = 1 ] ; then
+
+        #
+        # The user says JPEG is installed: ask where it is located (if not in batch mode)
+        #
+
+
+        if [ $batch_mode = 0 -a "$jpeghome" = "" ] ; then
+            JPEG_path="$PGSHOME/jpeg/$BRAND/$current_jpeg"
+            UserPrompt "Pathname where $current_jpeg is installed [$JPEG_path]"
+
+            if [ "$user_response" != "" ] ; then
+                if [ -d "$user_response" ] ; then
+                    JPEG_path="$user_response"
+                fi
+            fi
+        else
+            JPEG_path=$jpeghome
+        fi
+
+        #
+        # Make sure it is really there.
+        #
+if  [ -d ${JPEG_path} ] ; then
+
+            if [ -d ${JPEG_path}/${current_jpeg} ] ; then
+                temp=`basename ${JPEG_path}`
+                if [ "$temp" != "$current_jpeg" ] ; then
+                    hdfdirs="${JPEG_path}/${current_jpeg} ${JPEG_path} ${JPEG_path}/${current_jpeg}/NewJPEG ${JPEG_pa
+th}/NewJPEG"
+                else
+                    jpegdirs="${JPEG_path}  ${JPEG_path}/NewJPEG ${JPEG_path}/${current_jpeg} ${JPEG_path}/${current_
+jpeg}/NewJPEG"
+                fi
+            else
+                jpegdirs="${JPEG_path} ${JPEG_path}/NewJPEG"
+            fi
+
+            #
+            # Check for critical JPEG directories
+            #
+
+            found=0                     # check for lib directory
+            for dir in ${jpegdirs} ; do
+                if [ -d $dir/lib -a -d $dir/include ] ; then
+                    JPEGHOME=${dir}
+                    export JPEGHOME
+                    found=1
+                    break
+                fi
+            done
+
+            if [ $found = 0 ] ; then
+                Done "The JPEG lib or include directory was not found."
+            fi
+
+
+            EchoAndLog "Setting JPEG home directory to: $JPEGHOME"
+
+        else
+
+            Done "Specified JPEG directory ($JPEG_path) does not exist"
+
+        fi
+
+        jpeg_installed=1         # flag JPEG as successfully installed
+
+    else
+#
+        # The user says JPEG is NOT installed: ask if it should be installed now
+        #
+        if [ $batch_mode = 0 ] ; then
+            UserPrompt "Do you wish to install $current_jpeg now [yes]"
+        else
+            user_response=y
+        fi
+        case  "$user_response" in
+            n* | N* )
+            ;;
+            * )
+                # Run the JPEG installation script
+                #
+                #
+
+                EchoAndLog "Running the JPEG Installation Script ..."
+
+                # set installation flags
+
+                home_file=${PGSHOME}/.install-jpeghome
+                jpeg_flags="-cleano -w_home $home_file"
+
+                if [ "$log_file" != "" ] ; then
+                    jpeg_flags="$jpeg_flags -log $log_file -append"
+                fi
+
+          if [ "$sgi_mode" = "n32" ] ; then       # set flag for SGI n32 mode
+                    jpeg_flags="$jpeg_flags -sgi32"
+                elif [ "$sgi_mode" = "64" ] ; then      # set flag for SGI 64-bit mode
+                    jpeg_flags="$jpeg_flags -sgi64"
+                fi
+
+                if [ "$f90_flag" = "1" ] ; then # set flag for f90 build
+
+                    jpeg_flags="$jpeg_flags -f90"
+
+                    if [ "$nag_flag" = "1" ] ; then     # using NAG f90
+                        jpeg_flags="$jpeg_flags -NAG"
+                    fi
+
+                fi
+
+		if [ "$absoft_flag" = "1" ] ; then     # using ABSOFT F77
+		    jpeg_flags="$jpeg_flags -ABSOFT"
+		fi
+
+                if [ "$fc_path" != "" ] ; then          # path for FORTRAN compiler
+                    jpeg_flags="$jpeg_flags -fc_path $fc_path"
+                fi
+
+                if [ "$cc_path" != "" ] ; then          # path for C compiler
+                    jpeg_flags="$jpeg_flags -cc_path $cc_path"
+                fi
+
+                if [ $batch_mode = 1 ] ; then           # batch mode
+                    jpeg_flags="$jpeg_flags -batch"
+                fi
+
+                # run the installation script
+
+                $script_dir/INSTALL-JPEG $jpeg_flags -install_dir $PGSHOME/jpeg/$BRAND
+                if [ "$?" != "0" ] ; then
+                    Done "The JPEG Installation Script failed or had errors."
+                fi
+
+                # get JPEG home directory from the JPEG installation
+
+                JPEGHOME="`cat $home_file`"
+                export JPEGHOME
+                if [ "$?" != "0" ] ; then
+                    Done "Unable to get JPEG home directory."
+                fi
+                if [ -f "$home_file" ] ; then
+                    \rm -f $home_file   # clean up the jpeghome file
+                fi
+                jpeg_installed=1         # flag JPEG as successfully installed
+            ;;
+        esac
+fi
+
+    #
+    # Set JPEG directories:
+    #
+    # - first look in $JPEGHOME
+    # - if not found, default to $JPEGHOME/jpeg
+    #
+
+    if [ $?JPEGHOME ] ; then
+
+        if [  -d $JPEGHOME/bin  ] ; then         # JPEG utilities
+            JPEGBIN=$JPEGHOME/bin
+        else
+            JPEGBIN=$JPEGHOME/jpeg/bin
+        fi
+
+        if [  -d $JPEGHOME/include  ] ; then         # JPEG headers 
+            JPEGINC=$JPEGHOME/include
+        else
+            JPEGINC=$JPEGHOME/jpeg/include
+        fi
+        
+        if [  -d $JPEGHOME/lib  ] ; then         # JPEG libraries 
+            JPEGLIB=$JPEGHOME/lib
+        else
+            JPEGLIB=$JPEGHOME/jpeg/lib
+        fi
+
+        export JPEGHOME JPEGBIN JPEGINC JPEGLIB
+    fi
+
+
+    #
+    # Select SZIP installation option.
+    #
+
+    szip_installed=0    # assume SZIP is not installed
+
+    if [ $batch_mode = 0 -a "$sziphome" = "" ] ; then
+        UserPrompt "Is $current_szip installed at your site [no]"
+        case "$user_response" in
+            y* | Y* )
+                szip_installed=1
+            ;;
+        esac
+    elif [ "$sziphome" != "" ] ; then
+            szip_installed=1
+    fi
+
+    if [ $szip_installed = 1 ] ; then
+
+        #
+        # The user says SZIP is installed: ask where it is located 
+        #(if not in batch mode)
+        #
+
+
+        if [ $batch_mode = 0 -a "$sziphome" = "" ] ; then
+            SZIP_path="$PGSHOME/szip/$BRAND/$current_szip"
+            UserPrompt "Pathname where $current_szip is installed [$SZIP_path]"
+
+            if [ "$user_response" != "" ] ; then
+                if [ -d "$user_response" ] ; then
+                    SZIP_path="$user_response"
+                fi
+            fi
+        else
+            SZIP_path=$sziphome
+        fi
+
+        #
+        # Make sure it is really there.
+        #
+
+        if  [ -d ${SZIP_path} ] ; then
+
+            if [ -d ${SZIP_path}/${current_szip} ] ; then
+                temp=`basename ${SZIP_path}`
+                if [ "$temp" != "$current_szip" ] ; then
+                    szipdirs="${SZIP_path}/${current_szip} ${SZIP_path} ${SZIP_path}/${current_szip}/NewSZIP ${SZIP_path}/NewSZIP"
+                else
+                    szipdirs="${SZIP_path}  ${SZIP_path}/NewSZIP ${SZIP_path}/${current_szip} ${SZIP_path}/${current_szip}/NewSZIP"
+                fi
+            else
+                szipdirs="${SZIP_path} ${SZIP_path}/NewSZIP"
+            fi
+
+            #
+            # Check for critical SZIP directories
+            #
+
+            found=0                     # check for lib directory
+            for dir in ${szipdirs} ; do
+                if [ -d $dir/lib -a -d $dir/include ] ; then
+                    SZIPHOME=${dir}
+                    export SZIPHOME
+                    found=1
+                    break
+                fi
+            done
+
+            if [ $found = 0 ] ; then
+                Done "The SZIP lib or include directory was not found."
+            fi
+
+
+            EchoAndLog "Setting SZIP home directory to: $SZIPHOME"
+
+        else
+
+            Done "Specified SZIP directory ($SZIP_path) does not exist"
+
+        fi
+
+        szip_installed=1                # flag SZIP as successfully installed
+
+    else
+
+        #
+        # The user says SZIP is NOT installed:ask if it should be installed now
+        #
+        if [ $batch_mode = 0 ] ; then
+	    EchoAndLog "WARNING: Commercial users should obtain szip license"
+	    EchoAndLog "if they intend to distribute their products with szip"
+	    EchoAndLog "encoder. The szip decoder does not require license."
+            UserPrompt "Do you wish to install full $current_szip (encoder + decoder) [yes]"
+        else
+            user_response=y
+        fi
+        case  "$user_response" in
+            n* | N* )
+		szip_encode=n
+		export szip_encode
+                EchoAndLog "Running the SZIP (without encoding) Installation Script  ..."
+            ;;
+            * )
+		szip_encode=y
+		export szip_encode
+                EchoAndLog "Running the SZIP (with encoding) Installation Script ..."
+	    ;;
+       esac
+	
+                # Run the SZIP installation script
+                #
+                #
+
+                # set installation flags
+
+                home_file=${PGSHOME}/.install-sziphome
+                szip_flags="-cleano -w_home $home_file"
+
+                if [ "$log_file" != "" ] ; then
+                    szip_flags="$szip_flags -log $log_file -append"
+                fi
+
+                if [ "$sgi_mode" = "n32" ] ; then       # set flag for SGI n32 mode
+                    szip_flags="$szip_flags -sgi32"
+                elif [ "$sgi_mode" = "64" ] ; then      # set flag for SGI 64-bit mode
+                    szip_flags="$szip_flags -sgi64"
+                fi
+
+                if [ "$f90_flag" = "1" ] ; then # set flag for f90 build
+
+                    szip_flags="$szip_flags -f90"
+
+                    if [ "$nag_flag" = "1" ] ; then     # using NAG f90
+                        szip_flags="$szip_flags -NAG"
+                    fi
+
+                fi
+
+		if [ "$absoft_flag" = "1" ] ; then     # using ABSOFT F77
+		    szip_flags="$szip_flags -ABSOFT"
+		fi
+
+                if [ "$fc_path" != "" ] ; then          # path for FORTRAN compiler
+                    szip_flags="$szip_flags -fc_path $fc_path"
+                fi
+
+                if [ "$cc_path" != "" ] ; then          # path for C compiler
+                    szip_flags="$szip_flags -cc_path $cc_path"
+                fi
+
+                if [ $batch_mode = 1 ] ; then           # batch mode
+                    szip_flags="$szip_flags -batch"
+                fi
+
+                # run the installation script
+
+                $script_dir/INSTALL-SZIP $szip_flags -install_dir $PGSHOME/szip/$BRAND
+                if [ "$?" != "0" ] ; then
+                    Done "The SZIP Installation Script failed or had errors."
+                fi
+
+                # get SZIP home directory from the SZIP installation
+
+                SZIPHOME="`cat $home_file`"
+                export SZIPHOME
+                if [ "$?" != "0" ] ; then
+                    Done "Unable to get SZIP home directory."
+                fi
+                if [ -f "$home_file" ] ; then
+                    \rm -f $home_file   # clean up the sziphome file
+                fi
+                szip_installed=1                # flag SZIP as successfully installed
+
+    fi
+
+    #
+    # Set SZIP directories:
+    #
+    # - first look in $SZIPHOME
+    # - if not found, default to $SZIPHOME/szip
+    #
+
+    if [ $?SZIPHOME ] ; then
+
+        if [  -d $SZIPHOME/include  ] ; then    # SZIP header files
+            SZIPINC=$SZIPHOME/include
+        else
+            SZIPINC=$SZIPHOME/szip/include
+        fi
+
+        if [  -d $SZIPHOME/lib  ] ; then                # SZIP libraries
+	    SZIPLIB=$SZIPHOME/lib
+	    echo "Setting LD_LIBRARY_PATH to $SZIPLIB"
+	    LD_LIBRARY_PATH=$SZIPLIB                    # For SZIP Shared libs
+        else
+            SZIPLIB=$SZIPHOME/szip/lib
+	    echo "Setting LD_LIBRARY_PATH to $SZIPLIB"
+	    LD_LIBRARY_PATH=$SZIPLIB                    # For SZIP Shared libs
+        fi
+
+        export SZIPHOME SZIPINC SZIPLIB LD_LIBRARY_PATH
+    fi
+
+
+    #
+    # Select HDF installation option.
+    #
+
+    hdf_installed=0	# assume HDF is not installed
+
+    if [ $batch_mode = 0 -a "$hdfhome" = "" ] ; then
+	UserPrompt "Is $current_hdf installed at your site [no]"
+	case "$user_response" in
+	    y* | Y* )
+		hdf_installed=1
+	    ;;
+	esac
+    elif [ "$hdfhome" != "" ] ; then
+	    hdf_installed=1
+    fi
+
+    if [ $hdf_installed = 1 ] ; then
+
+	#
+	# The user says HDF is installed: ask where it is located (if not in batch mode)
+	#
+
+
+	if [ $batch_mode = 0 -a "$hdfhome" = "" ] ; then
+	    HDF_path="$PGSHOME/hdf/$BRAND/$current_hdf"
+	    UserPrompt "Pathname where $current_hdf is installed [$HDF_path]"
+
+	    if [ "$user_response" != "" ] ; then
+		if [ -d "$user_response" ] ; then
+		    HDF_path="$user_response"
+		fi
+	    fi
+        else
+	    HDF_path=$hdfhome
+	fi
+
+	#
+	# Make sure it is really there.
+	#
+
+	if  [ -d ${HDF_path} ] ; then
+
+	    if [ -d ${HDF_path}/${current_hdf} ] ; then
+		temp=`basename ${HDF_path}`
+		if [ "$temp" != "$current_hdf" ] ; then
+		    hdfdirs="${HDF_path}/${current_hdf} ${HDF_path} ${HDF_path}/${current_hdf}/NewHDF ${HDF_path}/NewHDF"
+		else
+		    hdfdirs="${HDF_path}  ${HDF_path}/NewHDF ${HDF_path}/${current_hdf} ${HDF_path}/${current_hdf}/NewHDF"
+		fi
+	    else
+		hdfdirs="${HDF_path} ${HDF_path}/NewHDF"
+	    fi
+
+	    #
+	    # Check for critical HDF directories
+	    #
+
+	    found=0			# check for lib directory
+	    for dir in ${hdfdirs} ; do
+		if [ -d $dir/lib -a -d $dir/include ] ; then
+	            HDFHOME=${dir}
+	            export HDFHOME
+		    found=1
+		    break
+		fi
+	    done
+
+	    if [ $found = 0 ] ; then
+		Done "The HDF lib or include directory was not found."
+	    fi
+
+
+	    EchoAndLog "Setting HDF home directory to: $HDFHOME"
+
+	else
+
+	    Done "Specified HDF directory ($HDF_path) does not exist"
+
+	fi
+
+	hdf_installed=1		# flag HDF as successfully installed
+
+    else
+
+	#
+	# The user says HDF is NOT installed: ask if it should be installed now
+	#
+	if [ $batch_mode = 0 ] ; then
+	    UserPrompt "Do you wish to install $current_hdf now [yes]"
+	else
+	    user_response=y
+	fi
+	case  "$user_response" in
+	    n* | N* )
+	    ;;
+	    * )
+		# Run the HDF installation script
+		#
+		#
+		# set installation flags
+
+		home_file=${PGSHOME}/.install-hdfhome
+		hdf_flags="-cleano -w_home $home_file"
+
+		if [ "$log_file" != "" ] ; then
+		    hdf_flags="$hdf_flags -log $log_file -append"
+		fi
+
+		if [ "$dbug" != "" ] ; then
+		    if [ $batch_mode = 0 ] ; then
+			UserPrompt "Do you wish to install $current_hdf in debug mode [yes]"
+		    else
+			user_response=y
+		    fi
+		    case "$user_response" in
+		        n* | N*)
+		        ;;
+		        *)
+			    hdf_flags="$hdf_flags -dbug"
+		        ;;
+		    esac
+		fi
+
+		if [ "$sgi_mode" = "n32" ] ; then	# set flag for SGI n32 mode
+		    hdf_flags="$hdf_flags -sgi32"
+		elif [ "$sgi_mode" = "64" ] ; then 	# set flag for SGI 64-bit mode
+		    hdf_flags="$hdf_flags -sgi64"
+		fi
+
+		if [ "$f90_flag" = "1" ] ; then	# set flag for f90 build
+
+		    hdf_flags="$hdf_flags -f90"
+
+		    if [ "$nag_flag" = "1" ] ; then 	# using NAG f90
+			hdf_flags="$hdf_flags -NAG"
+		    fi
+
+		fi
+
+		if [ "$absoft_flag" = "1" ] ; then 	# using ABSOFT F77
+		    hdf_flags="$hdf_flags -ABSOFT"
+		fi
+
+		if [ "$fc_path" != "" ] ; then 		# path for FORTRAN compiler
+		    hdf_flags="$hdf_flags -fc_path $fc_path"
+		fi
+
+		if [ "$cc_path" != "" ] ; then 		# path for C compiler
+		    hdf_flags="$hdf_flags -cc_path $cc_path"
+		fi
+
+		if [ $batch_mode = 1 ] ; then		# batch mode
+		    hdf_flags="$hdf_flags -batch"
+		fi
+
+                #
+                # See if user will be using external netCDF
+                #
+     
+                User_has_external_netCDF=0     # assume external netCDF will not be used
+                if [ $batch_mode = 0  -a "$netcdfhome" = "" ] ; then
+                     UserPrompt "Are you going to use external netCDF with your HDF4 applications[no]"
+                     case "$user_response" in
+                         y* | Y* )
+                             User_has_external_netCDF=1
+                         ;;
+                     esac
+                elif [ "$netcdfhome" != "" ] ; then
+                      User_has_external_netCDF=1
+                fi
+		export User_has_external_netCDF
+
+
+
+		EchoAndLog "Running the HDF4 Installation Script ..."
+
+		# run the installation script
+
+		$script_dir/INSTALL-HDF $hdf_flags -install_dir $PGSHOME/hdf/$BRAND
+		if [ "$?" != "0" ] ; then
+		    Done "The HDF Installation Script failed or had errors."
+		fi
+
+		# get HDF home directory from the HDF installation
+
+		HDFHOME="`cat $home_file`"
+		export HDFHOME
+		if [ "$?" != "0" ] ; then
+		    Done "Unable to get HDF home directory."
+		fi
+		if [ -f "$home_file" ] ; then
+		    \rm -f $home_file	# clean up the hdfhome file
+		fi
+		hdf_installed=1		# flag HDF as successfully installed
+	    ;;
+	esac
+
+    fi
+
+    #
+    # Set HDF directories:
+    #
+    # - first look in $HDFHOME
+    # - if not found, default to $HDFHOME/hdf
+    #
+
+    if [ $?HDFHOME ] ; then
+
+	if [  -d $HDFHOME/bin  ] ; then		# HDF utilities
+	    HDFBIN=$HDFHOME/bin
+	else
+	    HDFBIN=$HDFHOME/hdf/bin
+	fi
+
+	if [  -d $HDFHOME/include  ] ; then	# HDF header files
+	    HDFINC=$HDFHOME/include
+	else
+	    HDFINC=$HDFHOME/hdf/include
+	fi
+
+	if [  -d $HDFHOME/lib  ] ; then		# HDF libraries
+	    HDFLIB=$HDFHOME/lib
+	else
+	    HDFLIB=$HDFHOME/hdf/lib
+	fi
+
+	export HDFHOME HDFBIN HDFINC HDFLIB
+    fi
+
+#
+# To avoid requiring old HDF4 users to change their makefiles to include 
+# JPEGINC, JPEGLIB, ZLIBINC, and ZLIBLIB we copy header/library files to 
+# the HDF4 include and lib directories
+#
+
+
+if [ "$log_file" != "" ] ; then
+    echo "" >> $log_file
+    EchoAndLog "***** Copying JPEG, ZLIB, and SZIP header and library ********"
+    EchoAndLog "********** files to relevant directories in HDF.    **********"
+    echo ""
+else
+    echo ""
+    EchoAndLog "***** Copying JPEG, ZLIB and SZIP header and library *********"
+    EchoAndLog "********** files to relevant directories in HDF.    **********"
+    echo ""
+fi
+ 
+if [ $jpeg_installed = 1 ] ; then
+    if [  -d $HDFINC  ] && [ "$HDFINC" != "$JPEGINC" ] ; then
+	cp $JPEGINC/*.h $HDFINC/.
+    fi
+    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$JPEGLIB" ] ; then
+	cp $JPEGLIB/* $HDFLIB/.
+    fi
+fi
+if [ $zlib_installed = 1 ] ; then
+    if [  -d $HDFINC  ] && [ "$HDFINC" != "$ZLIBINC" ] ; then
+	cp $ZLIBINC/*.h $HDFINC/.
+    fi
+    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$ZLIBLIB" ] ; then
+	cp $ZLIBLIB/* $HDFLIB/.
+    fi
+fi
+if [ $szip_installed = 1 ] ; then
+    if [  -d $HDFINC  ] && [ "$HDFINC" != "$SZIPINC" ] ; then
+	cp $SZIPINC/*.h $HDFINC/.
+    fi
+    if [  -d $HDFLIB  ] && [ "$HDFLIB" != "$SZIPLIB" ] ; then
+	cp $SZIPLIB/* $HDFLIB/.
+    fi
+fi
+
+if [ "$BRAND" = "macintosh" ] || [ "$BRAND" = "macintel" ] ; then
+    EchoAndLog "**** Running ranlib on libjpeg.a in jpeg and hdf4 dirs. ****" 
+    ranlib $JPEGLIB/libjpeg.a
+    ranlib $HDFLIB/libjpeg.a
+fi
+
+    #
+    # Select HDF5 installation option.
+    #
+
+    hdf5_installed=0    # assume HDF5 is not installed
+
+    if [ $batch_mode = 0 -a "$hdf5home" = "" ] ; then
+        UserPrompt "Is $current_hdf5 installed at your site [no]"
+        case "$user_response" in
+            y* | Y* )
+                hdf5_installed=1
+            ;;
+        esac
+    elif [ "$hdf5home" != "" ] ; then
+            hdf5_installed=1
+    fi
+
+    if [ $hdf5_installed = 1 ] ; then
+
+        #
+        # The user says HDF5 is installed: ask where it is located 
+        #(if not in batch mode)
+        #
+
+
+        if [ $batch_mode = 0 -a "$hdf5home" = "" ] ; then
+            HDF5_path="$PGSHOME/hdf5/$BRAND/$current_hdf5"
+            UserPrompt "Pathname where $current_hdf5 is installed [$HDF5_path]"
+
+            if [ "$user_response" != "" ] ; then
+                if [ -d "$user_response" ] ; then
+                    HDF5_path="$user_response"
+                fi
+            fi
+        else
+            HDF5_path=$hdf5home
+        fi
+
+        #
+        # Make sure it is really there.
+        #
+
+        if  [ -d ${HDF5_path} ] ; then
+
+            if [ -d ${HDF5_path}/${current_hdf5} ] ; then
+                temp=`basename ${HDF5_path}`
+                if [ "$temp" != "$current_hdf5" ] ; then
+                    hdf5dirs="${HDF5_path}/${current_hdf5} ${HDF5_path} ${HDF5_path}/${current_hdf5}/NewHDF ${HDF5_path}/NewHDF"
+                else
+                    hdf5dirs="${HDF5_path}  ${HDF5_path}/NewHDF ${HDF5_path}/${current_hdf5} ${HDF5_path}/${current_hdf5}/NewHDF"
+                fi
+            else
+                hdf5dirs="${HDF5_path} ${HDF5_path}/NewHDF"
+            fi
+
+            #
+            # Check for critical HDF5 directories
+            #
+
+            found=0                     # check for lib directory
+            for dir in ${hdf5dirs} ; do
+                if [ -d $dir/lib -a -d $dir/include ] ; then
+                    HDF5HOME=${dir}
+                    export HDF5HOME
+                    found=1
+                    break
+                fi
+            done
+
+            if [ $found = 0 ] ; then
+                Done "The HDF5 lib or include directory was not found."
+            fi
+
+
+            EchoAndLog "Setting HDF5 home directory to: $HDF5HOME"
+
+        else
+
+            Done "Specified HDF5 directory ($HDF5_path) does not exist"
+
+        fi
+
+        hdf5_installed=1                # flag HDF5 as successfully installed
+
+    else
+
+        #
+        # The user says HDF5 is NOT installed:ask if it should be installed now
+        #
+        if [ $batch_mode = 0 ] ; then
+            UserPrompt "Do you wish to install $current_hdf5 now [yes]"
+        else
+            user_response=y
+        fi
+        case  "$user_response" in
+            n* | N* )
+            ;;
+            * )
+                # Run the HDF5 installation script
+                #
+                #
+
+                EchoAndLog "Running the HDF5 Installation Script ..."
+
+                # set installation flags
+
+                home_file=${PGSHOME}/.install-hdf5home
+                hdf5_flags="-cleano -w_home $home_file"
+
+                if [ "$log_file" != "" ] ; then
+                    hdf5_flags="$hdf5_flags -log $log_file -append"
+                fi
+
+                if [ "$dbug" != "" ] ; then
+                    if [ $batch_mode = 0 ] ; then
+                        UserPrompt "Do you wish to install $current_hdf5 in debug mode [yes]"
+                    else
+                        user_response=y
+                    fi
+                    case "$user_response" in
+                        n* | N*)
+                            if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+				UserPrompt "Do you want Thread-safe HDF5 is installed at your site [no]"
+				case "$user_response" in
+				    y* | Y* )
+					PTHREAD_HOME=/usr
+					UserPrompt "Pathname where pthread lib and include directories are located [$PTHREAD_HOME]"
+					if [ "$user_response" != "" ] ; then
+					    if [ -d "$user_response" ] ; then
+						PTHREAD_HOME="$user_response"
+					    fi
+					else
+					    PTHREAD_HOME=/usr
+					fi
+					if [ -f "$PTHREAD_HOME/include/pthread.h" ] ; then
+					    export PTHREAD_HOME
+					    hdf5_flags="$hdf5_flags -c_rlib"
+					    EchoAndLog "Thread-Safe HDF5 will be Installed."
+					else
+					    hdf5_flags="$hdf5_flags"
+					    EchoAndLog "Thread-safe pthread.h not found. HDF5 will be Installed without thread-safty."
+					fi
+				    ;;
+				esac
+			    else
+				hdfeos5_flags="$hdf5_flags"
+			    fi
+                        ;;
+                        *)
+                            if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+				UserPrompt "Do you want Thread-safe HDF5 is installed at your site [no]"
+				case "$user_response" in
+				    y* | Y* )
+					PTHREAD_HOME=/usr
+					UserPrompt "Pathname where pthread lib and include directories are located [$PTHREAD_HOME]"
+					if [ "$user_response" != "" ] ; then
+					    if [ -d "$user_response" ] ; then
+						PTHREAD_HOME="$user_response"
+					    fi
+					else
+					    PTHREAD_HOME=/usr
+					fi
+					if [ -f "$PTHREAD_HOME/include/pthread.h" ] ; then
+					    export PTHREAD_HOME
+					    hdf5_flags="$hdf5_flags  -dbug -c_rlib"
+					    EchoAndLog "Thread-Safe HDF5 will be Installed."
+					else
+					    hdf5_flags="$hdf5_flags -dbug "
+					    EchoAndLog "Thread-Safe pthread.h not found. HDF5 will be Installed without thread-safty."
+					fi
+				    ;;
+				esac
+			    else
+				hdf5_flags="$hdf5_flags -dbug"
+			    fi
+                        ;;
+                    esac
+		else
+                    if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+			UserPrompt "Do you want Thread-safe HDF5 is installed at your site [no]"
+			case "$user_response" in
+			    y* | Y* )
+				PTHREAD_HOME=/usr
+				UserPrompt "Pathname where pthread lib and include directories are located [$PTHREAD_HOME]"
+				if [ "$user_response" != "" ] ; then
+				    if [ -d "$user_response" ] ; then
+					PTHREAD_HOME="$user_response"
+				    fi
+				else
+				    PTHREAD_HOME=/usr
+				fi
+				if [ -f "$PTHREAD_HOME/include/pthread.h" ] ; then
+				    export PTHREAD_HOME
+				    hdf5_flags="$hdf5_flags -c_rlib"
+				    EchoAndLog "Thread-Safe HDF5 will be Installed."
+				else
+				    hdf5_flags="$hdf5_flags"
+				    EchoAndLog "Thread-Safe pthread.h not found. HDF5 will be Installed without thread-safty."
+				fi
+			    ;;
+			esac
+		    fi
+                fi
+
+                if [ "$sgi_mode" = "n32" ] ; then       # set flag for SGI n32 mode
+                    hdf5_flags="$hdf5_flags -sgi32"
+                elif [ "$sgi_mode" = "64" ] ; then      # set flag for SGI 64-bit mode
+                    hdf5_flags="$hdf5_flags -sgi64"
+                fi
+
+                if [ "$f90_flag" = "1" ] ; then # set flag for f90 build
+
+                    hdf5_flags="$hdf5_flags -f90"
+
+                    if [ "$nag_flag" = "1" ] ; then     # using NAG f90
+                        hdf5_flags="$hdf5_flags -NAG"
+                    fi
+
+                fi
+
+		if [ "$absoft_flag" = "1" ] ; then     # using ABSOFT F77
+		    hdf5_flags="$hdf5_flags -ABSOFT"
+		fi
+
+                if [ "$fc_path" != "" ] ; then          # path for FORTRAN compiler
+                    hdf5_flags="$hdf5_flags -fc_path $fc_path"
+                fi
+
+                if [ "$cc_path" != "" ] ; then          # path for C compiler
+                    hdf5_flags="$hdf5_flags -cc_path $cc_path"
+                fi
+
+                if [ $batch_mode = 1 ] ; then           # batch mode
+                    hdf5_flags="$hdf5_flags -batch"
+                fi
+
+                # run the installation script
+
+                $script_dir/INSTALL-HDF5 $hdf5_flags -install_dir $PGSHOME/hdf5/$BRAND
+                if [ "$?" != "0" ] ; then
+                    Done "The HDF5 Installation Script failed or had errors."
+                fi
+
+                # get HDF5 home directory from the HDF5 installation
+
+                HDF5HOME="`cat $home_file`"
+                export HDF5HOME
+                if [ "$?" != "0" ] ; then
+                    Done "Unable to get HDF5 home directory."
+                fi
+                if [ -f "$home_file" ] ; then
+                    \rm -f $home_file   # clean up the hdf5home file
+                fi
+                hdf5_installed=1                # flag HDF5 as successfully installed
+            ;;
+        esac
+
+    fi
+
+    #
+    # Set HDF5 directories:
+    #
+    # - first look in $HDF5HOME
+    # - if not found, default to $HDF5HOME/hdf5
+    #
+
+    if [ $?HDF5HOME ] ; then
+
+        if [  -d $HDF5HOME/bin  ] ; then                # HDF5 utilities
+            HDF5BIN=$HDF5HOME/bin
+        else
+            HDF5BIN=$HDF5HOME/hdf5/bin
+        fi
+
+        if [  -d $HDF5HOME/include  ] ; then    # HDF5 header files
+            HDF5INC=$HDF5HOME/include
+        else
+            HDF5INC=$HDF5HOME/hdf5/include
+        fi
+
+        if [  -d $HDF5HOME/lib  ] ; then                # HDF5 libraries
+            HDF5LIB=$HDF5HOME/lib
+	    echo "Adding $HDF5LIB to LD_LIBRARY_PATH"
+	    LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$HDF5LIB # For hdf5 Shared libs
+        else
+            HDF5LIB=$HDF5HOME/hdf5/lib
+	    echo "Adding $HDF5LIB to LD_LIBRARY_PATH"
+	    LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$HDF5LIB # For hdf5 Shared libs
+        fi
+
+        export HDF5HOME HDF5BIN HDF5INC HDF5LIB LD_LIBRARY_PATH
+    fi
+
+    #
+    # Rename HDF5 libraries for CUGWIN from .lib extemsion to .a extension:
+    #
+
+    if [ "$BRAND" = "cygwin" ] ; then
+	if [ -f "$HDF5LIB/libhdf5.lib" ] ; then
+	    EchoAndLog "**** Renaming HDF5 library from libhdf5.lib to libhdf5.a . ****"
+	    mv $HDF5LIB/libhdf5.lib $HDF5LIB/libhdf5.a
+	fi
+	if [ -f "$HDF5LIB/libhdf5_hl.lib" ] ; then
+	    EchoAndLog "**** Renaming HDF5 high level library from libhdf5_hl.lib to libhdf5_hl.a . ****"
+	    mv $HDF5LIB/libhdf5_hl.lib $HDF5LIB/libhdf5_hl.a
+	fi
+    fi
+}
+
+#
+# Function to install HDF-EOS(HDF4 based) (or get location of HDF-EOS 
+# installation)
+#
+
+InstallHdfeos()
+{
+    #
+    # HDFEOS installation
+    #
+    #
+
+    # initialize installation flags
+
+    current_hdfeos="HDF-EOS2.18v1.00"
+    hdfeos_distrib="${current_hdfeos}.tar.Z"
+    hdfeos_flags="-df $hdfeos_distrib"
+
+    if [ "$notext" = "0" -a "$batch_mode" = 0 ] ; then
+
+	more <<EOF
+
+                    *        *        *
+
+The SDP Toolkit requires that the HDF-EOS package be installed on your host
+for full toolkit functionality.  The current release of HDF-EOS required
+by the toolkit is:
+
+        $current_hdfeos
+
+If this release of HDF-EOS is already installed on your host, you may enter
+its location when prompted.  The installation procedure will then attempt
+to use your copy of HDF-EOS to build the toolkit.   Note: this may not work if
+your HDF-EOS installation uses a non-standard directory structure for the
+installed library and header files.
+
+If the correct release of HDF-EOS is not installed on your host, or you wish
+to re-install, you will have an opportunity to install it momentarily.  In
+order to do this, you must already have downloaded the HDF-EOS distribution
+file.  It is available on the same ftp server where the toolkit
+distribution files are located.
+
+The SDP Toolkit may also be installed without HDF-EOS support.  In this case,
+the DEM tools will not be built.  This will be noted in the installation log.
+
+                    *        *        *
+
+EOF
+
+
+    UserPrompt "Continue installation [yes]"
+    case "$user_response" in
+	n* | N* )
+	    EchoAndLog "Installation cancelled."
+	    exit 0
+	;;
+    esac
+
+    fi
+
+    #
+    # Select HDF-EOS installation option.
+    #
+
+    hdfeos_installed=0	# assume HDF-EOS is not installed
+
+    if [ $batch_mode = 0 -a "$hdfeos_home" = "" ] ; then
+	UserPrompt "Is $current_hdfeos installed at your site [no]"
+	case "$user_response" in
+	    y* | Y* )
+		hdfeos_installed=1
+	    ;;
+	esac
+    elif [ "$hdfeos_home" != "" ] ; then
+	hdfeos_installed=1
+    fi
+
+    if [ $hdfeos_installed = 1 ] ; then
+
+	#
+	# The user says HDF-EOS is installed: ask where it is located (if not in batch mode)
+	#
+
+	if [ $batch_mode = 0 -a "$hdfeos_home" = "" ] ; then
+	    HDFEOS_path="$PGSHOME/hdfeos"
+	    UserPrompt "Pathname where $current_hdfeos is installed [$HDFEOS_path]"
+
+	    if [ "$user_response" != "" ] ; then
+		if [ -d "$user_response" ] ; then
+		    HDFEOS_path="$user_response"
+		fi
+	    fi
+        else
+	    HDFEOS_path=$hdfeos_home
+	fi
+
+
+	#
+	# Make sure it is really there.
+	#
+
+	if [ -d ${HDFEOS_path}  ] ; then
+
+	    HDFEOS_HOME=${HDFEOS_path}
+	    export HDFEOS_HOME
+
+	    #
+	    # Check for critical directories in $HDFEOS_HOME
+	    #
+
+	    # check for lib directory
+	    if [  ! -d ${HDFEOS_HOME}/lib/${BRAND}  ] ; then
+		Done "The HDF-EOS lib directory was not found."
+	    fi
+
+	    # check for include directory
+	    if [  ! -d ${HDFEOS_HOME}/include  ] ; then
+		Done "The HDF-EOS include directory was not found."
+	    fi
+
+	    EchoAndLog "Setting HDFEOS home directory to: $HDFEOS_HOME"
+
+	else
+
+	    Done "Directory $current_hdfeos not found in $HDFEOS_path"
+
+	fi
+
+	hdfeos_installed=1		# flag HDF-EOS as successfully installed
+
+    else
+
+	#
+	# The user says HDF-EOS is NOT installed: ask if it should be installed now
+	#
+
+	if [ $batch_mode = 0 ] ; then
+	    UserPrompt "Do you wish to install $current_hdfeos now [yes]"
+	else
+	    user_response=y
+	fi
+	case $user_response in
+	    n* | N* )
+	    ;;
+	    * )
+		# Run the HDF-EOS installation wrapper script
+		# - this script unpacks the HDFEOS distribution and then
+		#   runs the INSTALL-HDFEOS installation script
+		#
+
+		EchoAndLog "Installing HDF-EOS ..."
+
+		# set installation flags
+
+		home_file="${PGSHOME}/.install-hdfeoshome"
+		hdfeos_flags="$hdfeos_flags -w_home $home_file"
+
+		if [ "$log_file" != ""  ] ; then
+		    hdfeos_flags="$hdfeos_flags -log $log_file -append"
+		fi
+
+		if [ "$dbug" != "" ] ; then
+		    if [ $batch_mode = 0 ] ; then
+			UserPrompt "Do you wish to install $current_hdfeos in debug mode [yes]"
+		    else
+			user_response=y
+		    fi
+		    case "$user_response" in
+		        n* | N*)
+		        ;;
+		        *)
+			    hdfeos_flags="$hdfeos_flags -dbug"
+		        ;;
+		    esac
+		fi
+
+		if [ "$sgi_mode" = "n32" ] ; then 		# set flag for SGI n32 mode
+		    hdfeos_flags="$hdfeos_flags -sgi32"
+		elif [ "$sgi_mode" = "64" ] ; then 	# set flag for SGI 64-bit mode
+		    hdfeos_flags="$hdfeos_flags -sgi64"
+		fi
+
+		if [ "$fc_path" != "" ] ; then 		# path for FORTRAN compiler
+		    hdfeos_flags="$hdfeos_flags -fc_path $fc_path"
+		fi
+
+		if [ "$cc_path" != "" ] ; then 		# path for C compiler
+		    hdfeos_flags="$hdfeos_flags -cc_path $cc_path"
+		fi
+
+		if [ $batch_mode = 1 ] ; then		# batch mode
+		    hdfeos_flags="$hdfeos_flags -batch"
+		fi
+
+		# run the installation script
+
+		$script_dir/INSTALL-HDFEOS-Wrap $hdfeos_flags -install_dir $PGSHOME
+		if [ "$?" != "0" ] ; then
+		    Done "The HDFEOS Installation Script failed or had errors."
+		fi
+
+		# get HDF-EOS home directory from the HDF-EOS installation
+
+		HDFEOS_HOME="`cat $home_file`"
+		export HDFEOS_HOME
+		if [ "$?" != "0" ] ; then
+		    Done "Unable to get HDF-EOS home directory."
+		fi
+		if [ -f "$home_file" ] ; then
+		    \rm -f $home_file	# clean up the hdfeoshome file
+		fi
+		hdfeos_installed=1	# flag HDF-EOS as successfully installed
+
+	    ;;
+	esac
+
+    fi
+
+
+    #
+    # Set HDFEOS directories:
+    #
+
+    if [ $?HDFEOS_HOME ] ; then
+
+	HDFEOS_BIN=$HDFEOS_HOME/bin/$BRAND
+	HDFEOS_INC=$HDFEOS_HOME/include
+	HDFEOS_LIB=$HDFEOS_HOME/lib/$BRAND
+	export HDFEOS_BIN HDFEOS_INC HDFEOS_LIB
+
+    fi
+
+}
+#
+# Function to install HDF-EOS5(HDF5 based) (or get location of HDF-EOS 
+# installation)
+
+InstallHdfeos5()
+{
+    #
+    # HDFEOS installation
+    #
+    #
+
+    # initialize installation flags
+
+    current_hdfeos5="HDF-EOS5.1.14"
+    hdfeos5_distrib="${current_hdfeos5}.tar.Z"
+    hdfeos5_flags="-df $hdfeos5_distrib"
+
+    if [ "$notext" = "0" -a "$batch_mode" = 0 ] ; then
+
+        more <<EOF
+
+                    *        *        *
+
+The Toolkit requires that the HDF-EOS5 package be installed on your host
+for full toolkit functionality.  The current release of HDF-EOS5 required
+by the toolkit is:
+
+        $current_hdfeos5
+
+If this release of HDF-EOS5 is already installed on your host, you may enter
+its location when prompted.  The installation procedure will then attempt
+to use your copy of HDF-EOS5 to build the toolkit.   Note: this may not work if
+your HDF-EOS5 installation uses a non-standard directory structure for the
+installed library and header files.
+
+If the correct release of HDF-EOS5 is not installed on your host, or you wish
+to re-install, you will have an opportunity to install it momentarily.  In
+order to do this, you must already have downloaded the HDF-EOS5 distribution
+file.  It is available on the same ftp server where the toolkit
+distribution files are located.
+
+The Toolkit may also be installed without HDF-EOS5 support.  
+
+                    *        *        *
+
+EOF
+
+
+    UserPrompt "Continue installation [yes]"
+    case "$user_response" in
+        n* | N* )
+            EchoAndLog "Installation cancelled."
+            exit 0
+        ;;
+    esac
+
+    fi
+
+    #
+    # Select HDF-EOS5 installation option.
+    #
+
+    hdfeos5_installed=0 # assume HDF-EOS5 is not installed
+
+    if [ $batch_mode = 0 -a "$hdfeos5_home" = "" ] ; then
+        UserPrompt "Is $current_hdfeos5 installed at your site [no]"
+        case "$user_response" in
+            y* | Y* )
+                hdfeos5_installed=1
+            ;;
+        esac
+    elif [ "$hdfeos5_home" != "" ] ; then
+        hdfeos5_installed=1
+    fi
+
+    if [ $hdfeos5_installed = 1 ] ; then
+
+        #
+        # The user says HDF-EOS is installed: ask where it is located (if not in batch mode)
+        #
+
+        if [ $batch_mode = 0 -a "$hdfeos5_home" = "" ] ; then
+            HDFEOS5_path="$PGSHOME/hdfeos5"
+            UserPrompt "Pathname where $current_hdfeos5 is installed [$HDFEOS5_path]"
+
+            if [ "$user_response" != "" ] ; then
+                if [ -d "$user_response" ] ; then
+                    HDFEOS5_path="$user_response"
+                fi
+            fi
+        else
+            HDFEOS5_path=$hdfeos5_home
+        fi
+
+
+        #
+        # Make sure it is really there.
+        #
+
+        if [ -d ${HDFEOS5_path}  ] ; then
+
+            HDFEOS5_HOME=${HDFEOS5_path}
+            export HDFEOS5_HOME
+
+            #
+            # Check for critical directories in $HDFEOS5_HOME
+            #
+
+            # check for lib directory
+            if [  ! -d ${HDFEOS5_HOME}/lib/${BRAND}  ] ; then
+                Done "The HDF-EOS5 lib directory was not found."
+            fi
+
+            # check for include directory
+            if [  ! -d ${HDFEOS5_HOME}/include  ] ; then
+                Done "The HDF-EOS5 include directory was not found."
+            fi
+
+            EchoAndLog "Setting HDFEOS5 home directory to: $HDFEOS5_HOME"
+
+        else
+
+            Done "Directory $current_hdfeos5 not found in $HDFEOS5_path"
+
+        fi
+
+        hdfeos5_installed=1             # flag HDF-EOS5 as successfully installed
+
+    else
+
+        #
+        # The user says HDF-EOS5 is NOT installed: ask if it should be installed now
+        #
+
+        if [ $batch_mode = 0 ] ; then
+            UserPrompt "Do you wish to install $current_hdfeos5 now [yes]"
+        else
+            user_response=y
+        fi
+        case $user_response in
+            n* | N* )
+            ;;
+            * )
+                # Run the HDF-EOS5 installation wrapper script
+                # - this script unpacks the HDFEOS5 distribution and then
+                #   runs the INSTALL-HDFEOS installation script
+                #
+
+                EchoAndLog "Installing HDF-EOS5 ..."
+
+                # set installation flags
+
+                home_file="${PGSHOME}/.install-hdfeo5shome"
+                hdfeos5_flags="$hdfeos5_flags -w_home $home_file"
+
+                if [ "$log_file" != ""  ] ; then
+                    hdfeos5_flags="$hdfeos5_flags -log $log_file -append"
+                fi
+
+                if [ "$dbug" != "" ] ; then
+                    if [ $batch_mode = 0 ] ; then
+                        UserPrompt "Do you wish to install $current_hdfeos5 in debug mode [yes]"
+                    else
+                        user_response=y
+                    fi
+                    case "$user_response" in
+                        n* | N*)
+                            if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+				hdfeos5_flags="$hdfeos5_flags -ts"
+			    else
+				hdfeos5_flags="$hdfeos5_flags"
+			    fi
+                        ;;
+                        *)
+                            if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+				hdfeos5_flags="$hdfeos5_flags -ts_dbug"
+			    else
+                            hdfeos5_flags="$hdfeos5_flags -dbug"
+			    fi
+                        ;;
+                    esac
+		else
+                    if [ "$c_rlib" = "1" ] ; then  #set threadsafe flag
+			hdfeos5_flags="$hdfeos5_flags -ts"
+		    fi
+                fi
+
+                if [ "$sgi_mode" = "n32" ] ; then               # set flag for SGI n32 mode
+                    hdfeos5_flags="$hdfeos5_flags -sgi32"
+                elif [ "$sgi_mode" = "64" ] ; then      # set flag for SGI 64-bit mode
+                    hdfeos5_flags="$hdfeos5_flags -sgi64"
+                fi
+
+                if [ "$fc_path" != "" ] ; then          # path for FORTRAN compiler
+                    hdfeos5_flags="$hdfeos5_flags -fc_path $fc_path"
+                fi
+
+                if [ "$cc_path" != "" ] ; then          # path for C compiler
+                    hdfeos5_flags="$hdfeos5_flags -cc_path $cc_path"
+                fi
+
+                if [ $batch_mode = 1 ] ; then           # batch mode
+                    hdfeos5_flags="$hdfeos5_flags -batch"
+                fi
+
+                # run the installation script
+
+                $script_dir/INSTALL-HDFEOS5-Wrap $hdfeos5_flags -install_dir $PGSHOME
+                if [ "$?" != "0" ] ; then
+                    Done "The HDFEOS5 Installation Script failed or had errors."
+                fi
+
+                # get HDF-EOS5 home directory from the HDF-EOS5 installation
+
+                HDFEOS5_HOME="`cat $home_file`"
+                export HDFEOS5_HOME
+                if [ "$?" != "0" ] ; then
+                    Done "Unable to get HDF-EOS5 home directory."
+                fi
+                if [ -f "$home_file" ] ; then
+                    \rm -f $home_file   # clean up the hdfeos5home file
+                fi
+                hdfeos5_installed=1     # flag HDF-EOS5 as successfully installed
+
+            ;;
+        esac
+
+    fi
+
+
+    #
+    # Set HDFEOS5 directories:
+    #
+
+    if [ $?HDFEOS5_HOME ] ; then
+
+        HDFEOS5_BIN=$HDFEOS5_HOME/bin/$BRAND
+        HDFEOS5_INC=$HDFEOS5_HOME/include
+        HDFEOS5_LIB=$HDFEOS5_HOME/lib/$BRAND
+        export HDFEOS5_BIN HDFEOS5_INC HDFEOS5_LIB
+
+    fi
+
+}
+
+#
+# Function called when Installation complete
+#
+
+Done()
+{
+
+    EchoAndLog ""
+
+    if [ "$1" = "" ] ; then
+	EchoAndLog "SDP Toolkit installation completed at `date`"
+    else
+	EchoAndLog "`basename $0`: Error: $*"
+	EchoAndLog -n "SDP Toolkit installation cancelled"
+	exit 1
+    fi
+
+    EchoAndLog -n ""
+}
+
+#****************************************************************
+#                                                               *
+#                  * * * Main Program  * * *                    *
+#                                                               *
+#****************************************************************
+
+#
+# Save starting directory, path
+# Create error message header
+#
+
+start_dir=`pwd`
+start_path=$PATH
+this_script="`basename $0`"
+script_error="$this_script: Error:"
+
+#
+# Get absolute pathname where this script is located
+# This allows the script to locate any needed auxilliary files
+#
+
+script_dir="`dirname $0`"
+if [ "$script_dir" = "." ] ; then
+    abs="`echo $0 | cut -c1`"
+    if [ "$abs" != "." ] ; then
+	script_dir=""
+    fi
+fi
+if [ "$script_dir" = "" ] ; then
+    Which $this_script
+    if [ "$which_result" = "1" ] ; then
+	script_dir="`dirname $which_cmd`"
+    fi
+fi
+abs="`echo $script_dir | cut -c1`"
+if [ "$abs" != "/" ] ; then
+    script_dir=`cd $script_dir;pwd`
+fi
+
+#
+# Get arguments from command line
+#
+
+status_msg=""
+
+help=0
+log_file=""
+notext=0
+clean=0
+append=0
+use_gcc=0
+sgi_mode=32
+pgs_daac=0
+f90_flag=0
+nag_flag=0
+absoft_flag=0
+fc_path=""
+cc_path=""
+build_ftn=""
+dbug=""
+install_options=""
+tk_search_path=""
+batch_mode=0
+zlibhome=""
+jpeghome=""
+hdfhome=""
+sziphome=""
+hdf5home=""
+hdfeos_home=""
+hdfeos5_home=""
+netcdfhome=""
+cpp=0
+cpp_path=""
+cpp_lib_only=0
+c_rlib=0
+EXT_CC_FLAGS=""
+EXT_FC_FLAGS=""
+EXT_CPP_FLAGS=""
+
+while [ "$1" != "" ] ; do
+
+    case "$1" in
+
+	-h | -help )
+	    Help
+	;;
+
+	-f90 )
+	    f90_flag=1
+	;;
+
+	-NAG )
+	    nag_flag=1
+	;;
+
+	-ABSOFT )
+	    absoft_flag=1
+	;;
+
+	-fc_path )
+	    fc_path="$2"
+	    install_options="$install_options $1"
+	    shift
+	;;
+
+	-cc_path )
+	    cc_path="$2"
+	    install_options="$install_options $1"
+	    shift
+	;;
+
+	-cc_flags )
+	    EXT_CC_FLAGS=$2
+	    export EXT_CC_FLAGS
+	    shift
+	;;
+
+	-fc_flags )
+	    EXT_FC_FLAGS=$2
+	    export EXT_FC_FLAGS
+	    shift
+	;;
+
+	-cpp_flags )
+	    EXT_CPP_FLAGS=$2
+	    export EXT_CPP_FLAGS
+	    shift
+	;;
+
+	-gcc )
+	    use_gcc=1
+	;;
+
+	-sgi )
+	    sgi_mode=old32
+	;;
+
+	-sgi32 )
+	    sgi_mode=n32
+	;;
+
+	-sgi64 )
+	    sgi_mode=64
+	;;
+
+	-daac )
+	    pgs_daac=1
+	;;
+
+	-log )
+	    if [ "$2" != "" ] ; then
+		if [ "` echo $2 | cut -c1`" = "/" ] ; then
+		    log_file="$2"
+		else
+		    log_file="$start_dir/$2"
+		fi
+		install_options="$install_options $1"
+		shift
+	    fi
+	;;
+
+	-append )
+	    append=1
+	;;
+
+	-nt | -notext )
+	    notext=1
+	;;
+
+	-clean )
+	    clean=1
+	;;
+
+	-dbug )
+	    dbug=-dbug
+	;;
+
+	-no_ftn )
+	    build_ftn=-no_ftn
+	;;
+
+	-pgshome )
+	    if [ "$2" != "" -a -d $2 ] ; then
+		tk_search_path=$2
+		install_options="$install_options $1"
+		shift
+	    else
+		WriteError "Invalid (or no) directory specified with -pgshome switch."
+		Help
+	    fi
+	    ;;
+	
+	-zlibhome )
+            if [ "$2" != "" -a -d $2 ] ; then
+                zlibhome=$2
+                install_options="$install_options $1"
+                shift
+            else
+                WriteError "Invalid (or no) directory specified with -zlibhome switch."
+                Help
+            fi
+	    ;;
+
+	-jpeghome )
+            if [ "$2" != "" -a -d $2 ] ; then
+                jpeghome=$2
+                install_options="$install_options $1"
+                shift
+            else
+                WriteError "Invalid (or no) directory specified with -jpeghome s
+witch."
+                Help
+            fi
+	    ;;
+
+
+	
+        -hdfhome )
+	    if [ "$2" != "" -a -d $2 ] ; then
+		hdfhome=$2
+		install_options="$install_options $1"
+		shift
+	    else
+		WriteError "Invalid (or no) directory specified with -hdfhome switch."
+		Help
+	    fi
+	    ;;
+
+        -sziphome )
+            if [ "$2" != "" -a -d $2 ] ; then
+                sziphome=$2
+                install_options="$install_options $1"
+                shift
+            else
+                WriteError "Invalid (or no) directory specified with -sziphome switch."
+                Help
+            fi
+	    ;;
+        -hdf5home )
+            if [ "$2" != "" -a -d $2 ] ; then
+                hdf5home=$2
+                install_options="$install_options $1"
+                shift
+            else
+                WriteError "Invalid (or no) directory specified with -hdf5home switch."
+                Help
+            fi
+	    ;;
+
+	-hdfeos_home )
+	    if [ "$2" != "" ] ; then
+		hdfeos_home=$2
+		install_options="$install_options $1"
+		shift
+	    else
+		WriteError "Invalid (or no) directory specified with -hdfeos_home switch."
+		Help
+	    fi
+	    ;;
+
+        -hdfeos5_home )
+            if [ "$2" != "" ] ; then
+                hdfeos5_home=$2
+                install_options="$install_options $1"
+                shift
+            else
+                WriteError "Invalid (or no) directory specified with -hdfeos5_home switch."
+                Help
+            fi
+	    ;;
+	
+        -netcdfhome )
+	    if [ "$2" != "" -a -d $2 ] ; then
+		netcdfhome=$2
+		install_options="$install_options $1"
+		shift
+	    else
+		WriteError "Invalid (or no) directory specified with -netcdfhome switch."
+		Help
+	    fi
+	    ;;
+
+
+	-batch )
+	    batch_mode=1
+	    ;;
+
+	-cpp )
+	    cpp=1
+	    ;;
+	-cpp_path )
+	    cpp_path="$2"
+	    install_options="$install_options $1"
+	    shift
+	    ;;
+
+	-cpp_lib_only )
+	    cpp_lib_only=1
+	    ;;
+
+	-c_rlib )
+	    c_rlib=1
+	    ;;
+
+        * )
+	    WriteError "`basename $0`: error: invalid option '$1'"
+	    Help
+	    ;;
+
+    esac
+    install_options="$install_options $1"
+    shift
+
+done
+
+export EXT_CC_FLAGS EXT_FC_FLAGS EXT_CPP_FLAGS
+
+
+# the NAG flag is only valid if f90 was requested AND the path to the
+# NAG f90 compiler also needs to be specified, make sure both these
+# conditions have been fulfilled
+
+if [ $nag_flag = 1 ] ; then
+    if [ "$fc_path" = "" -o $f90_flag = 0 ] ; then
+	WriteError "$script_error Must first specify -f90 and set compiler path."
+	exit 1
+    fi
+fi
+
+# the ABSOFT flag is only valid if f77 was requested AND the path to the
+# ABSOFT f77 compiler also needs to be specified.
+
+if [ $absoft_flag = 1 ] ; then
+    if [ "$fc_path" = "" ] ; then
+	WriteError "$script_error Must set absoft f77 compiler path using -fc_path."
+	exit 1
+    fi
+fi
+
+# attempt to determine installation directory
+
+# assume this script is located in one of the standard Toolkit bin
+# directories
+
+pgsdir1=`dirname $script_dir`       # $PGSHOME/bin
+pgsdir2=`dirname $pgsdir1`          # $PGSHOME/bin/$BRAND
+
+tk_search_path="$tk_search_path $pgsdir1 $pgsdir2"
+
+#
+# make sure we are starting from a valid toolkit directory,
+# by checking for the presence of all required subdirectories
+# if any of them is missing then set PGSHOME to the null string
+# and display the help message
+#
+
+for dir in $tk_search_path ; do
+    found_pgshome=1
+    for sub_dir in bin include lib message runtime src test ; do
+
+	if [ -d $dir/$sub_dir ] ; then
+	    continue
+	else
+	    found_pgshome=0
+	    break
+	fi
+    done
+
+    if [ "$found_pgshome" = "1" ] ; then
+	PGSHOME=$dir
+	export PGSHOME
+	cd $PGSHOME
+	break
+    fi
+done
+
+if [ "$found_pgshome" = "0" ] ; then
+    WriteError "Not in toolkit home directory."
+    Help
+fi
+
+pathroot=`echo $PGSHOME | cut -f2 -d/`
+
+if [ "$pathroot" = "tmp_mnt" -a $batch_mode = 0 ] ; then
+    echo "The installation directory determined by this script contains the root"
+    echo "directory /tmp_mnt.  This is probably not correct."
+    echo ""
+    UserPrompt "Actual location of PGSHOME [$PGSHOME] "
+    if [ "$user_response" != "" ] ; then
+        if [ -d "$user_response" ] ; then
+
+	    cd $user_response
+	    found_pgshome=1
+	    for sub_dir in bin include lib message runtime src test ; do
+
+		if [ -d $sub_dir ] ; then
+		    continue
+		else
+		    found_pgshome=0
+		fi
+	    done
+
+	    if [ "$found_pgshome" = "0" ] ; then
+		echo "Invalid PGSHOME value! Exiting."
+		exit
+	    fi
+	    PGSHOME="$user_response"
+	    export PGSHOME
+        else
+	    echo "The directory $user_response does not exist!  Exiting."
+	    exit
+	fi
+    fi
+fi
+
+##
+# set up log file
+#
+
+if [ "$log_file" != "" ] ; then
+
+    if [ "$append" = "0" ] ; then
+	if [ -f "$log_file" ] ; then
+	    /bin/rm -f $log_file > /dev/null 2>&1
+	fi
+    fi
+
+    touch $log_file > /dev/null 2>&1
+    if [ $? != 0 ] ; then
+	WriteError "$script_error cannot write to file $log_file"
+	Help
+    fi
+
+fi
+
+EchoAndLog "Toolkit Installation starting at `date`"
+echo ""
+
+if [ "$log_file" != "" ] ; then
+    echo ""
+    echo "`basename $0`: session output will go to file: "
+    echo ""
+    echo "     $log_file"
+    echo ""
+fi
+
+#
+# Set architecture-specific variables
+#
+
+SetArchitecture
+
+Log  "host: $HOST    type: $BRAND     user: $USER"
+Log 'install options: '"$install_options"
+
+#
+# Rename "makefile.cpp" inside makefile.cpp to 
+# makefile.cpp_ofunix for C++ on linux
+#
+
+
+if [ "$BRAND" = "linux" ] || [ "$BRAND" = "linux32" ] || [ "$BRAND" = "linux64" ] || [ "$BRAND" = "macintosh" ] || [ "$BRAND" = "macintel" ] || [ "$BRAND" = "macintel32" ] || [ "$BRAND" = "macintel64" ] || [ "$BRAND" = "cygwin" ]; then
+PGSHOME_dir=`pwd`
+    for dir in . include include/CUC include/DCW include/FF include/FW src src/AA src/AA/DCW src/AA/VPF src/AA/freeform src/AA/generic src/CBP src/CSC src/CUC src/CUC/ODL src/CUC/UDUNITS src/EPH src/EPH/orbsim src/EPH/gbadsim src/GCT src/GCT/freeware src/IO src/IO/GEN src/IO/L0 src/IO/L0/L0sim src/MEM src/MET src/MET/support src/MET/tools src/PC src/SMF src/TD src/DEM src/TSF src/XML src/XML/xml src/XML/xsl message ; do
+
+    cd $dir
+        if [ -f makefile.cpp ]; then
+            echo $dir/makefile.cpp
+            sed "s/makefile.cpp/makefile.cpp_ofunix/" makefile.cpp>makefile.cpp_temp
+            mv makefile.cpp_temp makefile.cpp
+            sed "s/Makefile.cpp/Makefile.cpp_ofunix/" makefile.cpp>makefile.cpp_temp
+            mv makefile.cpp_temp makefile.cpp
+            echo "...file modified"
+        elif [ -f Makefile.cpp ]; then
+            echo $dir/Makefile.cpp
+            sed "s/Makefile.cpp/Makefile.cpp_ofunix/" Makefile.cpp>Makefile.cpp_temp
+            mv Makefile.cpp_temp Makefile.cpp
+            sed "s/makefile.cpp/makefile.cpp_ofunix/" Makefile.cpp>Makefile.cpp_temp
+            mv Makefile.cpp_temp Makefile.cpp
+            echo "...file modified"
+        elif [ -f makefile.cpp_ofunix ]; then 
+            echo $dir/makefile.cpp_ofunix
+            echo "...file modified"
+        elif [ -f Makefile.cpp_ofunix ]; then 
+            echo $dir/Makefile.cpp_ofunix
+            echo "...file modified"
+        else
+            echo "File not found:"
+        fi
+    cd $PGSHOME_dir
+    done
+
+#
+# Rename makefile.cpp to something else for linux
+#
+
+ for i in `find . -name "makefile.cpp" `; do mv $i "$i"_ofunix;
+ done 
+ for i in `find . -name "Makefile.cpp" `; do mv $i "$i"_ofunix;
+ done 
+fi
+
+#
+# set default values for the toolkit directory environment variables
+#
+
+PGSBIN=$PGSHOME/bin/$BRAND	# executable files
+PGSDAT=$PGSHOME/database/$BRAND	# database files
+PGSCOM=$PGSHOME/database/common # database/common files
+PGSINC=$PGSHOME/include		# include header files
+PGSLIB=$PGSHOME/lib/$BRAND	# library files
+PGSMSG=$PGSHOME/message		# SMF message files
+PGSOBJ=$PGSHOME/obj/$BRAND	# object files
+PGSCPPO=$PGSHOME/objcpp/$BRAND	# object files
+PGSRUN=$PGSHOME/runtime		# runtime work files
+PGSSRC=$PGSHOME/src		# toolkit source files
+PGSTST=$PGSHOME/test		# test source files
+
+export PGSHOME PGSBIN PGSDAT PGSINC PGSLIB
+export PGSMSG  PGSOBJ PGSRUN PGSSRC PGSTST
+export PGSCPPO PGSCOM
+
+#
+# Set up variables needed by Process Control (PC) tools.
+#
+
+PGS_PC_INFO_FILE=$PGSRUN/$BRAND/PCF.relB0
+export PGS_PC_INFO_FILE
+
+#
+# add PGSBIN to path
+#
+
+PATH=$PATH:$PGSBIN; export PATH		# add PGSBIN to path
+
+InstallHdf
+
+if [ "$hdf_installed" = "1" ] ; then
+    InstallHdfeos
+else
+    hdfeos_installed=0
+fi
+
+if [ "$hdf5_installed" = "1" ] ; then
+    InstallHdfeos5
+else
+    hdfeos5_installed=0
+fi
+
+#
+# Toolkit installation
+#
+#
+
+# set installation flags
+
+toolkit_flags="-pgshome $PGSHOME $dbug $build_ftn"
+
+if [ "$hdf_installed" != "1" -o "$hdf5_installed" != "1" ] ; then	# set flag for no-HDF and no HDF-EOS build
+    toolkit_flags="$toolkit_flags -no_hdf -no_hdfeos"
+elif [ "$hdfeos_installed" != "1" ] ; then		# set flag for no-HDF-EOS build
+    toolkit_flags="$toolkit_flags -no_hdfeos"
+fi
+
+if [ "$f90_flag" = "1" ] ; then 			# set flag for f90 build
+
+    toolkit_flags="$toolkit_flags -f90"
+
+    if [ "$nag_flag" = "1" ] ; then 		# using NAG f90
+        toolkit_flags="$toolkit_flags -NAG"
+    fi
+
+fi
+
+if [ "$absoft_flag" = "1" ] ; then 		# using ABSOFT F77
+    toolkit_flags="$toolkit_flags -ABSOFT"
+fi
+
+if [ "$fc_path" != "" ] ; then 			# path for FORTRAN compiler
+    toolkit_flags="$toolkit_flags -fc_path $fc_path"
+fi
+
+if [ "$cc_path" != "" ] ; then 			# path for C compiler
+    toolkit_flags="$toolkit_flags -cc_path $cc_path"
+fi
+
+if [ "$use_gcc" = "1" ] ; then 			# set flag for GNU C build
+    toolkit_flags="$toolkit_flags -gcc"
+fi
+
+if [ "$sgi_mode" = "n32" ] ; then 		# set flag for SGI n32 mode
+    toolkit_flags="$toolkit_flags -sgi32"
+elif [ "$sgi_mode" = "64" ] ; then 		# set flag for SGI 64-bit mode
+    toolkit_flags="$toolkit_flags -sgi64"
+fi
+
+if [ "$cpp" = "1" ] ; then 			# set flag for C++ build
+    toolkit_flags="$toolkit_flags -cpp"
+fi
+
+if [ "$cpp_path" != "" ] ; then 		# path for C++ compiler
+    toolkit_flags="$toolkit_flags -cpp_path $cpp_path"
+fi
+
+if [ "$pgs_daac" = "1" ] ; then 		# set flag for DAAC build
+    toolkit_flags="$toolkit_flags -daac"
+fi
+
+if [ "$c_rlib" = "1" ] ; then 			# set flag for treadsafe build
+    toolkit_flags="$toolkit_flags -c_rlib"
+fi
+
+# Changing to delete extra orbsim source subdirectories 
+for dir in $PGSSRC/EPH/orbsim/* ; do
+    if [ -d $dir ] ; then
+	\rm -rf $dir
+    fi
+done
+
+# Changing to delete extra gbadsim source subdirectories
+for dir in $PGSSRC/EPH/gbadsim/* ; do
+    if [ -d $dir ] ; then
+        \rm -rf $dir
+    fi
+done
+
+# run the installation script
+
+EchoAndLog "Running the Toolkit Installation Script ..."
+EchoAndLog ""
+# exclude AA tools for NCR ECSed26997
+AA_install=0
+
+# always skip AA tools
+if [ 0 ] || [ "$BRAND" = "macintosh" ] || [ "$BRAND" = "macintel" ] || [ "$BRAND" = "macintel32" ] || [ "$BRAND" = "macintel64" ]  ; then
+# the file values.h could not be found in macintel and macintosh, We will
+# skip AA tools installation in these platforms
+
+AA_install=0
+else
+EchoAndLog "Ancillary/auxiliary  Data Access :"
+EchoAndLog "If you plan to use the Ancillary/auxilary (AA) data access tools," 
+EchoAndLog "you must now install the AA tools for accessing AA data files. The"
+EchoAndLog "data files located in an additional compressed tar file, which must"
+EchoAndLog "be downloaded separately. The data were used in ECS instrument processing."
+EchoAndLog "These files include the Digital Chart of the World and other earth"
+EchoAndLog "sciences data sets. If you do not plan to use these tools or data sets,"
+EchoAndLog "it is not necessary to install the tools and files.  A few AA tools are :"
+EchoAndLog "  a. Access the Digital Chart of the World Database"
+EchoAndLog "  b. Access Available Data from a Set of Standard Digital Elevation Models"
+EchoAndLog "  c. Extract Data from Gridded Data Sets by Geographic Location"
+EchoAndLog ""
+EchoAndLog "For more information please see TOOLKIT Users Guide:"
+EchoAndLog " ( http://newsroom.gsfc.nasa.gov/sdptoolkit/docs/UG_geo_location.pdf )"
+EchoAndLog "section 6.3.2  for Ancillary Data Tools."
+EchoAndLog ""
+EchoAndLog ""
+UserPrompt "Do you wish to install AA tool [No]"
+        case  "$user_response" in
+            y* | Y* )
+        AA_install=1
+            ;;
+        esac
+fi
+        export AA_install
+
+        if [ $AA_install = 0 ] ; then
+          EchoAndLog "Running the Toolkit Installation Script without AA Tool."
+	elif [ $AA_install = 1 ] ; then
+	  if [ $hdf_installed != 1 ]; then
+	    EchoAndLog "No HDF Supprot....."
+	    EchoAndLog "If you need to install AA tool, Please install HDF package first...."
+	    EchoAndLog "SDP Toolkit installation cancelled......"
+	    exit 1
+	  else  
+	    EchoAndLog "Running the Toolkit Installation Script with AA Tool."
+          fi
+	fi
+
+if [ "$cpp_lib_only" = "1" ] ; then
+ toolkit_flags="$toolkit_flags -cpp_lib_only"
+fi
+
+#end NCR ECSed26997
+if [ "$log_file" != ""  ] ; then
+
+    $script_dir/INSTALL-Toolkit $toolkit_flags >> $log_file 2>&1
+    if [ "$BRAND" = "linux" ] || [ "$BRAND" = "linux32" ] || [ "$BRAND" = "linux64" ] && [ "$fc_path" != "" ]  ; then
+	echo "# install option: $install_options" >> $PGSHOME/bin/$BRAND/pgs-env.csh
+    fi
+else
+
+    $script_dir/INSTALL-Toolkit $toolkit_flags
+    if [ "$BRAND" = "linux" ] || [ "$BRAND" = "linux32" ] || [ "$BRAND" = "linux64" ] && [ "$fc_path" != "" ]  ; then
+	echo "# install option: $install_options" >> $PGSHOME/bin/$BRAND/pgs-env.csh
+    fi
+fi
+
+if [ "$?" != "0" ] ; then
+    Done "The Toolkit Installation Script failed or had errors."
+fi
+
+Done

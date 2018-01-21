@@ -1,0 +1,2 @@
+/usr/bin/ar cr libosmi.a  CMakeFiles/osmi.dir/get_cal_osmi.c.o CMakeFiles/osmi.dir/get_cal_misc_osmi.c.o CMakeFiles/osmi.dir/calibrate_l1a_osmi.c.o CMakeFiles/osmi.dir/calday.c.o CMakeFiles/osmi.dir/obliq.c.o CMakeFiles/osmi.dir/sunpos.c.o CMakeFiles/osmi.dir/ctogd.c.o CMakeFiles/osmi.dir/gmha.c.o CMakeFiles/osmi.dir/tconv.c.o CMakeFiles/osmi.dir/ctotc.c.o CMakeFiles/osmi.dir/julian.c.o CMakeFiles/osmi.dir/time-utils.c.o CMakeFiles/osmi.dir/eanom.c.o CMakeFiles/osmi.dir/locate.c.o
+/usr/bin/ranlib libosmi.a

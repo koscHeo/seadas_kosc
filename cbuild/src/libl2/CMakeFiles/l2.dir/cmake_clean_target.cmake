@@ -1,0 +1,3 @@
+FILE(REMOVE_RECURSE
+  "libl2.a"
+)

@@ -1,0 +1,54 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********    Building check   ********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=check-0.9.14
+if [ -d $srcdir ]; then
+   rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR
+mkdir -p $installdir
+
+# build libraries
+./configure --prefix=$installdir 
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+   rm -rf $srcdir
+fi

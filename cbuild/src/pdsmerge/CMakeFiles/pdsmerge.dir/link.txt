@@ -1,0 +1,1 @@
+/usr/bin/gcc  -DLINUX -Dlinux -m64 -O3 -Wno-unused-result    -static -mcmodel=large CMakeFiles/pdsmerge.dir/pdsmerge.c.o  -o pdsmerge  -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib  -lm -Wl,-rpath,/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib: 

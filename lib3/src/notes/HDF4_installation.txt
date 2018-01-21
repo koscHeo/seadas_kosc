@@ -1,0 +1,89 @@
+HDF Installation and Project Customization, BAF, 4/2003
+
+
+Obtain source distribution from:
+
+   ftp://ftp.ncsa.uiuc.edu/HDF/HDF/HDF4.1r5/tar/HDF4.1r5.tar.gz
+
+
+Prepare to build:
+
+   cd ~/src
+   gzip -dc HDF4.1r5.tar.gz | tar xvf - 
+   cd HDF4.1r5
+   cd config
+
+   In mh-linux
+   CFLAGS=-ansi -D_BSD_SOURCE -O3
+   FFLAGS = -c -extend_source -convert big_endian -O3 -xN
+   LIBSX = -lm
+ 
+   cd ..
+   ./configure -v --prefix=/home/swdev/src/HDF4.1r5
+
+
+In hdf/src/
+
+   In hlimits.h set MAX_FILE to 256 
+   (this is done for the binners)
+
+   In src.inc add vgint.h to V_HDRS=vg.h
+   (this is done for hdiff)
+
+
+In mfhdf/libsrc/
+
+   In netcdf.h set MAX_NC_OPEN to 128
+   (this is done for the binners)
+
+
+In mfhdf/ncdump/
+
+   In ncdump.c, comment-out snippet of fixstr()
+    /* BAF
+        for (; *ptr; ptr++)
+                if (!isalnum(*ptr) && *ptr != '_' && *ptr != '-')
+                        *ptr = '_';
+    */
+   (this prevents ncdump from modifying names on display)
+
+   remove -O3 from ncdump Makefile???
+
+
+Fix test codes
+
+ In /home/swdev/src/HDF4.1r5/hdf/test/Makefile remove FFLAGS 
+ from fortestF target
+ 
+ In /home/swdev/src/HDF4.1r5/mfhdf/fortran/Makefile remove FFLAGS 
+ from hdftest target
+
+On SGI machines
+
+   ln -s /usr/freeware/bin/gneqn negn
+   ln -s /usr/freeware/bin/gtbl  tbl
+   (for building man pages)
+
+
+Build
+
+   make 
+   make test
+   make install
+
+
+Link
+
+   cd ~/lib/hdf
+   rm *
+   ln -s ~/src/HDF4.1r5/bin .
+   ln -s ~/src/HDF4.1r5/lib .
+   ln -s ~/src/HDF4.1r5/include .
+   ln -s ~/src/HDF4.1r5/man .
+
+
+In hdiff
+
+   In Makefile.* add -DVSET_INTERFACE
+
+

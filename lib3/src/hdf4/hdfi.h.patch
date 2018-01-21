@@ -1,0 +1,180 @@
+--- hdf/src/hdfi.h.old	2015-01-24 09:56:04.999869278 -0500
++++ hdf/src/hdfi.h	2015-01-24 10:04:14.221636472 -0500
+@@ -138,7 +138,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -200,7 +200,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -255,7 +255,7 @@
+ typedef void              *VOIDP;
+ typedef char              *_fcd;
+ #ifndef _ALL_SOURCE       
+-typedef char              int8;
++typedef signed char       int8;
+ typedef short int         int16; 
+ typedef int               int32;
+ #endif  
+@@ -317,7 +317,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -569,7 +569,7 @@
+ typedef char               *_fcd;
+ typedef char               char8;
+ typedef unsigned char      uchar8;
+-typedef char               int8;
++typedef signed char        int8;
+ typedef unsigned char      uint8;
+ typedef short int          int16;
+ typedef unsigned short int uint16;
+@@ -632,7 +632,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -694,7 +694,7 @@
+ typedef char            *_fcd;
+ typedef char            char8;
+ typedef unsigned char   uchar8;
+-typedef char            int8;
++typedef signed char     int8;
+ typedef unsigned char   uint8;
+ typedef short           int16;
+ typedef unsigned short  uint16;
+@@ -743,7 +743,7 @@
+ typedef char            *_fcd;
+ typedef char            char8;
+ typedef unsigned char   uchar8;
+-typedef char            int8;
++typedef signed char     int8;
+ typedef unsigned char   uint8;
+ typedef short           int16;
+ typedef unsigned short  uint16;
+@@ -799,7 +799,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -894,12 +894,12 @@
+ typedef char *            _fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+-typedef long int          int32;
+-typedef unsigned long int uint32;
++typedef int               int32;
++typedef unsigned int      uint32;
+ typedef int               intn;
+ typedef unsigned int      uintn;
+ typedef float             float32;
+@@ -966,7 +966,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1018,7 +1018,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1064,7 +1064,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1118,7 +1118,7 @@
+ typedef char               *_fcd;
+ typedef char               char8;
+ typedef unsigned char      uchar8;
+-typedef char               int8;
++typedef signed char        int8;
+ typedef unsigned char      uint8;
+ typedef short int          int16;
+ typedef unsigned short int uint16;
+@@ -1166,7 +1166,7 @@
+ typedef char            *_fcd;
+ typedef char            char8;
+ typedef unsigned char   uchar8;
+-typedef char            int8;
++typedef signed char     int8;
+ typedef unsigned char   uint8;
+ typedef short           int16;
+ typedef unsigned short  uint16;
+@@ -1210,7 +1210,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1259,7 +1259,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1308,7 +1308,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;
+@@ -1357,7 +1357,7 @@
+ typedef char              *_fcd;
+ typedef char              char8;
+ typedef unsigned char     uchar8;
+-typedef char              int8;
++typedef signed char       int8;
+ typedef unsigned char     uint8;
+ typedef short int         int16;
+ typedef unsigned short int uint16;

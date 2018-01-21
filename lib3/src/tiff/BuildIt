@@ -1,0 +1,60 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********** Building libtiff *********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=tiff-4.0.3
+if [ -d $srcdir ]; then
+   rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+# apply the patches
+patch -p0 -b < tools.tiffgt.c.patch
+
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR
+mkdir -p $installdir
+
+# build libraries
+./configure --prefix=$installdir --disable-lzma --disable-shared --enable-static --with-jpeg-include-dir=$LIB3_DIR/include --with-jpeg-lib-dir=$LIB3_DIR/lib
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

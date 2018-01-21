@@ -1,0 +1,10 @@
+prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3
+exec_prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3/bin
+libdir=/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib
+includedir=/home/jaemoo/seadas-7.4/ocssw/build/lib3/include
+ 
+Name: fann
+Description: Fast Artificial Neural Network Library
+Version: 2.2.0
+Libs: -L${libdir} -lm -lfann
+Cflags: -I${includedir}

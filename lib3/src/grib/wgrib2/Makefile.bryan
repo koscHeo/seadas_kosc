@@ -1,0 +1,39 @@
+# ===========================================================================
+#       Begin Program Specific Block
+# ===========================================================================
+
+MAKEFILE = Makefile
+
+# Progam to make
+EXE     = wgrib2
+
+# Object modules for EXE
+OBJ 	= 
+
+# Include file locations
+INCLUDE = -I$(NETCDF_INC)\
+	  -I$(HDFINC)\
+	  -I$(HDF5INC)\
+	  -I$(PGSINC)
+
+# Include files
+INC_FILES = 
+
+# Library locations
+LIBS	= -L$(LIBDIR) \
+	  -L$(HDFLIB) \
+	  -L$(NETCDF_LIB)
+
+# Libraries required to link
+LLIBS	= -lnetcdf -lpng -lz -lm
+
+
+# Application-specific macros
+LOCAL_CFLAGS = 
+LOCAL_LDFLAGS = 
+
+# Use C-compiler for linking
+LD = $(CC)
+
+include $(MAKEFILE_APP_TEMPLATE)
+

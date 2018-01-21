@@ -1,0 +1,21 @@
+cmake_minimum_required (VERSION 2.6)
+
+project (SDST)
+
+ADD_LIBRARY(sdst STATIC
+  modsmf.c
+  SDST_SetLocalGranId.c
+  SDST_GetSetPSA.c
+  modisL2reader.c
+  SDST_IGEO.c
+  SDST_IGEO_locate.c
+  SDST_IGEO_get_gran.c
+  SDST_IGEO_get_scan.c
+  SDST_IGEO_calc_scan.c
+  SDST_IGEO_line_frame.c
+  SDST_IGEO_estimate_scan.c
+  )
+
+target_link_libraries(sdst mapi PGSTK ${HDF4_LIB} m)
+
+install (TARGETS sdst ARCHIVE DESTINATION $ENV{LIB3_DIR}/lib)

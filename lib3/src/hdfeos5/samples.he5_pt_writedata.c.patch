@@ -1,0 +1,11 @@
+--- hdfeos5/samples/he5_pt_writedata.c.old	2012-06-12 15:33:25.119173150 -0400
++++ hdfeos5/samples/he5_pt_writedata.c	2012-06-12 15:34:34.322752391 -0400
+@@ -16,7 +16,7 @@
+ 
+   typedef struct 
+ 	{
+-	  char      Label[8];
++	  char      Label[10];
+ 	  double    Lon;
+ 	  double    Lat;
+ 	  int       Date;

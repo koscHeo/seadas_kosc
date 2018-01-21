@@ -1,0 +1,23 @@
+#!/bin/sh
+
+mkdir -p $LIB3_BIN
+
+subdirs="jpeg szip gsl hdf4 hdf5 hdfeos hdfeos5 netcdf sdptk mapi sdst proj4 h4h5tools libpng tiff geotiff fann grib cmpfit lapack levmar healpix xml boost"
+
+if [ "$OCSSW_ARCH" != "macosx_intel" ]; then
+  subdirs="xdr $subdirs"
+fi
+
+for subdir in $subdirs; do
+  cd $subdir
+  ./BuildIt 
+  if [ $? -ne 0 ]; then
+      echo "***** BuildIt ($subdir) failed *****"
+      exit 1
+  fi
+  cd ..
+done
+
+echo
+echo "Everything Built Successfully"
+echo

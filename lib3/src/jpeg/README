@@ -1,0 +1,23 @@
+get the latest software from
+http://libjpeg.sourceforge.net/
+or
+ftp.uu.net/graphics/jpeg/
+
+Example install setup:
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+
+tar xzf jpegsrc.v6b.tar.gz
+cd jpeg-6b
+./configure --prefix=/home/swdev/ocssw/lib3_64/jpeg
+make
+make check
+make install
+cp libjpeg.a ../lib
+cd ..
+rm -rf jpeg-6b
+
+

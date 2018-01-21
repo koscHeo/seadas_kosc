@@ -1,0 +1,1 @@
+/usr/bin/gcc  -DLINUX -Dlinux -m64 -O3 -Wno-unused-result    -static -mcmodel=large CMakeFiles/geocheck_modis.dir/geocheck_modis.c.o  -o geocheck_modis  -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib  -lmfhdf -ldf -ljpeg -lz -lxdr -lm -Wl,-rpath,/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib: 

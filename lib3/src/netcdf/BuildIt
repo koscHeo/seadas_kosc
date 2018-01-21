@@ -1,0 +1,170 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********** Building netcdf **********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=netcdf-4.3.1.1
+if [ -d $srcdir ]; then
+   rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR
+mkdir -p $installdir
+mkdir -p $LIB3_BIN
+
+export LDFLAGS="-L$LIB3_DIR/lib $LDFLAGS"
+export CFLAGS="-I$LIB3_DIR/include $CFLAGS"
+
+# build libraries
+./configure --prefix=$installdir --disable-shared --disable-dap --disable-cdmremote
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi
+
+echo
+echo "*************************************"
+echo "**** Building netcdf C++ library ****"
+echo "*************************************"
+
+# expand source directory
+srcdir=netcdf-cxx4-4.2.1
+if [ -d $srcdir ]; then
+   rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+export CXXFLAGS="-I$LIB3_DIR/include $CXXFLAGS"
+export LIBS="-lnetcdf"
+
+# build libraries
+./configure --prefix=$installdir --disable-shared
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+export LIBS=""
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi
+
+echo
+echo "*************************************"
+echo "**** Building netCDF FORTRAN API ****"
+echo "*************************************"
+
+# set env variable with the libs needed to link the fortran tests
+export LIBS="-lnetcdf -lm -lhdf5_hl -lhdf5 -lsz -lm -lz"
+export CPPFLAGS="-DpgiFortran $CPPFLAGS"
+
+# expand source directory
+srcdir=netcdf-fortran-4.2
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+# build libraries
+./configure --prefix=$installdir --disable-shared
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# copy bin dir to common lib3 bin dir
+rsync -av $installdir/bin/ $LIB3_BIN
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

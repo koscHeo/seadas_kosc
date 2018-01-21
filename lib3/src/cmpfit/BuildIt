@@ -1,0 +1,48 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********* Building cmpfit ***********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=cmpfit-1.2
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf $srcdir.tar.gz
+
+cd $srcdir
+
+installdir=$LIB3_DIR
+mkdir -p $installdir/lib
+mkdir -p $installdir/include
+
+# build libraries
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+# test
+if [  "$LIB3_CHECK" = "1"  ]; then
+    echo "---- running tests ----"
+    ./testmpfit
+    if [ $? -ne 0 ]; then
+	echo "***** testmpfit failed *****"
+	exit 1
+    fi
+fi
+
+# install library and headers
+rsync -av libmpfit.a $installdir/lib
+rsync -av mpfit.h $installdir/include
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+   rm -rf $srcdir
+fi

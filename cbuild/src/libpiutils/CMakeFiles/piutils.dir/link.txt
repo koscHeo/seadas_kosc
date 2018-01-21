@@ -1,0 +1,2 @@
+/usr/bin/ar cr libpiutils.a  CMakeFiles/piutils.dir/productInfo.c.o CMakeFiles/piutils.dir/sensorInfo.c.o CMakeFiles/piutils.dir/rdsensorinfo.c.o
+/usr/bin/ranlib libpiutils.a

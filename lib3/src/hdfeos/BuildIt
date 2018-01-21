@@ -1,0 +1,58 @@
+#!/bin/sh
+
+echo
+echo "*************************************"
+echo "********** Building hdfeos **********"
+echo "*************************************"
+
+. ../BuildIt.env
+
+# expand source directory
+srcdir=hdfeos
+if [ -d $srcdir ]; then
+    rm -rf $srcdir
+fi
+tar xzf HDF-EOS2.18v1.00.tar.Z
+if [ "$LIB3_CHECK" = "1" ]; then
+    tar xzf HDF-EOS2.18v1.00_TestDriver.tar.Z
+fi
+cd $srcdir
+
+# create install directories
+installdir=$LIB3_DIR/EOS
+mkdir -p $installdir
+if [ "$OCSSW_ARCH" = "macosx_intel" ]; then
+    echo "Downgrading optimzation to -O2 for Mac..."
+    export CFLAGS="-O2"
+fi
+# build libraries
+./configure --prefix=$installdir --libdir=$installdir/lib/$EOS_LIB_PREFIX --with-zlib=$LIB3_DIR --with-jpeg=$LIB3_DIR --with-hdf4=$LIB3_DIR --enable-install-include CC=$LIB3_DIR/bin/h4cc
+if [ $? -ne 0 ]; then
+    echo "***** configure failed *****"
+    exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+    echo "***** make failed *****"
+    exit 1
+fi
+
+if [ "$LIB3_CHECK" = "1" ]; then
+    make check
+    if [ $? -ne 0 ]; then
+	echo "***** make check failed *****"
+	exit 1
+    fi
+fi
+make install
+if [ $? -ne 0 ]; then
+    echo "***** make install failed *****"
+    exit 1
+fi
+
+# delete expanded source directory, unless in debug mode.
+cd ..
+if [ "$OCSSW_DEBUG" != "1" ]; then
+    rm -rf $srcdir
+fi

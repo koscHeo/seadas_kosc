@@ -1,0 +1,2 @@
+/usr/bin/ar cr libdfutils.a  CMakeFiles/dfutils.dir/wrapper.c.o CMakeFiles/dfutils.dir/scale_sds.c.o
+/usr/bin/ranlib libdfutils.a

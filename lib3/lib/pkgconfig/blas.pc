@@ -1,0 +1,9 @@
+prefix=/home/jaemoo/seadas-7.4/ocssw/build/lib3
+libdir=/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib
+
+Name: blas
+Description: Basic Linear Algebra Subprograms F77 reference implementations
+Version: 
+URL: http://www.netlib.org/blas/
+Libs: -L/home/jaemoo/seadas-7.4/ocssw/build/lib3/lib -lblas
+Libs.private: -lm

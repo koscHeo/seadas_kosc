@@ -1,0 +1,25 @@
+    case 0: string="average"; break;
+    case 1: string="accumulation"; break;
+    case 2: string="maximum"; break;
+    case 3: string="minimum"; break;
+    case 4: string="difference (value at the end of the time range minus value at the beginning)"; break;
+    case 5: string="root mean square"; break;
+    case 6: string="standard deviation"; break;
+    case 7: string="covariance (temporal variance)"; break;
+    case 8: string="difference ( value at the beginning of the time range minus value at the end)"; break;
+    case 9: string="ratio"; break;
+    case 51: string="climatological mean value"; break;
+    case 255: string="missing"; break;
+:r
+
+    case 0: string="ave"; break;
+    case 1: string="acc"; break;
+    case 2: string="max"; break;
+    case 3: string="min"; break;
+    case 4: string="last-first"; break;
+    case 5: string="RMS"; break;
+    case 6: string="StdDev"; break;
+    case 7: string="covar"; break;
+    case 8: string="first-last"; break;
+    case 9: string="ratio"; break;
+    case 255: string="missing"; break;

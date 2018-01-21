@@ -1,0 +1,2 @@
+/usr/bin/ar cr libnetcdfutils.a  CMakeFiles/netcdfutils.dir/ncdf_utils.c.o CMakeFiles/netcdfutils.dir/nc_gridutils.c.o CMakeFiles/netcdfutils.dir/nc4utils.c.o CMakeFiles/netcdfutils.dir/cdl_utils.cpp.o
+/usr/bin/ranlib libnetcdfutils.a

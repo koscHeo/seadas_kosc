@@ -1,0 +1,23 @@
+you can get the latest sources from 
+ftp://edhs1.gsfc.nasa.gov/pub/
+or
+http://www.hdfgroup.org/HDF5/release/obtain5.html
+
+Example install setup:
+
+- general program dependancies
+flex
+byacc
+
+setenv CFLAGS "-m64 -O3"
+setenv F77 f77
+setenv FFLAGS "-m64 -extend_source -convert big_endian -assume byterecl -save -O3"
+
+tar xzf szip-2.1.tar.gz
+cd szip-2.1
+./configure --disable-shared --prefix=/disk01/home/swdev/ocssw/lib3_64/szip
+make
+make check
+make install
+cd ..
+rm -rf szip-2.1
