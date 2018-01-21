@@ -34,6 +34,7 @@
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l2brsgen/CMakeFiles/l2brsgen.dir
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l2extract/CMakeFiles/l2extract.dir
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l2gen/CMakeFiles/l2gen.dir
+/home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l2gen_kosc/CMakeFiles/l2gen_kosc.dir
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l2mapgen/CMakeFiles/l2mapgen.dir
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l3bin/CMakeFiles/l3bin.dir
 /home/jaemoo/seadas-7.4/ocssw/build/cbuild/src/l3bindump/CMakeFiles/l3bindump.dir

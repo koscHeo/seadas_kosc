@@ -8,6 +8,7 @@
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/vcalmerge
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l2binmatch
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l1det2det
+/home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l2gen_kosc
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l2brsgen
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l2bin
 /home/jaemoo/seadas-7.4/ocssw/run/bin/linux_64/l3bin

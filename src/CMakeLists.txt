@@ -30,6 +30,7 @@ add_subdirectory(libpiutils)
 add_subdirectory(libdfutils)
 # Common progs
 add_subdirectory(l2gen)
+add_subdirectory(l2gen_kosc)
 add_subdirectory(l2brsgen)
 add_subdirectory(l2bin)
 add_subdirectory(l3bin)
