@@ -46,6 +46,7 @@ extern "C" {
 #include "navigation.h"
 #include "read_l3bin.h"
 #include "par_utils.h"
+#include "init.h"
 
 #ifndef MAX
 #define MAX(A,B)    ((A) > (B) ? (A) : (B))  /* Greater of (A,B) */
@@ -84,9 +85,9 @@ extern "C" {
     int32_t getFormat(filehandle *file);
 
     int  getl1rec  (filehandle *l1file, instr *input_str, int32_t recnum, int32_t dscan,
-                    l1str *l1rec);
+                    l1str *l1rec, initstr *initrec);
 
-    int  loadl1    (filehandle *l1file, instr *input_str, l1str *l1rec);
+    int  loadl1    (filehandle *l1file, instr *input_str, l1str *l1rec, loadl1str *loadl1rec);
 
     int  openl1    (filehandle *l1file);
     int  readl1    (filehandle *l1file, int32_t recnum, l1str *l1rec);

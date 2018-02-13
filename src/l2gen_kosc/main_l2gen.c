@@ -436,6 +436,12 @@ int main (int argc, char* argv[])
     start_time = now();
     printf("\nBegin MSl12 processing at %s\n\n", ydhmsf(start_time,'L'));
 
+    initstr initrec;
+   
+    initrec.loadl1rec = (loadl1str *) malloc(sizeof(loadl1str));
+    
+    initrec.loadl1rec->radeg    = RADEG;
+    initrec.loadl1rec->sensorID = -999;
 
     /*								        */
     /* 	Read file scan by scan, convert to L2, and write.		*/
@@ -446,7 +452,7 @@ int main (int argc, char* argv[])
         /* This call returns the specified record, but it internally    */
         /* buffers enough records to facilitate L1B filtering.          */
         /*                                                              */
-        if (getl1rec(&l1file,input,iscan,dscan,l1rec) != 0) {
+        if (getl1rec(&l1file, input, iscan, dscan, l1rec, &initrec) != 0) {
             exit(FATAL_ERROR);
         }
 

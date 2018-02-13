@@ -59,7 +59,7 @@ int32_t alloc_l1q( int32_t npix, int32_t nq, int32_t n_inprods, int32_t nbands, 
 /* input file handle, as required to produce a queue of l1 records  */
 /* centered on the input scan number.                               */
 /* ---------------------------------------------------------------- */
-int loadl1q( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan)
+int loadl1q( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan, loadl1str *loadl1rec)
 {
     int32_t nq = l1que.nq;
     int32_t i, iq, recnum;
@@ -76,13 +76,13 @@ int loadl1q( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan)
     /* Otherwise, we just need to shift the queue and read a scan.  */
     /*                                                              */
     if (l1que.cscan == -1 || l1que.cscan != iscan-dscan) {
-
+        
         for (i=fscan; i<=lscan; i++) {
             iq     = i - fscan; 
-            recnum = MIN(MAX(MAX(i,input->sline-1),0),l1file->nscan-1);
-            if (readl1(l1file,recnum, &l1que.r[iq]) !=0)
+            recnum = MIN(MAX(MAX(i, input->sline-1), 0), l1file->nscan-1);
+            if (readl1(l1file, recnum, &l1que.r[iq]) !=0)
                 return(EXIT_FAILURE);
-            if (loadl1(l1file,input,&l1que.r[iq]) !=0)
+            if (loadl1(l1file, input, &l1que.r[iq], loadl1rec) !=0)
                 return(EXIT_FAILURE);
         }
 
@@ -91,18 +91,18 @@ int loadl1q( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan)
         /*                                                          */
         /* We really just re-arrange the record data pointers       */
         /*                                                          */
-        memcpy(&tmp,&l1que.r[0],sizeof(l1str));
+        memcpy(&tmp, &l1que.r[0], sizeof(l1str));
         for (iq=1; iq<nq; iq++)
-            memcpy(&l1que.r[iq-1],&l1que.r[iq],sizeof(l1str));
+            memcpy(&l1que.r[iq-1], &l1que.r[iq], sizeof(l1str));
         memcpy(&l1que.r[nq-1],&tmp,sizeof(l1str));
 
         /*                                                          */
         /* Now read the next scan into the top of the queue         */
         /*                                                          */
-        recnum = MIN(MAX(MAX(iscan+nq/2,input->sline-1),0),l1file->nscan-1);
-        if (readl1(l1file,recnum, &l1que.r[nq-1]) != 0)
+        recnum = MIN(MAX(MAX(iscan+nq/2, input->sline-1), 0), l1file->nscan-1);
+        if (readl1(l1file, recnum, &l1que.r[nq-1]) != 0)
             return(EXIT_FAILURE);
-        if (loadl1(l1file,input,&l1que.r[nq-1]) != 0)
+        if (loadl1(l1file, input, &l1que.r[nq-1], loadl1rec) != 0)
             return(EXIT_FAILURE);
     }
 
@@ -116,7 +116,7 @@ int loadl1q( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan)
 /* ---------------------------------------------------------------- */
 /* ---------------------------------------------------------------- */
 int getl1rec( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan,
-              l1str *l1rec)
+              l1str *l1rec, initstr *initrec)
 {
     static int32_t npix = -1;
     static int32_t nq   = -1;
@@ -148,7 +148,7 @@ int getl1rec( filehandle *l1file, instr *input, int32_t iscan, int32_t dscan,
     }
 
     /* Ensure that the queue is centered on iscan                   */
-    if ( loadl1q(l1file,input,iscan, dscan) != 0 ) {
+    if ( loadl1q(l1file, input, iscan, dscan, initrec->loadl1rec) != 0 ) {
         printf("-E- %s %d: Error reading %s at scan %d.\n",
                 __FILE__,__LINE__,l1file->name,iscan);
         return(EXIT_FAILURE);

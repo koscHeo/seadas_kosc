@@ -130,46 +130,55 @@ float get_Lt_noise(float lt, int32_t iw,int32_t sensorID,float snr_fac){
     noise = make_noise(sigma);
     return noise;
 }
-int loadl1( filehandle *l1file, instr *input, l1str *l1rec)
+int loadl1( filehandle *l1file, instr *input, l1str *l1rec, loadl1str *loadl1rec)
 {
-    static double radeg = RADEG;
-    static int32_t  sensorID = -999;
-    static int32_t  *Lambda;
-    static float *Fobar;
-    static float *Tau_r;
-    static float *k_oz;
-    static float *aw;
-    static float *bbw;
-    int navfail_cnt = 0;
+    double  radeg       = loadl1rec->radeg;
+    int32_t sensorID    = loadl1rec->sensorID; 
+    int32_t *Lambda     = loadl1rec->Lambda;
+    float   *Fobar      = loadl1rec->Fobar;
+    float   *Tau_r      = loadl1rec->Tau_r;
+    float   *k_oz       = loadl1rec->k_oz;
+    float   *aw         = loadl1rec->aw;
+    float   *bbw        = loadl1rec->bbw;
+    printf("radeg: %lf \n", radeg);
+    printf("sensorID: %d \n", sensorID);
+    printf("Lambda : %p \n", Lambda);
+    printf("Fobar : %p \n", Fobar);
+    printf("Tau_r : %p \n", Tau_r);
+    printf("k_oz : %p \n", k_oz);
+    printf("aw : %p \n", aw);
+    printf("bbw : %p \n", bbw);
+    
+    int     navfail_cnt = 0;
 
     int32_t ip, ipb, ib, iw, ix;
     double  esdist;
-    int32_t    nbands   = l1rec->nbands;
+    int32_t nbands      = l1rec->nbands;
 
-    double *rvs;
-    double temp;
-    float sigma_noise = l1rec->input->add_noise_sigma;                 //
-    float snr_factor = l1rec->input->noise_scale;
+    double  *rvs;
+    double  temp;
+    float   sigma_noise = l1rec->input->add_noise_sigma;                 //
+    float   snr_factor  = l1rec->input->noise_scale;
     /* ------------------SINGLE BAND PERTURBATION--------------*/
-    int wiggle_band = l1rec->input->wiggle_band;
-    float wiggle_by = l1rec->input->wiggle_by;
+    int     wiggle_band = l1rec->input->wiggle_band;
+    float   wiggle_by   = l1rec->input->wiggle_by;
     /*-----------------------------------------------------*/
 
 
     if (sensorID != l1rec->sensorID) {
 
-        sensorID = l1rec->sensorID;
+        loadl1rec->sensorID = l1rec->sensorID;
 
         if (rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,NULL,NULL) != l1rec->nbands) {
             printf("-E- %s : Unable to read sensor file\n",__FILE__);
             exit(1);
         }
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Lambda",(void **) &Lambda);
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Fobar", (void **) &Fobar);
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Tau_r", (void **) &Tau_r);
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"k_oz",  (void **) &k_oz);
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"aw",    (void **) &aw);
-        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"bbw",   (void **) &bbw);
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Lambda",(void **) &(loadl1rec->Lambda));
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Fobar", (void **) &(loadl1rec->Fobar));
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"Tau_r", (void **) &(loadl1rec->Tau_r));
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"k_oz",  (void **) &(loadl1rec->k_oz));
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"aw",    (void **) &(loadl1rec->aw));
+        rdsensorinfo(l1rec->sensorID,l1rec->input->evalmask,"bbw",   (void **) &(loadl1rec->bbw));
 
         printf("Loading land mask file from %s\n", input->land);
         if (land_mask_init(input->land) != 0) {
