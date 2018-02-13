@@ -134,20 +134,6 @@ int loadl1( filehandle *l1file, instr *input, l1str *l1rec, loadl1str *loadl1rec
 {
     double  radeg       = loadl1rec->radeg;
     int32_t sensorID    = loadl1rec->sensorID; 
-    int32_t *Lambda     = loadl1rec->Lambda;
-    float   *Fobar      = loadl1rec->Fobar;
-    float   *Tau_r      = loadl1rec->Tau_r;
-    float   *k_oz       = loadl1rec->k_oz;
-    float   *aw         = loadl1rec->aw;
-    float   *bbw        = loadl1rec->bbw;
-    printf("radeg: %lf \n", radeg);
-    printf("sensorID: %d \n", sensorID);
-    printf("Lambda : %p \n", Lambda);
-    printf("Fobar : %p \n", Fobar);
-    printf("Tau_r : %p \n", Tau_r);
-    printf("k_oz : %p \n", k_oz);
-    printf("aw : %p \n", aw);
-    printf("bbw : %p \n", bbw);
     
     int     navfail_cnt = 0;
 
@@ -206,6 +192,13 @@ int loadl1( filehandle *l1file, instr *input, l1str *l1rec, loadl1str *loadl1rec
         elev_init(input->elevfile, input->elev_auxfile);
 
     }
+
+    int32_t *Lambda     = loadl1rec->Lambda;
+    float   *Fobar      = loadl1rec->Fobar;
+    float   *Tau_r      = loadl1rec->Tau_r;
+    float   *k_oz       = loadl1rec->k_oz;
+    float   *aw         = loadl1rec->aw;
+    float   *bbw        = loadl1rec->bbw;
 
     /* Get correction for Earth-Sun distance and apply to Fo  */
     esdist = esdist_(l1rec->year,l1rec->day,l1rec->msec);
