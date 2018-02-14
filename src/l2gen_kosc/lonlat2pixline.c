@@ -43,7 +43,7 @@ static void fixModisResolution(lonlat2pixline_t *params) {
  * Note that if a MODIS GEO file is given with a resolution of 500 or
  * 250 the pixl and line could be off by 1 or 3 respectively.
  */
-int lonlat2pixline(lonlat2pixline_t *params) {
+int lonlat2pixline(lonlat2pixline_t *params, initstr *initrec) {
 
     int32_t iscan = 0; /* input scan number                  */
     int32_t spix = 0; /* start pixel for subscene process   */
@@ -274,7 +274,7 @@ int lonlat2pixline(lonlat2pixline_t *params) {
         /* Set input defaults (e.g., calfile)				*/
         /*								*/
         msl12_input_defaults(l1file, input);
-        if (openl1(l1file) != 0) {
+        if (openl1(l1file, initrec) != 0) {
             printf("-E- lonlat2pixline: Error opening %s for reading.\n",
                     params->input_filename);
             exit(1);
@@ -533,7 +533,7 @@ int lonlat2pixline(lonlat2pixline_t *params) {
                 cornerlat[0] >= filelat[0] &&
                 cornerlat[1] <= filelat[1]) {
             params->pix_srch = 1;
-            status = lonlat2pixline(params);
+            status = lonlat2pixline(params, initrec);
             params->pix_srch = 0;
             goto bail;
         } else {
@@ -620,7 +620,7 @@ bail:
 
 int lonlat2pixline1(char *input_filename, char *geo_filename,
         int32_t resolution, float SWlon, float SWlat, float NElon, float NElat,
-        int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline) {
+        int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline, initstr *initrec) {
     int result;
     lonlat2pixline_t params;
 
@@ -634,7 +634,7 @@ int lonlat2pixline1(char *input_filename, char *geo_filename,
     params.pix_srch = 0;
     params.want_pixbox = 0;
 
-    result = lonlat2pixline(&params);
+    result = lonlat2pixline(&params, initrec);
     if (result == 0 || result == 110 || result == 120) {
         *spixl = params.spixl;
         *epixl = params.epixl;
@@ -646,7 +646,7 @@ int lonlat2pixline1(char *input_filename, char *geo_filename,
 
 int lonlat2pixline2(char *input_filename, char *geo_filename,
         int32_t resolution, float lon, float lat, int32_t dx, int32_t dy,
-        int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline) {
+        int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline, initstr *initrec) {
     int result;
     lonlat2pixline_t params;
 
@@ -660,7 +660,7 @@ int lonlat2pixline2(char *input_filename, char *geo_filename,
     params.pix_srch = 1;
     params.want_pixbox = 1;
 
-    result = lonlat2pixline(&params);
+    result = lonlat2pixline(&params, initrec);
     if (result == 0 || result == 110 || result == 120) {
         *spixl = params.spixl;
         *epixl = params.epixl;
@@ -672,7 +672,7 @@ int lonlat2pixline2(char *input_filename, char *geo_filename,
 
 int lonlat2pixline3(char *input_filename, char *geo_filename,
             int32_t resolution, float lon, float lat, 
-            int32_t *pixl, int32_t *line) {
+            int32_t *pixl, int32_t *line, initstr *initrec) {
     int result;
     lonlat2pixline_t params;
 
@@ -684,7 +684,7 @@ int lonlat2pixline3(char *input_filename, char *geo_filename,
     params.pix_srch = 1;
     params.want_pixbox = 0;
 
-    result = lonlat2pixline(&params);
+    result = lonlat2pixline(&params, initrec);
     if (result == 0 || result == 110 || result == 120) {
         *pixl = params.spixl;
         *line = params.sline;

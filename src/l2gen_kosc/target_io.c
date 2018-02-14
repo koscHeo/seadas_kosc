@@ -208,7 +208,7 @@ int32_t lonlat2bin(l3binstr *l3bin, float lon, float lat)
  * @param tgrec
  * @return
  */
-int read_target_l3(filehandle *file, l1str *l1rec, int32_t nbands, tgstr *tgrec)
+int read_target_l3(filehandle *file, l1str *l1rec, int32_t nbands, tgstr *tgrec, initstr *initrec)
 {
     static int firstCall = 1;
     static l3binstr l3bin;
@@ -238,7 +238,7 @@ int read_target_l3(filehandle *file, l1str *l1rec, int32_t nbands, tgstr *tgrec)
         l3Fonom = (float *) malloc(l1rec->nbands * sizeof(int));
         for (ib = 0; ib < l1rec->nbands; ib++) {
             wvlmatch[ib] = windex(l1rec->fwave[ib], l3wvls, nwaves);
-            get_f0_thuillier_ext(l3wvls[ib],BANDW,&l3Fonom[ib]);
+            get_f0_thuillier_ext(l3wvls[ib], BANDW, &l3Fonom[ib], initrec->f0rec );
             if (l1rec->iwave[ib] < 700){
                 nvisbands++;
             }

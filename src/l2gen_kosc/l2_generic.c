@@ -233,7 +233,7 @@ int MakeVgroups(filehandle *l2file){
 /*----------------------------------------------------------------- */
 /* Open an L2 file and store global attributes in it.               */
 /* ---------------------------------------------------------------- */
-int openl2( filehandle *l2file)   
+int openl2( filehandle *l2file, initstr *initrec)   
 {
     float  *Gain  ;
     float  *Offset;
@@ -472,7 +472,7 @@ int openl2( filehandle *l2file)
         Gain   [i] = l2file->input->gain[i];
         Offset [i] = l2file->input->offset[i];
         if (l2file->input->outband_opt >= 2) {
-            get_f0_thuillier_ext(Lambda[i],BANDW,&Fonom[i]);
+            get_f0_thuillier_ext(Lambda[i], BANDW, &Fonom[i], initrec->f0rec);
             Fonom[i] *= 10.0;
         } else {
             Fonom[i] = Fobar[i];
@@ -979,7 +979,7 @@ int openl2( filehandle *l2file)
 /* Update scan-line datasets for the specified scan.                */
 /* ---------------------------------------------------------------- */
 
-int writel2( filehandle *l2file, int32_t recnum, l2str *l2rec, int outfile_number)
+int writel2( filehandle *l2file, int32_t recnum, l2str *l2rec, int outfile_number, initstr *initrec)
 {
     static float32 *lon  = NULL;
     static float32 *lat  = NULL;
@@ -1144,10 +1144,10 @@ int writel2( filehandle *l2file, int32_t recnum, l2str *l2rec, int outfile_numbe
 
         // extract the product and scale (if needed)
         if (p->slope == 1.0 && p->offset == 0.0) {
-            pbuf = prodgen(p,l2rec);
+            pbuf = prodgen(p, l2rec, initrec);
         }
         else {
-           pbuf = scale_sds( (float *) prodgen(p,l2rec), p, 1);
+           pbuf = scale_sds( (float *) prodgen(p, l2rec, initrec), p, 1);
         }
         /* update flag counters when appropriate */
         if ( (strcmp(l2file->l2_prod_names[i],"flags_sst") == 0)) {

@@ -85,7 +85,7 @@ void applyMultiplier(float* in, float* out, int count, float multiplier) {
 /* ----------------------------------------------------------- */
 /* prodgen() - returns pointer the the requested product       */
 /* ----------------------------------------------------------- */
-VOIDP prodgen( l2prodstr *p, l2str *l2rec) 
+VOIDP prodgen( l2prodstr *p, l2str *l2rec, initstr *initrec) 
 {
     static int firstCall = 1;
 
@@ -423,7 +423,7 @@ VOIDP prodgen( l2prodstr *p, l2str *l2rec)
         pbuf =  (VOIDP) fbuf;
         break;
       case CAT_fqy:
-        get_fqy(l2rec, fbuf);
+        get_fqy(l2rec, fbuf, initrec);
         pbuf =  (VOIDP) fbuf;
         break;
       case CAT_flh:
@@ -437,7 +437,7 @@ VOIDP prodgen( l2prodstr *p, l2str *l2rec)
         pbuf =  (VOIDP) fbuf;
         break;
       case CAT_ipar:
-        get_ipar(l2rec, fbuf);
+        get_ipar(l2rec, fbuf, initrec);
         pbuf =  (VOIDP) fbuf;
         break;
       case CAT_BSi:

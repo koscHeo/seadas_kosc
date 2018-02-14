@@ -95,19 +95,19 @@ extern "C" {
      * 110=full box not extracted<BR>
      * 120=whole file extracted
      */
-    int lonlat2pixline(lonlat2pixline_t *params);
+    int lonlat2pixline(lonlat2pixline_t *params, initstr *initrec);
 
     int lonlat2pixline1(char *input_filename, char *geo_filename,
             int32_t resolution, float SWlon, float SWlat, float NElon, float NElat,
-            int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t *eline);
+            int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t *eline, initstr *initrec);
 
     int lonlat2pixline2(char *input_filename, char *geo_filename,
             int32_t resolution, float lon, float lat, int32_t dx, int32_t dy,
-            int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline);
+            int32_t *spixl, int32_t *epixl, int32_t *sline, int32_t * eline, initstr *initrec);
 
     int lonlat2pixline3(char *input_filename, char *geo_filename,
             int32_t resolution, float lon, float lat, 
-            int32_t *pixl, int32_t *line);
+            int32_t *pixl, int32_t *line, initstr *initrec);
 
 
 

@@ -179,7 +179,7 @@ void flh_modis(l2str *l2rec, float flh[]) {
  * @param l2rec
  * @param fqy
  */
-void fqy_modis(l2str *l2rec, float fqy[]) {
+void fqy_modis(l2str *l2rec, float fqy[], initstr *initrec) {
     static float badval = BAD_FLT;
     static int firstCall = 1;
     static float *ipar;
@@ -205,7 +205,7 @@ void fqy_modis(l2str *l2rec, float fqy[]) {
 
     // Compute ipar and fsat at all pixels
 
-    get_ipar(l2rec, ipar);
+    get_ipar(l2rec, ipar, initrec);
     fsat_modis(l2rec, fsat);
 
     // Compute fluorescence quantum yield for each pixel
@@ -239,11 +239,11 @@ void fqy_modis(l2str *l2rec, float fqy[]) {
  * @param l2rec
  * @param fqy
  */
-void get_fqy(l2str *l2rec, float fqy[]) {
+void get_fqy(l2str *l2rec, float fqy[], initstr *initrec) {
     switch (l2rec->sensorID) {
     case HMODISA:
     case HMODIST:
-        fqy_modis(l2rec, fqy);
+        fqy_modis(l2rec, fqy, initrec);
         break;
     default:
         printf("No fluorescence algorithm available for this sensor.\n");

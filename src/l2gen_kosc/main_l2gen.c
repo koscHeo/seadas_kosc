@@ -59,6 +59,16 @@ int main (int argc, char* argv[])
     filehandle aefile;            /* input aerosol file handle          */
     filehandle ofile[MAX_OFILES]; /* output file handles                */
 
+    initstr initrec;
+   
+    initrec.loadl1rec = (loadl1str *) malloc(sizeof(loadl1str));
+    initrec.f0rec = (f0str *) malloc(sizeof(f0str));
+    
+    initrec.loadl1rec->radeg    = RADEG;
+    initrec.loadl1rec->sensorID = -999;
+    initrec.f0rec->firstCall    = 1;
+
+
     double start_time;
     int    num_ofiles = 0;
     int32_t   i;
@@ -140,7 +150,7 @@ int main (int argc, char* argv[])
             // north, south, east and west are set
             result = lonlat2pixline1(input->ifile[0], input->geofile,
                 input->resolution, input->west, input->south, input->east, input->north,
-                &input->spixl, &input->epixl, &input->sline, &input->eline);
+                &input->spixl, &input->epixl, &input->sline, &input->eline, &initrec);
 
         } else if(input->north == -999 && input->south != -999
                 && input->east == -999 && input->west != -999
@@ -149,7 +159,7 @@ int main (int argc, char* argv[])
             // south, west, xbox, ybox are set
             result = lonlat2pixline2(input->ifile[0], input->geofile,
                 input->resolution, input->west, input->south, input->xbox, input->ybox,
-                &input->spixl, &input->epixl, &input->sline, &input->eline);
+                &input->spixl, &input->epixl, &input->sline, &input->eline, &initrec);
 
         } else {
             printf("-E- %s: set either \n", argv[0]);
@@ -187,7 +197,7 @@ int main (int argc, char* argv[])
     /*									*/
     /* Open input file and get sensor and scan information from handle. */
     /*									*/
-    if (openl1(&l1file) != 0) {
+    if (openl1(&l1file, &initrec) != 0) {
         printf("-E- %s: Error opening %s for reading.\n",
             argv[0],l1file.name);
         exit(FATAL_ERROR);
@@ -334,7 +344,7 @@ int main (int argc, char* argv[])
 
         printf("Opening L1B output file: %s\n",ofile[0].name);
 
-        if (openl1(&ofile[0]) != 0) {
+        if (openl1(&ofile[0], &initrec) != 0) {
             printf("-E- %s: Error opening %s for writing.\n",
                 argv[0],ofile[0].name);
             exit(FATAL_ERROR);
@@ -382,7 +392,7 @@ int main (int argc, char* argv[])
 	    strcpy(ofile[i].node_crossing_time, l1file.node_crossing_time);
 
             printf("Opening: %s\n",ofile[i].name);
-            if (openl2(&ofile[i]) != 0) {
+            if (openl2(&ofile[i], &initrec) != 0) {
                 printf("-E- %s: Error opening %s for writing.\n",
                     argv[0],ofile[i].name);
                 exit(FATAL_ERROR);
@@ -436,13 +446,6 @@ int main (int argc, char* argv[])
     start_time = now();
     printf("\nBegin MSl12 processing at %s\n\n", ydhmsf(start_time,'L'));
 
-    initstr initrec;
-   
-    initrec.loadl1rec = (loadl1str *) malloc(sizeof(loadl1str));
-    
-    initrec.loadl1rec->radeg    = RADEG;
-    initrec.loadl1rec->sensorID = -999;
-
     /*								        */
     /* 	Read file scan by scan, convert to L2, and write.		*/
     /*								        */
@@ -471,7 +474,7 @@ int main (int argc, char* argv[])
 
   	if (tgrec->mode == ON) {
             if (tgfile.format == FMT_L3BIN) {
-                read_target_l3(&tgfile,l1rec,l1rec->nbands,tgrec);
+                read_target_l3(&tgfile, l1rec, l1rec->nbands, tgrec, &initrec);
 	    } else {
                 if (read_target(&tgfile,iscan,tgrec) != 0) {
                     printf("-E- %s: Error reading %s at scan %d.\n",
@@ -512,7 +515,7 @@ int main (int argc, char* argv[])
 	    /*                                                          */
             for (i=0; i<num_ofiles; i++)
 	      //                if (writel2_hdf( &ofile[i], oscan, l2rec) != 0) {
-                if (writel2( &ofile[i], oscan, l2rec,i) != 0) {
+                if (writel2( &ofile[i], oscan, l2rec, i, &initrec) != 0) {
                     printf("-E- %s: error writing to %s\n",
                         argv[0],ofile[i].name);
                     exit(FATAL_ERROR);

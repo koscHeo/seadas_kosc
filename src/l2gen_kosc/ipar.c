@@ -14,7 +14,7 @@ static float  unitc = 119.625e8;  /* conversion to einsteins/m^2/s */
 /*---------------------------------------------------------------------*/
 /* get_ipar - computes ipar for each pixel in L2 record                */
 /*---------------------------------------------------------------------*/
-void get_ipar(l2str *l2rec, float ipar[])
+void get_ipar(l2str *l2rec, float ipar[], initstr *initrec)
 {
     static float badval = BAD_FLT;
     static int   firstCall = 1;
@@ -46,7 +46,7 @@ void get_ipar(l2str *l2rec, float ipar[])
         // instantaneous solar irradiance at 1-nm intervals
         for (iw=PARW1; iw<=PARW2; iw++){
             ib = iw - PARW1;
-            get_f0_thuillier_ext(iw,1,&F0vis[ib]);
+            get_f0_thuillier_ext(iw, 1, &F0vis[ib], initrec->f0rec);
             F0vis[ib] *= l2rec->fsol;
         }
 

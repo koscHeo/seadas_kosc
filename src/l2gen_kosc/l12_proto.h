@@ -87,9 +87,9 @@ extern "C" {
     int  getl1rec  (filehandle *l1file, instr *input_str, int32_t recnum, int32_t dscan,
                     l1str *l1rec, initstr *initrec);
 
-    int  loadl1    (filehandle *l1file, instr *input_str, l1str *l1rec, loadl1str *loadl1rec);
+    int  loadl1    (filehandle *l1file, instr *input_str, l1str *l1rec, initstr *initrec);
 
-    int  openl1    (filehandle *l1file);
+    int  openl1    (filehandle *l1file, initstr *initrec);
     int  readl1    (filehandle *l1file, int32_t recnum, l1str *l1rec);
     int  readl1_lonlat (filehandle *l1file, int32_t recnum, l1str *l1rec);
     int  writel1   (filehandle *l1file, int32_t recnum, l1str *l1rec);
@@ -98,12 +98,12 @@ extern "C" {
 
     int  openl1_read_hdf (filehandle *l1file);
     int  openl1_write_hdf (filehandle *l1file);
-    int  openl1_write (filehandle *l1file);
+    int  openl1_write (filehandle *l1file, initstr *initrec);
     int  writel1_hdf (filehandle *l1file, int32_t recnum, l1str *l1rec);
     void closel1_hdf (filehandle *l1file);
 
-    int  openl2    (filehandle *l2file );
-    int  writel2   (filehandle *l2file, int32_t recnum, l2str *l2rec, int outfile_number);
+    int  openl2    (filehandle *l2file, initstr *initrec);
+    int  writel2   (filehandle *l2file, int32_t recnum, l2str *l2rec, int outfile_number, initstr *initrec);
     int  closel2   (filehandle *l2file );
     void  update_flag_cnts(int32_t *flag_cnt, int32_t*flags, int32_t nflags, int32_t npix, uint32_t init_mask);
     void  update_flag_cnts16(int32_t *flag_cnt, int16_t* flags, int32_t nflags, int32_t npix, uint32_t init_mask);
@@ -240,9 +240,9 @@ extern "C" {
     void  get_flh   (l2str *l2rec, float flh[]);
     void  get_fsat  (l2str *l2rec, float flh[]);
     void  get_fsat2 (l2str *l2rec, float flh[]);
-    void  get_fqy   (l2str *l2rec, float fqy[]);
+    void  get_fqy   (l2str *l2rec, float fqy[], initstr *initrec);
     void  get_fqy2  (l2str *l2rec, float fqy[]);
-    void  get_ipar  (l2str *l2rec, float ipar[]);
+    void  get_ipar  (l2str *l2rec, float ipar[], initstr *initrec);
     void  get_ipar2  (l2str *l2rec, float ipar[]);
     void  get_depth (l2str *l2rec, float depth[]);
     void  get_par   (l2str *l2rec, float par[]);
@@ -367,7 +367,7 @@ extern "C" {
 
     int get_f0_neckel   (int32_t wl, int32_t width, float *f0);
     int get_f0_thuillier(int32_t wl, int32_t width, float *f0);
-    int get_f0_thuillier_ext(int32_t wl, int32_t width, float *f0);
+    int get_f0_thuillier_ext(int32_t wl, int32_t width, float *f0, f0str *f0rec);
 
     float32 westernmost( float32 lon1, float32 lon2 );
     float32 easternmost( float32 lon1, float32 lon2 );
@@ -448,7 +448,7 @@ extern "C" {
 
     void optical_water_type(l2str *l2rec, l2prodstr *p, void *vptr);
 
-    VOIDP prodgen( l2prodstr *p, l2str *l2rec);
+    VOIDP prodgen( l2prodstr *p, l2str *l2rec, initstr *initrec);
 
     void virtual_constellation(l2str *l2rec, l2prodstr *p, float prod[]);
     void bioOptBandShift(l2str *l2rec,l2prodstr *p, float prod[]);
@@ -460,7 +460,7 @@ extern "C" {
     void elev_init(char* elevFilename, char* elevAuxFilename);
     float get_elev(float lat, float lon);
 
-    int read_target_l3(filehandle *file, l1str *l1rec, int32_t nbands, tgstr *tgrec);
+    int read_target_l3(filehandle *file, l1str *l1rec, int32_t nbands, tgstr *tgrec, initstr *initrec);
     int anc_acq_init( instr *, int32_t * );
     int32_t anc_acq_ck( char **, char **, int, int32_t );
     int anc_acq_lin( int32_t, l1str * );

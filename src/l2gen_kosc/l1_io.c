@@ -154,7 +154,7 @@ void closel1(filehandle *l1file)
 /* from file header. At a minimum, the name and format fields of    */
 /* file handle must be loaded before this function is called.       */
 /* ---------------------------------------------------------------- */
-int openl1(filehandle *l1file)
+int openl1(filehandle *l1file, initstr *initrec)
 {
     int status = 1;
     int32_t *wave;
@@ -289,7 +289,7 @@ int openl1(filehandle *l1file)
         switch (l1file->format) {
             case FMT_L1HDF: 
             case FMT_L1BNCDF: 
-                status = openl1_write(l1file);
+                status = openl1_write(l1file, initrec);
                 break;
             default:
                 printf("Unknown L1 output file format specifier: %d\n",

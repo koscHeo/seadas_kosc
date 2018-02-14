@@ -130,8 +130,10 @@ float get_Lt_noise(float lt, int32_t iw,int32_t sensorID,float snr_fac){
     noise = make_noise(sigma);
     return noise;
 }
-int loadl1( filehandle *l1file, instr *input, l1str *l1rec, loadl1str *loadl1rec)
+int loadl1( filehandle *l1file, instr *input, l1str *l1rec, initstr *initrec)
 {
+    loadl1str *loadl1rec = initrec->loadl1rec;
+    
     double  radeg       = loadl1rec->radeg;
     int32_t sensorID    = loadl1rec->sensorID; 
     
@@ -215,7 +217,7 @@ int loadl1( filehandle *l1file, instr *input, l1str *l1rec, loadl1str *loadl1rec
         l1rec->Fobar [iw] = Fobar [iw];
         l1rec->Fo    [iw] = l1rec->Fobar[iw] * l1rec->fsol;
 
-        get_f0_thuillier_ext(l1rec->iwave[iw],BANDW,&l1rec->Fonom[iw]);
+        get_f0_thuillier_ext(l1rec->iwave[iw], BANDW, &l1rec->Fonom[iw], initrec->f0rec);
     }
 
     /* Apply vicarious cross-calibration gains */

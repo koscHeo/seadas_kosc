@@ -170,7 +170,7 @@ int MakeVgroupsL1(filehandle *file) {
 /* -------------------------------------------------------- */
 /* Open an HDF file and store global attributes in it.      */
 /* -------------------------------------------------------- */
-int openl1_write(filehandle *l1file) {
+int openl1_write(filehandle *l1file, initstr *initrec) {
     char *name = l1file->name;
     int32_t nbands = (int32_t) l1file->nbands;
     int32_t npix = (int32_t) l1file->npix;
@@ -332,7 +332,7 @@ int openl1_write(filehandle *l1file) {
         Gain[i] = l1file->input->gain[i];
         Offset[i] = l1file->input->offset[i];
         if (l1file->input->outband_opt >= 2) {
-            get_f0_thuillier_ext(Lambda[i], BANDW, &Fonom[i]);
+            get_f0_thuillier_ext(Lambda[i], BANDW, &Fonom[i], initrec->f0rec);
             Fonom[i] *= 10.0;
         } else {
             Fonom[i] = Fobar[i];
