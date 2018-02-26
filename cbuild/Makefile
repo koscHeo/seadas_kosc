@@ -546,6 +546,19 @@ vcalmerge/fast:
 .PHONY : vcalmerge/fast
 
 #=============================================================================
+# Target rules for targets named l2gen_kosc
+
+# Build rule for target.
+l2gen_kosc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 l2gen_kosc
+.PHONY : l2gen_kosc
+
+# fast build rule for target.
+l2gen_kosc/fast:
+	$(MAKE) -f src/l2gen_kosc/CMakeFiles/l2gen_kosc.dir/build.make src/l2gen_kosc/CMakeFiles/l2gen_kosc.dir/build
+.PHONY : l2gen_kosc/fast
+
+#=============================================================================
 # Target rules for targets named l2brsgen
 
 # Build rule for target.
@@ -952,6 +965,7 @@ help:
 	@echo "... l3gen"
 	@echo "... lonlat2pixline"
 	@echo "... vcalmerge"
+	@echo "... l2gen_kosc"
 	@echo "... l2brsgen"
 	@echo "... l2bin"
 	@echo "... l3bin"
