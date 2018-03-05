@@ -47,12 +47,18 @@ int main (int argc, char* argv[])
     int32_t   sscan    = 0;          /* start scan for subscene process    */
     int32_t   escan    = -1;         /* end scan for subscene process      */
     int32_t   dscan    = 1;          /* scan subsampling increment         */
+    int32_t   nline    = 100;
 
     l1str   *l1rec;                /* generic level-1b scan structure    */
     l2str   *l2rec;                /* generic level-2  scan structure    */
     tgstr   *tgrec;                /* structure to store target values   */
     aestr   *aerec;                /* structure to store aerosol values  */
     instr   *input;                /* input parameters structure         */
+
+    l1str_n  *l1rec_n;
+    L2str_n  *l2rec_n;
+    tgstr_n  *tgrec_n;
+    aestr_n  *aerec_n;
 
     filehandle l1file;            /* input l1 file handle               */
     filehandle tgfile;            /* input target file handle           */
@@ -101,6 +107,17 @@ int main (int argc, char* argv[])
         printf("-E- %s %d: Error allocating data structures.\n",__FILE__, __LINE__);
         exit(FATAL_ERROR);
     }
+    // allocate structures for n-lines
+    l1rec_n = (l1str*) malloc(sizeof(l1str_n));
+    l2rec_n = (l2str*) malloc(sizeof(l2str_n));
+    tgrec_n = (tgstr*) malloc(sizeof(tgstr_n));
+    aerec_n = (aestr*) malloc(sizeof(aestr_n));
+    if(!l1rec_n || !l2rec_n || !tgrec_n || !aerec_n) {
+        printf("-E- %s %d: Error allocating data structures for n-lines.\n",__FILE__, __LINE__);
+        exit(FATAL_ERROR);
+    }
+
+
 
     /* Initialize file handles */
     cdata_();
@@ -472,8 +489,8 @@ int main (int argc, char* argv[])
                         argv[0],tgfile.name,iscan);
                     exit(FATAL_ERROR);
                 }
-	    }
         }
+    }
 
         /*                                                              */
 	/* Convert the L1B radiances to L2                              */
