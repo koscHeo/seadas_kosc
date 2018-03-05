@@ -1,5 +1,5 @@
-#ifndef _L1_STRUC_H
-#define _L1_STRUC_H
+#ifndef _L1_STRUC_N_H
+#define _L1_STRUC_N_H
 
 #include <stdint.h>
 
@@ -10,7 +10,7 @@
 /* Notice: any changes to this structure may require modifications to the */
 /* following routines: alloc_l1.c, cpl1rec.c, l1subpix.c.                 */
 
-typedef struct l1_nstruct {
+typedef struct l1_struct_n {
 
     int32_t   sensorID;      
     int32_t   length;     /* number of bytes allocated to data block */
@@ -170,7 +170,7 @@ typedef struct l1_nstruct {
 
     instr  *input;
 
-} l1nstr;
+} l1str_n;
 
 #endif
 

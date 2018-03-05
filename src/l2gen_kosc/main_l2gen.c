@@ -56,7 +56,7 @@ int main (int argc, char* argv[])
     instr   *input;                /* input parameters structure         */
 
     l1str_n  *l1rec_n;
-    L2str_n  *l2rec_n;
+    l2str_n  *l2rec_n;
     tgstr_n  *tgrec_n;
     aestr_n  *aerec_n;
 
@@ -108,10 +108,10 @@ int main (int argc, char* argv[])
         exit(FATAL_ERROR);
     }
     // allocate structures for n-lines
-    l1rec_n = (l1str*) malloc(sizeof(l1str_n));
-    l2rec_n = (l2str*) malloc(sizeof(l2str_n));
-    tgrec_n = (tgstr*) malloc(sizeof(tgstr_n));
-    aerec_n = (aestr*) malloc(sizeof(aestr_n));
+    l1rec_n = (l1str_n*) malloc(sizeof(l1str_n));
+    l2rec_n = (l2str_n*) malloc(sizeof(l2str_n));
+    tgrec_n = (tgstr_n*) malloc(sizeof(tgstr_n));
+    aerec_n = (aestr_n*) malloc(sizeof(aestr_n));
     if(!l1rec_n || !l2rec_n || !tgrec_n || !aerec_n) {
         printf("-E- %s %d: Error allocating data structures for n-lines.\n",__FILE__, __LINE__);
         exit(FATAL_ERROR);
@@ -274,6 +274,30 @@ int main (int argc, char* argv[])
     if (tgrec->mode == ON) {
 
        if (alloc_target(npix,input->nbands,tgrec) == 0) {
+            printf("-E- %s: Unable to allocate target record.\n",argv[0]);
+            exit( FATAL_ERROR );
+       }
+    }
+
+    /*								                                 	*/
+    /* Allocate memory for L1 and L2 scan data and opional input recs	*/
+    /*      			         for n-lines		                	*/
+    if ( alloc_l1_n(nline, npix, input->nbands, NBANDSIR, l1file.n_inprods, l1rec) == 0 ) {
+        printf("-E- %s: Unable to allocate L1(n-lines) record.\n",argv[0]);
+        exit( FATAL_ERROR );
+    }
+    if ( alloc_l2_n(nline, npix, input->nbands, l2rec) == 0 ) {
+        printf("-E- %s: Unable to allocate L2(n-lines) record.\n",argv[0]);
+        exit( FATAL_ERROR );
+    }
+    if (aerec->mode == ON) {
+        if ( alloc_aer_n(nline, npix, input->nbands, aerec) == 0 ) {
+            printf("-E- %s: Unable to allocate aerfile(n-line) record.\n",argv[0]);
+            exit( FATAL_ERROR );
+        }
+    }
+    if (tgrec->mode == ON) {
+       if (alloc_target_n(nline, npix, input->nbands, tgrec) == 0) {
             printf("-E- %s: Unable to allocate target record.\n",argv[0]);
             exit( FATAL_ERROR );
        }

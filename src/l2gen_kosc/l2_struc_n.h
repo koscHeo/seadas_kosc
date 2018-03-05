@@ -1,12 +1,12 @@
-#ifndef _L2_STRUC_H
-#define _L2_STRUC_H
+#ifndef _L2_STRUC_N_H
+#define _L2_STRUC_N_H
 
 #include "input_struc.h"
 #include "target_struc.h"
 #include "filehandle.h"
 #include "hdf.h"
 
-typedef struct l2_struct {
+typedef struct l2_struct_n {
     int32_t   sensorID;
     int32_t   length;
     int32_t   npix;
@@ -131,7 +131,7 @@ typedef struct l2_struct {
     
     float *Rrs_raman;
 
-} l2str;
+} l2str_n;
 
 #endif
 

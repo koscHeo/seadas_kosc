@@ -225,6 +225,10 @@ add_executable(l2gen_kosc
   numerical.c
   raman.c
   get_psd_ksm.c
+  alloc_l1_n.c
+  alloc_l2_n.c
+  alloc_aer_n.c
+  alloc_target_n.c
 )
 
 include_directories (

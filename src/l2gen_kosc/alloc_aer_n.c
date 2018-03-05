@@ -8,12 +8,12 @@
 /* alloc_aer() - allocates 1 aerosol record to hold data     */
 /*              for a single scan of "npix" pixels.          */
 /* --------------------------------------------------------- */
-int alloc_aer_n( int32_t npix, int32_t nbands, aestr *rec )
+int alloc_aer_n( int32_t nline, int32_t npix, int32_t nbands, aestr *rec )
 {
      char *p;
-     int32_t len = 2*sizeof(int32_t)*npix          /* model #      */
-              + 1*sizeof(float)*npix         /* model ratio  */
-              + 1*nbands*sizeof(float)*npix; /* taua         */
+     int32_t len = 2*sizeof(int32_t)*nline*npix          /* model #      */
+              + 1*sizeof(float)*nline*npix         /* model ratio  */
+              + 1*nbands*sizeof(float)*nline*npix; /* taua         */
 
      if ((p = (char *) malloc(len)) == NULL) {
          fprintf(stderr,
@@ -27,10 +27,10 @@ int alloc_aer_n( int32_t npix, int32_t nbands, aestr *rec )
      rec->npix   = npix;
      rec->data   = p;
 
-     rec->mod_min = (int32_t   *) p;  p += sizeof(int32_t) *npix;
-     rec->mod_max = (int32_t   *) p;  p += sizeof(int32_t) *npix; 
-     rec->mod_rat = (float  *) p;  p += sizeof(float)*npix;
-     rec->taua    = (float  *) p;  p += sizeof(float)*npix*nbands;
+     rec->mod_min = (int32_t   *) p;  p += sizeof(int32_t)*nline*npix;
+     rec->mod_max = (int32_t   *) p;  p += sizeof(int32_t)*nline*npix; 
+     rec->mod_rat = (float  *) p;  p += sizeof(float)*nline*npix;
+     rec->taua    = (float  *) p;  p += sizeof(float)*nline*npix*nbands;
 
      return(len);
 }

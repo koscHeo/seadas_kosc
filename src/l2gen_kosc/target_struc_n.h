@@ -1,7 +1,7 @@
-#ifndef _TARGET_STRUC_H
-#define _TARGET_STRUC_H
+#ifndef _TARGET_STRUC_N_H
+#define _TARGET_STRUC_N_H
 
-typedef struct target_struct {
+typedef struct target_struct_n {
     int32_t   sensorID;
     int32_t   length;
     int32_t   npix;
@@ -13,7 +13,7 @@ typedef struct target_struct {
     float  *solz;
     float  *Lw;
     float  *nLw;
-} tgstr;
+} tgstr_n;
 
 #endif
 
