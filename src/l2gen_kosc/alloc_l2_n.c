@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "l2_struc.h"
+#include "l2_struc_n.h"
 #include "l12_parms.h"
 
-void free_l2_n( l2str *l2rec )
+void free_l2_n( l2str_n *l2rec )
 {
      free((void *) l2rec->data);
 }
@@ -14,7 +14,7 @@ void free_l2_n( l2str *l2rec )
 /* alloc_l2() - allocates 1 level-2 record to hold data for  */
 /*              a single scan of "npix" pixels.              */
 /* --------------------------------------------------------- */
-int alloc_l2_n( int32_t nline,  int32_t npix, int32_t nbands, l2str *l2rec )
+int alloc_l2_n( int32_t nline,  int32_t npix, int32_t nbands, l2str_n *l2rec )
 {
      char *p;
      int32_t len =  3*sizeof(int32_t ) 

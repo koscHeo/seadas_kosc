@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "target_struc.h"
+#include "target_struc_n.h"
 #include "l12_parms.h"
 
 /* --------------------------------------------------------- */
 /* alloc_target() - allocates 1 target record to hold data   */
 /*              for a single scan of "npix" pixels.          */
 /* --------------------------------------------------------- */
-int alloc_target_n( int32_t nline, int32_t npix, int32_t nbands, tgstr *rec )
+int alloc_target_n( int32_t nline, int32_t npix, int32_t nbands, tgstr_n *rec )
 {
      char *p;
      int32_t len = 3*sizeof(int32_t)               /* time   */

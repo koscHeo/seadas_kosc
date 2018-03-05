@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "aer_struc.h"
+#include "aer_struc_n.h"
 #include "l12_parms.h"
 
 /* --------------------------------------------------------- */
 /* alloc_aer() - allocates 1 aerosol record to hold data     */
 /*              for a single scan of "npix" pixels.          */
 /* --------------------------------------------------------- */
-int alloc_aer_n( int32_t nline, int32_t npix, int32_t nbands, aestr *rec )
+int alloc_aer_n( int32_t nline, int32_t npix, int32_t nbands, aestr_n *rec )
 {
      char *p;
      int32_t len = 2*sizeof(int32_t)*nline*npix          /* model #      */
