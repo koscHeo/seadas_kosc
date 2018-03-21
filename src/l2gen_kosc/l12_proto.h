@@ -46,10 +46,6 @@ extern "C" {
 #include "navigation.h"
 #include "read_l3bin.h"
 #include "par_utils.h"
-#include "l1_struc_n.h"
-#include "l2_struc_n.h"
-#include "aer_struc_n.h"
-#include "target_struc_n.h"
 
 #ifndef MAX
 #define MAX(A,B)    ((A) > (B) ? (A) : (B))  /* Greater of (A,B) */
@@ -133,12 +129,14 @@ extern "C" {
     int32_t alloc_target( int32_t npix, int32_t nbands, tgstr *tgrec);
     int32_t alloc_aer( int32_t npix, int32_t nbands, aestr *aerec);
     
-    int32_t alloc_l1_n(int32_t nline, int32_t npix, int32_t nbands, int32_t nbandsir, int32_t n_inprods, l1str_n *l1rec);
-    void free_l1_n(l1str_n *l1rec );
-    int32_t alloc_l2_n(int32_t nline, int32_t npix, int32_t nbands, l2str_n *l2rec);
-    void free_l2_n(l2str_n *l2rec );
-    int32_t alloc_target_n(int32_t nline, int32_t npix, int32_t nbands, tgstr_n *tgrec);
-    int32_t alloc_aer_n(int32_t nline, int32_t npix, int32_t nbands, aestr_n *aerec);
+    int32_t alloc_l1_n(int32_t nline, int32_t npix, int32_t nbands, int32_t nbandsir, int32_t n_inprods, l1str *l1rec_n);
+    void free_l1_n(l1str *l1rec_n);
+    int32_t alloc_l2_n(int32_t nline, int32_t npix, int32_t nbands, l2str *l2rec_n);
+    void free_l2_n(l2str *l2rec_n);
+    int32_t alloc_target_n(int32_t nline, int32_t npix, int32_t nbands, tgstr *tgrec_n);
+    void free_target_n(tgstr *tgrec_n);
+    int32_t alloc_aer_n(int32_t nline, int32_t npix, int32_t nbands, aestr *aerec_n);
+    void free_aer_n(aestr *aerec_n);
 
     void init_l2prod();
     l2prodstr *get_l2prod_index(char *name, int32 sensorID, int32 numBands, int32 numPixels,

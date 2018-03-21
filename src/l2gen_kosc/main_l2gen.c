@@ -32,6 +32,7 @@
 #include "l12_proto.h"
 #include "lonlat2pixline.h"
 #include "version.h"
+#include <omp.h>
 
 /* -------------------------------------------------------------------- */
 /*                            main                                      */
@@ -47,7 +48,8 @@ int main (int argc, char* argv[])
     int32_t   sscan    = 0;          /* start scan for subscene process    */
     int32_t   escan    = -1;         /* end scan for subscene process      */
     int32_t   dscan    = 1;          /* scan subsampling increment         */
-    int32_t   nline    = 100;
+    int32_t   nline    = 200;
+    int32_t   block    = 0;
 
     l1str   *l1rec;                /* generic level-1b scan structure    */
     l2str   *l2rec;                /* generic level-2  scan structure    */
@@ -55,10 +57,10 @@ int main (int argc, char* argv[])
     aestr   *aerec;                /* structure to store aerosol values  */
     instr   *input;                /* input parameters structure         */
 
-    l1str_n  *l1rec_n;
-    l2str_n  *l2rec_n;
-    tgstr_n  *tgrec_n;
-    aestr_n  *aerec_n;
+    l1str  *l1rec_n;
+    l2str  *l2rec_n;
+    tgstr  *tgrec_n;
+    aestr  *aerec_n;
 
     filehandle l1file;            /* input l1 file handle               */
     filehandle tgfile;            /* input target file handle           */
@@ -109,10 +111,10 @@ int main (int argc, char* argv[])
     }
 
     // allocate structures for n-lines
-    l1rec_n = (l1str_n*) malloc(sizeof(l1str_n));
-    l2rec_n = (l2str_n*) malloc(sizeof(l2str_n));
-    tgrec_n = (tgstr_n*) malloc(sizeof(tgstr_n));
-    aerec_n = (aestr_n*) malloc(sizeof(aestr_n));
+    l1rec_n = (l1str *) malloc( sizeof(l1str) * nline );
+    l2rec_n = (l2str *) malloc( sizeof(l2str) * nline );
+    tgrec_n = (tgstr *) malloc( sizeof(tgstr) * nline );
+    aerec_n = (aestr *) malloc( sizeof(aestr) * nline );
     if(!l1rec_n || !l2rec_n || !tgrec_n || !aerec_n) {
         printf("-E- %s %d: Error allocating data structures for n-lines.\n",__FILE__, __LINE__);
         exit(FATAL_ERROR);
@@ -437,14 +439,16 @@ int main (int argc, char* argv[])
     /*								        */
     /* Transfer any additional header info to the record headers	*/
     /*								        */
-    l2rec->sensorID  = l1file.sensorID;
-    l2rec->nbands    = l1file.nbands;
-    l2rec->nbandsir  = l1file.nbandsir;
-    l2rec->bindx     = l1file.bindx;
-    l2rec->ndets     = l1file.ndets;
-    l2rec->input     = input;
-    l2rec->fileInfo  = &l1file;
-    l2rec->nscans    = ofile[i].nscan;
+    for (i=0; i<nline; i++) {
+        l2rec_n[i].sensorID  = l1file.sensorID;
+        l2rec_n[i].nbands    = l1file.nbands;
+        l2rec_n[i].nbandsir  = l1file.nbandsir;
+        l2rec_n[i].bindx     = l1file.bindx;
+        l2rec_n[i].ndets     = l1file.ndets;
+        l2rec_n[i].input     = input;
+        l2rec_n[i].fileInfo  = &l1file;
+        l2rec_n[i].nscans    = ofile[0].nscan;
+    }
 
     printf("\n\nBegin %s Version %d.%d.%d-r%d Processing\n",PROGRAM,L2GEN_VERSION_MAJOR,L2GEN_VERSION_MINOR, L2GEN_VERSION_PATCH_LEVEL,SVN_REVISION);
     printf("Sensor is %s\n",sensorName[l1file.sensorID]);
@@ -480,175 +484,268 @@ int main (int argc, char* argv[])
     printf("\nBegin MSl12 processing at %s\n\n", ydhmsf(start_time,'L'));
 
 
-    /*								        */
-    /* 	Read file scan by scan, convert to L2, and write.		*/
-    /*								        */
-    for (iscan=sscan, oscan=0; iscan<=escan; iscan+=dscan, oscan++) {
+    int32_t left_line = escan;
+    int32_t start_index;
+    int32_t index;
+    for (start_index = 0; start_index <= escan; start_index += nline) {
 
-        /*                                                              */
-        /* This call returns the specified record, but it internally    */
-        /* buffers enough records to facilitate L1B filtering.          */
-        /*                                                              */
-        if (getl1rec(&l1file,input,iscan,dscan,l1rec) != 0) {
-            exit(FATAL_ERROR);
-        }
+        left_line -= nline;
 
-        if ((oscan % 50) == 0)
-            printf("Processing scan #%6d (%d of %d) after %6.0f seconds\n",
-                    iscan,iscan-sscan+1,escan-sscan+1,
-                    now()-start_time);
+        if (left_line > 0)
+            block = nline;
+        else
+            block = nline -abs(left_line) + 1;
 
-        if (aerec->mode == ON) {
-            if (read_aer(&aefile,iscan,aerec) != 0) {
-                printf("-E- %s: Error reading %s at scan %d.\n",
-                        argv[0],aefile.name,iscan);
+        sscan = start_index;
+        /*								        */
+        /* 	Read file scan by scan, convert to L2, and write.		*/
+        /*								        */
+        for (index = 0; index < block; index += dscan) {
+
+            iscan = sscan + index;
+            oscan = iscan;
+
+            /*                                                              */
+            /* This call returns the specified record, but it internally    */
+            /* buffers enough records to facilitate L1B filtering.          */
+            /*                                                              */
+            if (getl1rec(&l1file, input, iscan, dscan, &l1rec_n[index]) != 0) {
                 exit(FATAL_ERROR);
             }
-        }
 
-        if (tgrec->mode == ON) {
-            if (tgfile.format == FMT_L3BIN) {
-                read_target_l3(&tgfile,l1rec,l1rec->nbands,tgrec);
-            } else {
-                if (read_target(&tgfile,iscan,tgrec) != 0) {
+            if ((oscan % 100) == 0)
+                printf("Processing scan #%6d (%d of %d) after %6.0f seconds\n",
+                        iscan, iscan+1, escan+1,
+                        now()-start_time);
+
+            if (aerec->mode == ON) {
+                if (read_aer(&aefile, iscan, &aerec_n[index]) != 0) {
                     printf("-E- %s: Error reading %s at scan %d.\n",
-                            argv[0],tgfile.name,iscan);
+                            argv[0],aefile.name,iscan);
                     exit(FATAL_ERROR);
                 }
             }
-        }
 
-        /*                                                              */
-        /* Convert the L1B radiances to L2                              */
-        /*                                                              */
-        convl12( l1rec, l2rec, 0, l1rec->npix-1, input, aerec );
-
-        if (input->mode != FORWARD) {
-
-            /*                                                          */
-            /* Recalibration mode. Read target nLw's for this scan and  */
-            /* copy into L2 record.  Then reconstruct L1 radiances      */
-            /* using the target nLw's and the components of the         */
-            /* previous atmospheric correction.                         */
-            /*                                                          */
-            convl21( l2rec, tgrec, 0, l1rec->npix-1, input, l1rec->Lt, NULL);
-
-            /*                                                          */
-            /* Write the new L1B record to output file.                 */
-            /*                                                          */
-            if (writel1( &ofile[0], oscan, l1rec) != 0) {
-                printf("-E- %s: error writing to %s\n",
-                        argv[0],ofile[0].name);
-                exit(FATAL_ERROR);
+            if (tgrec->mode == ON) {
+                if (tgfile.format == FMT_L3BIN) {
+                    read_target_l3(&tgfile, &l1rec_n[index], l1rec_n[index].nbands, &tgrec_n[index]);
+                } else {
+                    if (read_target(&tgfile, iscan, &tgrec_n[index]) != 0) {
+                        printf("-E- %s: Error reading %s at scan %d.\n",
+                                argv[0],tgfile.name,iscan);
+                        exit(FATAL_ERROR);
+                    }
+                }
             }
 
-        } else {
+        }
 
-            /*                                                          */
-            /* Forward mode. Write output record to file(s).            */
-            /*                                                          */
-            for (i=0; i<num_ofiles; i++)
-                //                if (writel2_hdf( &ofile[i], oscan, l2rec) != 0) {
-                if (writel2( &ofile[i], oscan, l2rec,i) != 0) {
+
+        if(sscan == 0) {
+            
+            index = 0;
+
+            iscan = sscan + index;
+            oscan = iscan;
+            /*                                                              */
+            /* Convert the L1B radiances to L2                              */
+            /*                                                              */
+            convl12( &l1rec_n[index], &l2rec_n[index], 0, l1rec_n[index].npix-1, input, &aerec_n[index] );
+
+            if (input->mode != FORWARD) {
+
+                /*                                                          */
+                /* Recalibration mode. Read target nLw's for this scan and  */
+                /* copy into L2 record.  Then reconstruct L1 radiances      */
+                /* using the target nLw's and the components of the         */
+                /* previous atmospheric correction.                         */
+                /*                                                          */
+                convl21( &l2rec_n[index], &tgrec_n[index], 0, l1rec_n[index].npix-1, input, l1rec_n[index].Lt, NULL);
+
+                /*                                                          */
+                /* Write the new L1B record to output file.                 */
+                /*                                                          */
+                if (writel1( &ofile[0], oscan, &l1rec_n[index]) != 0) {
                     printf("-E- %s: error writing to %s\n",
-                            argv[0],ofile[i].name);
+                            argv[0],ofile[0].name);
                     exit(FATAL_ERROR);
                 }
 
+            } else {
 
+                /*                                                          */
+                /* Forward mode. Write output record to file(s).            */
+                /*                                                          */
+                for (i=0; i<num_ofiles; i++) {
+                    if (writel2( &ofile[i], oscan, &l2rec_n[index], i) != 0) {
+                        printf("-E- %s: error writing to %s\n",
+                                argv[0],ofile[i].name);
+                        exit(FATAL_ERROR);
+                    }
+                }
+
+            }
+
+            sscan=1;
+            block=block-1;
         }
 
-        }
+        double start_t = now();
 
-        printf("\nEnd MSl12 processing at %s\n", ydhmsf(now(),'L'));
-        printf("Processing Rate = %f scans/sec\n\n", ofile[0].nscan/(now()-start_time));
+#pragma omp parallel for firstprivate(iscan, oscan, i) num_threads(32)
+        for (index = 0; index < block; index += dscan) {
 
-        /*                                                                  */
-        /* Write SeaWifs-specific data if appropriate                       */
-        /*                                                                  */
-        if (l1file.sensorID == SEAWIFS &&
-                (l1file.format == FMT_SEAWIFSL1A || l1file.format == FMT_L1HDF) &&
-                (ofile[0].format == FMT_L2HDF || ofile[0].format == FMT_L1HDF)) {
-            printf("Writing SeaWiFS-specific meta-data\n");
+            iscan = sscan + index;
+            oscan = iscan;
 
-            unsigned char genBuf[8192];
+            printf("index-iscan-(thread number) : %d-%d-(%d) \n", index, iscan, omp_get_thread_num());
 
-            bzero(genBuf, sizeof(genBuf));
-            PTB(getHDFattr(l1file.sd_id, "Mission", "", (VOIDP) &genBuf));
-            for (i=0; i<num_ofiles; i++)
-                PTB(sd_setattr(ofile[i].sd_id, "Mission", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+            /*                                                              */
+            /* Convert the L1B radiances to L2                              */
+            /*                                                              */
+            convl12( &l1rec_n[index], &l2rec_n[index], 0, l1rec_n[index].npix-1, input, &aerec_n[index] );
 
-            bzero(genBuf, sizeof(genBuf));
-            PTB(getHDFattr(l1file.sd_id, "Mission Characteristics", "", (VOIDP) &genBuf));
-            for (i=0; i<num_ofiles; i++)
-                PTB(sd_setattr(ofile[i].sd_id, "Mission Characteristics", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+            if (input->mode != FORWARD) {
 
-            bzero(genBuf, sizeof(genBuf));
-            PTB(getHDFattr(l1file.sd_id, "Sensor", "", (VOIDP) &genBuf));
-            for (i=0; i<num_ofiles; i++)
-                PTB(sd_setattr(ofile[i].sd_id, "Sensor", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+                /*                                                          */
+                /* Recalibration mode. Read target nLw's for this scan and  */
+                /* copy into L2 record.  Then reconstruct L1 radiances      */
+                /* using the target nLw's and the components of the         */
+                /* previous atmospheric correction.                         */
+                /*                                                          */
+                convl21( &l2rec_n[index], &tgrec_n[index], 0, l1rec_n[index].npix-1, input, l1rec_n[index].Lt, NULL);
 
-            bzero(genBuf, sizeof(genBuf));
-            PTB(getHDFattr(l1file.sd_id, "Sensor Characteristics", "", (VOIDP) &genBuf));
-            for (i=0; i<num_ofiles; i++)
-                PTB(sd_setattr(ofile[i].sd_id, "Sensor Characteristics", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+                /*                                                          */
+                /* Write the new L1B record to output file.                 */
+                /*                                                          */
+                if (writel1( &ofile[0], oscan, &l1rec_n[index]) != 0) {
+                    printf("-E- %s: error writing to %s\n",
+                            argv[0],ofile[0].name);
+                    exit(FATAL_ERROR);
+                }
 
-            bzero(genBuf, sizeof(genBuf));
-            PTB(getHDFattr(l1file.sd_id, "Data Type", "", (VOIDP) &genBuf));
-            for (i=0; i<num_ofiles; i++)
-                PTB(sd_setattr(ofile[i].sd_id, "Data Type", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+            } else {
 
-            int32 l1a_spixl, l1a_dpixl;
-            PTB(getHDFattr(l1file.sd_id, "LAC Pixel Start Number", "", (VOIDP) &l1a_spixl));
-            PTB(getHDFattr(l1file.sd_id, "LAC Pixel Subsampling", "",  (VOIDP) &l1a_dpixl));
-
-            int32 spixl = (l1a_dpixl * spix) + l1a_spixl;
-            int32 dpixl = l1a_dpixl * dpix;
-
-            for (i=0; i<num_ofiles; i++) {
-                PTB(sd_setattr( ofile[i].sd_id, "LAC Pixel Start Number", DFNT_INT32, 1, (VOIDP) &spixl) );
-                PTB(sd_setattr( ofile[i].sd_id, "LAC Pixel Subsampling", DFNT_INT32, 1,  (VOIDP) &dpixl) );
+                /*                                                          */
+                /* Forward mode. Write output record to file(s).            */
+                /*                                                          */
+/*
+#pragma omp critical(writel2)
+{
+                for (i=0; i<num_ofiles; i++) {
+                    if (writel2( &ofile[i], oscan, &l2rec_n[index], i) != 0) {
+                        printf("-E- %s: error writing to %s\n",
+                                argv[0],ofile[i].name);
+                        exit(FATAL_ERROR);
+                    }
+                }
+}               
+*/
             }
 
         }
 
-        /*                                                                  */
-        /* Close all files                                                  */
-        /*                                                                  */
+        printf("section time : %6.0f \n", now() - start_t);
 
-        closel1(&l1file);
-
-        if (input->mode != FORWARD) {
-            closel1(&ofile[0]);
-            /*
-               if (input->mode != INVERSE_ZERO)
-               close_target();
-               */
-        } else
-            for (i=0; i<num_ofiles; i++)
-                closel2(&ofile[i]);
-
-        free_l1(l1rec);
-        free_l2(l2rec);
-        free_l1q();
-        free_deminfo();
-
-        // free structures
-        free(l1rec);
-        free(l2rec);
-        free(tgrec);
-        free(aerec);
-        free(input);
-        
-        // free structures (n-lines)
-        free(l1rec_n);
-        free(l2rec_n);
-        free(tgrec_n);
-        free(aerec_n);
-
-        printf("\nProcessing Completed\n");
-
-        return(SUCCESS);
     }
+
+
+    printf("\nEnd MSl12 processing at %s\n", ydhmsf(now(),'L'));
+    printf("Processing Rate = %f scans/sec\n\n", ofile[0].nscan/(now()-start_time));
+
+    /*                                                                  */
+    /* Write SeaWifs-specific data if appropriate                       */
+    /*                                                                  */
+    if (l1file.sensorID == SEAWIFS &&
+            (l1file.format == FMT_SEAWIFSL1A || l1file.format == FMT_L1HDF) &&
+            (ofile[0].format == FMT_L2HDF || ofile[0].format == FMT_L1HDF)) {
+        printf("Writing SeaWiFS-specific meta-data\n");
+
+        unsigned char genBuf[8192];
+
+        bzero(genBuf, sizeof(genBuf));
+        PTB(getHDFattr(l1file.sd_id, "Mission", "", (VOIDP) &genBuf));
+        for (i=0; i<num_ofiles; i++)
+            PTB(sd_setattr(ofile[i].sd_id, "Mission", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+
+        bzero(genBuf, sizeof(genBuf));
+        PTB(getHDFattr(l1file.sd_id, "Mission Characteristics", "", (VOIDP) &genBuf));
+        for (i=0; i<num_ofiles; i++)
+            PTB(sd_setattr(ofile[i].sd_id, "Mission Characteristics", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+
+        bzero(genBuf, sizeof(genBuf));
+        PTB(getHDFattr(l1file.sd_id, "Sensor", "", (VOIDP) &genBuf));
+        for (i=0; i<num_ofiles; i++)
+            PTB(sd_setattr(ofile[i].sd_id, "Sensor", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+
+        bzero(genBuf, sizeof(genBuf));
+        PTB(getHDFattr(l1file.sd_id, "Sensor Characteristics", "", (VOIDP) &genBuf));
+        for (i=0; i<num_ofiles; i++)
+            PTB(sd_setattr(ofile[i].sd_id, "Sensor Characteristics", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+
+        bzero(genBuf, sizeof(genBuf));
+        PTB(getHDFattr(l1file.sd_id, "Data Type", "", (VOIDP) &genBuf));
+        for (i=0; i<num_ofiles; i++)
+            PTB(sd_setattr(ofile[i].sd_id, "Data Type", DFNT_CHAR, strlen((const char *) genBuf)+1, (VOIDP) genBuf));
+
+        int32 l1a_spixl, l1a_dpixl;
+        PTB(getHDFattr(l1file.sd_id, "LAC Pixel Start Number", "", (VOIDP) &l1a_spixl));
+        PTB(getHDFattr(l1file.sd_id, "LAC Pixel Subsampling", "",  (VOIDP) &l1a_dpixl));
+
+        int32 spixl = (l1a_dpixl * spix) + l1a_spixl;
+        int32 dpixl = l1a_dpixl * dpix;
+
+        for (i=0; i<num_ofiles; i++) {
+            PTB(sd_setattr( ofile[i].sd_id, "LAC Pixel Start Number", DFNT_INT32, 1, (VOIDP) &spixl) );
+            PTB(sd_setattr( ofile[i].sd_id, "LAC Pixel Subsampling", DFNT_INT32, 1,  (VOIDP) &dpixl) );
+        }
+
+    }
+
+    /*                                                                  */
+    /* Close all files                                                  */
+    /*                                                                  */
+
+    closel1(&l1file);
+
+    if (input->mode != FORWARD) {
+        closel1(&ofile[0]);
+        /*
+           if (input->mode != INVERSE_ZERO)
+           close_target();
+           */
+    } else
+        for (i=0; i<num_ofiles; i++)
+            closel2(&ofile[i]);
+
+    free_l1(l1rec);
+    free_l2(l2rec);
+    free_l1q();
+    free_deminfo();
+
+    // free structures
+    free(l1rec);
+    free(l2rec);
+    free(tgrec);
+    free(aerec);
+    free(input);
+
+
+    free_l1_n(l1rec_n);
+    free_l2_n(l2rec_n);
+    free_target_n(tgrec_n);
+    free_aer_n(aerec_n);
+    
+    // free structures (n-lines)
+    free(l1rec_n);
+    free(l2rec_n);
+    free(tgrec_n);
+    free(aerec_n);
+    
+
+    printf("\nProcessing Completed\n");
+
+    return(SUCCESS);
+}
 
 
